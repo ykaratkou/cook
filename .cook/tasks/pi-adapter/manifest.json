@@ -18,13 +18,15 @@
       "id": "02-host-neutral-skills",
       "file": "02-host-neutral-skills.md",
       "type": "afk",
-      "status": "open",
+      "status": "done",
       "blocked_by": [
         "01-skills-to-root"
       ],
       "commit_subject": "refactor(pi-adapter): skills name capabilities, hosts supply delivery notes",
       "attempts": 1,
-      "human_completed": false
+      "human_completed": false,
+      "commit_sha": "4cd600794b73f392deb7da94fe47c48ee3856946",
+      "commit_subject_used": "refactor(pi-adapter): skills name capabilities, hosts supply delivery notes"
     },
     {
       "id": "03-extension-subagent",
@@ -33,7 +35,7 @@
       "status": "open",
       "blocked_by": [],
       "commit_subject": "feat(pi-adapter): pi extension with sealed cook_subagent spawn",
-      "attempts": 0,
+      "attempts": 1,
       "human_completed": false
     },
     {

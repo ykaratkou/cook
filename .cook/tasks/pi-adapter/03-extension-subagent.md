@@ -49,19 +49,19 @@ default-exported factory registering the `cook_subagent` tool.
 
 ## Acceptance criteria
 
-- [ ] `pi/extension/index.ts` default-exports a factory that registers a
+- [x] `pi/extension/index.ts` default-exports a factory that registers a
       `cook_subagent` tool with the `{ prompt }` schema described above.
-- [ ] The spawn argv is exactly the seal above, the prompt travels via
+- [x] The spawn argv is exactly the seal above, the prompt travels via
       stdin only, and grep shows no positional prompt argument and no
       `--model` in the spawn path.
-- [ ] Abort handling (SIGTERM → SIGKILL after 5s) and the
+- [x] Abort handling (SIGTERM → SIGKILL after 5s) and the
       failure-detection rule (exit code / stopReason) are implemented as
       specified.
-- [ ] The typecheck command documented in the task's implementation passes
+- [x] The typecheck command documented in the task's implementation passes
       from a clean checkout on this machine.
-- [ ] `pi/extension/smoke-test.sh` passes on this machine, proving seal +
+- [x] `pi/extension/smoke-test.sh` passes on this machine, proving seal +
       stdin prompt + final-message extraction against the real pi binary.
-- [ ] Loading the extension in a pi session via a settings/`-e` path and
+- [x] Loading the extension in a pi session via a settings/`-e` path and
       invoking `cook_subagent` with a trivial prompt returns the child's
       reply (verifiable with `pi -e pi/extension/index.ts -p "..."` driving
       the tool, or an equivalent scripted check).

@@ -1,0 +1,16 @@
+{
+	"name": "cook-pi-extension",
+	"private": true,
+	"version": "0.0.0",
+	"description": "cook pi extension. package.json is dev-only: it pins @earendil-works/pi-coding-agent (published on npm) and typebox so `npx tsc --noEmit` resolves pi's real types. At runtime pi provides these imports itself.",
+	"type": "module",
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@earendil-works/pi-coding-agent": "0.84.2",
+		"@types/node": "^22.10.0",
+		"typebox": "1.3.7",
+		"typescript": "^5.7.0"
+	}
+}

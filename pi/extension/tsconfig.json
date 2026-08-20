@@ -1,0 +1,20 @@
+{
+	// Typecheck mechanism (task 03, item 7): @earendil-works/pi-coding-agent
+	// is published on npm, so pi's real types come from the dev-only
+	// package.json + package-lock.json in this directory — no path mapping
+	// into the local Homebrew install. From a clean checkout:
+	//
+	//   cd pi/extension && npm ci && npx tsc --noEmit
+	"compilerOptions": {
+		"target": "es2022",
+		"lib": ["es2023"],
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"allowImportingTsExtensions": true,
+		"types": ["node"],
+		"strict": true,
+		"noEmit": true,
+		"skipLibCheck": true
+	},
+	"include": ["*.ts"]
+}

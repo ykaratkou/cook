@@ -323,4 +323,5 @@ is MALFORMED and will not drain) unless marked as warnings:
   (human completion), ADR-0190 (turn cap outcome names)
 - Cook divergences recorded here: verify/review defaults on,
   retry_delays default off, remediation_depth default 2, `state.json`
-  replacing pop.db. See `PARITY.md`.
+  replacing pop.db, and non-atomic state writes (pop writes state
+  atomically from Go; ADR-0008). See `PARITY.md`.

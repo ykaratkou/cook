@@ -15,9 +15,9 @@ external tracker.
 - **The format contract** — manifest fields, task-file shape (`## What to
   build`, `## Acceptance criteria` checkboxes), AFK/HITL typing rules — is
   the register skill's contract:
-  `claude-code/skills/register/references/format-contract.md` (a verbatim
-  copy of cook spec `docs/spec/01-storage.md`). It is authoritative; follow
-  it for every file written.
+  `skills/register/references/format-contract.md` (a verbatim copy of cook
+  spec `docs/spec/01-storage.md`). It is authoritative; follow it for every
+  file written.
 - The planning spec is co-located as `spec.md` in the set directory
   (context only for cook's Verifier/Reviewer; the task files' acceptance
   criteria remain authoritative).
@@ -30,6 +30,10 @@ external tracker.
   agent-doable prep belongs in a separate AFK task the HITL task is
   `blocked_by`. Canonical shape: a single terminal HITL sign-off task,
   blocked by every AFK task in the set.
+- Publish each file — `manifest.json`, every task file, `spec.md` — through
+  cook's cook-state read and mutation capability (the host's delivery note
+  names the mechanism), one write per file, rather than generating the set
+  with a script.
 - Publishing here is *drafting*: the set counts as registered only when
   `/cook:register` (or plan's self-validation) derives READY.
 

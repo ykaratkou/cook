@@ -25,7 +25,11 @@ remediation spawns follow it too).
 
 1. Read [references/format-contract.md](references/format-contract.md).
 2. Apply its **Validation rules (register)** section, in order, to the set
-   directory. Collect every fault, not just the first.
+   directory. Collect every fault, not just the first. Every read here —
+   `manifest.json`, each task file, `state.json` — goes through the
+   cook-state read and mutation capability (your host's delivery note names
+   the mechanism); the derivation over what you read is then your own
+   reasoning, not a program you author over the directory.
 3. Classify each fault as the contract does: **errors** make the set
    MALFORMED (it will not drain); the rules marked as warnings warn only
    (unknown manifest keys; a HITL task whose body describes software to

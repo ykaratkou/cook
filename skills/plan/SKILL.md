@@ -54,7 +54,11 @@ fallback the human can always use.
    step: `/cook <set-id>` to drain.
 
 The format contract is authoritative for every file written here — when this
-skill and the contract seem to disagree, the contract wins.
+skill and the contract seem to disagree, the contract wins. Every file the
+plan produces (`manifest.json`, each task file, `spec.md`) is written through
+the cook-state read and mutation capability (your host's delivery note names
+the mechanism), one write per file — not emitted by a program authored to
+generate the set.
 
 ## Sources
 

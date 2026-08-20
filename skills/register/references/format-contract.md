@@ -185,8 +185,7 @@ else writes it.
   compared against the config cap.
 
 Per-task attempt counters live in the manifest (`attempts`), not here, so
-one atomic manifest write carries both a status transition and its
-bookkeeping.
+one manifest write carries both a status transition and its bookkeeping.
 
 ## attempts/
 

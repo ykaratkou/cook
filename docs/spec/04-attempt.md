@@ -102,9 +102,9 @@ passes:
    commit can be re-found by fixed-string search after a rebase changes its
    SHA. A root commit (no parent) records an empty base, and the range
    degrades to the whole history.
-5. **Atomic finalize** — the task's `status: "done"`, its `commit_sha` and
-   `commit_subject_used`, and the reset of transient counters land in one
-   atomic `manifest.json` write (temp + rename); the `progress.txt` `DONE`
+5. **Single-write finalize** — the task's `status: "done"`, its `commit_sha`
+   and `commit_subject_used`, and the reset of transient counters land in one
+   `manifest.json` write (doc 01, Write discipline); the `progress.txt` `DONE`
    block (summary = the SUMMARY text) is appended in the same finalize
    step. A crash between the git commit and the finalize leaves a commit
    whose trailer names a task still `open` — detectable, and repaired by

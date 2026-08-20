@@ -59,7 +59,7 @@ or when the human interrupts (the Interrupt gate, `08-gates.md`).
 
 There is no in-memory state worth recovering. Every loop iteration
 re-derives status from the manifest and sidecar; every completed task is
-already committed and finalized atomically. An interrupted, crashed, or
+already committed and finalized in one write. An interrupted, crashed, or
 wandering drain is resumed by invoking `/cook` again: the new Implement run
 derives the same world and continues where the files say. Implementations
 MUST NOT cache derived status across iterations.

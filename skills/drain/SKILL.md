@@ -32,9 +32,11 @@ source; this skill is its operational rendering.
    no complete, skip, reset, accept, or remediation spawn — except as the
    direct execution of the human's answer to a gate's structured ask
    ([references/gates.md](references/gates.md)).
-4. **Atomic writes.** Every write to `manifest.json`, `state.json`, and
-   `progress.txt` goes to a temporary file in the same directory, then a
-   rename over the target. Where two facts must land together (a task's done
+4. **One write per transition.** Every state change to `manifest.json`,
+   `state.json`, and `progress.txt` lands in a single write through the
+   cook-state read and mutation capability (your host's delivery note names
+   the tools) — never a read-modify-write spread across several calls, never
+   an improvised program. Where two facts must land together (a task's done
    status and its commit SHA), they land in one manifest write.
 5. **Soft enforcement.** Caps (`max_tries`, `remediation_depth`) are checked
    by you **before** each spawn against the counters on disk. You cannot

@@ -21,13 +21,30 @@ keeps that separation because it is a documented, hard-won lesson:
 Test — manifest: is-it-true-now (lookup); journal: what-happened-in-order;
 attempt record: how-one-attempt-ended.
 
-## Atomicity
+## Write discipline
 
-Every write to `manifest.json`, `state.json`, and `progress.txt` MUST be
-atomic: write to a temporary file in the same directory, then rename over
-the target. A reader MUST never observe a half-written file. Where two
-facts must land together (a task's →done status and its commit SHA), they
-live in the same file precisely so one rename carries both.
+Every state change to `manifest.json`, `state.json`, and `progress.txt`
+MUST land in **one write** through the **Cook-state read and mutation**
+capability (`docs/spec/10-hosts.md`; your Host's Delivery note names the
+tools). Never a read-modify-write spread across several calls: one
+transition, one write.
+
+**Facts that must land together land in one write.** A task's →done status
+and its `commit_sha` live in the same file precisely so a single write
+carries both — that is the reason the requirement is expressible at all,
+and the reason pi's `edit`, which takes several disjoint replacements per
+call, matters.
+
+Cook **does not** guarantee crash-atomic writes. Both hosts' file tools
+write in place; neither offers a rename-over-target, so a process killed
+mid-write can leave a torn file. What makes that tolerable is the
+single-writer discipline: the Orchestrator is the only writer of a set's
+files, `drain.lock` is what makes that true, and pi serializes its own file
+mutations. The prior read that both hosts' edit tools require is the
+stale-read guard ground rule 1 already asks for. The trade — a mechanism no
+host can perform, exchanged for a guarantee both can hold — was deliberate;
+see `docs/adr/0008-cook-state-uses-the-host-file-mutation-capability.md`
+(ADR-0008).
 
 <!-- format-contract-begin -->
 
@@ -212,8 +229,7 @@ else writes it.
   compared against the config cap.
 
 Per-task attempt counters live in the manifest (`attempts`), not here, so
-one atomic manifest write carries both a status transition and its
-bookkeeping.
+one manifest write carries both a status transition and its bookkeeping.
 
 ## attempts/
 

@@ -32,11 +32,13 @@
       "id": "03-extension-subagent",
       "file": "03-extension-subagent.md",
       "type": "afk",
-      "status": "open",
+      "status": "done",
       "blocked_by": [],
       "commit_subject": "feat(pi-adapter): pi extension with sealed cook_subagent spawn",
       "attempts": 1,
-      "human_completed": false
+      "human_completed": false,
+      "commit_sha": "fdf7da8ba48d3cd88a97f9afd5cabce977aa8957",
+      "commit_subject_used": "feat(pi-adapter): pi extension with sealed cook_subagent spawn"
     },
     {
       "id": "04-extension-gates-commands",
@@ -48,7 +50,7 @@
         "03-extension-subagent"
       ],
       "commit_subject": "feat(pi-adapter): cook_gate tool and namespaced cook commands",
-      "attempts": 0,
+      "attempts": 1,
       "human_completed": false
     },
     {

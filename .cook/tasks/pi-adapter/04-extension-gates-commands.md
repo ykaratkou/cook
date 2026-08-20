@@ -43,17 +43,17 @@ Extend `pi/extension/index.ts` with the gate tool and the command surface.
 
 ## Acceptance criteria
 
-- [ ] `cook_gate` is registered with the parameter shape above; `select`,
+- [x] `cook_gate` is registered with the parameter shape above; `select`,
       `confirm`, and `input` each round-trip a real answer in an attended
       pi session.
-- [ ] With no UI (`pi --mode json` or `-p`), `cook_gate` returns the
+- [x] With no UI (`pi --mode json` or `-p`), `cook_gate` returns the
       attended-only error result — verified by a scripted headless
       invocation; no defaulted answer is possible.
-- [ ] All six cook verbs appear in pi's command list and dispatch; the
+- [x] All six cook verbs appear in pi's command list and dispatch; the
       chosen names (colon or recorded fallback) are stated in the task's
       summary.
-- [ ] Invoking `/cook:status` in a pi session in this repo injects the
+- [x] Invoking `/cook:status` in a pi session in this repo injects the
       status instruction set with runtime-resolved absolute paths (prompts
       dir, skills dir) visible in the injected message — no baked paths
       anywhere in `pi/extension/`.
-- [ ] The typecheck from task 03 still passes over the grown extension.
+- [x] The typecheck from task 03 still passes over the grown extension.

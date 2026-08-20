@@ -47,9 +47,22 @@
  *   absolute path, the user's arguments, and a trailer with the resolved
  *   prompts dir, skills dir, and pi delivery note. All paths derive from
  *   `import.meta.url` at invocation — nothing is baked at authoring time.
+ *
+ * Third slice — agent_settled drain-loop hardening (optional; correctness
+ * never depends on it — `docs/spec/10-hosts.md` loop-hardening row).
+ * Mirrors `claude-code/hooks/stop-drain-guard.sh`: when the agent settles
+ * while a fresh `drain.lock` (mtime within 10 minutes) exists at
+ * `.cook/tasks/*\/drain.lock` under the session cwd, re-inject the
+ * continue-the-drain instruction via `pi.sendUserMessage`. Bounded like
+ * `stop_hook_active`: never inject twice in a row — the flag re-arms only
+ * on genuine user input (the `input` event with a non-"extension" source),
+ * so a wandering drain becomes the human's `/cook:drain` re-entry, by
+ * design. Never fires while a `cook_gate` dialog is pending or the agent
+ * is not idle (`ctx.isIdle()` guard).
  */
 
 import { spawn } from "node:child_process";
+import { readdirSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -398,7 +411,85 @@ const COOK_COMMANDS: CookCommandSpec[] = [
 	},
 ];
 
+// ---------------------------------------------------------------------------
+// agent_settled drain-loop hardening — helpers.
+// Optional; correctness never depends on it (spec 10-hosts). The scan and
+// the instruction text mirror claude-code/hooks/stop-drain-guard.sh.
+// ---------------------------------------------------------------------------
+
+/** A drain.lock is "fresh" within this window (the hook's `-mmin -10`). */
+const DRAIN_LOCK_FRESH_MS = 10 * 60 * 1000;
+
+interface FreshDrainLock {
+	lockPath: string;
+	setId: string;
+}
+
+/**
+ * First fresh `drain.lock` at `.cook/tasks/<set>/drain.lock` under `cwd`
+ * (mtime within 10 minutes), or undefined. Directory order is sorted for
+ * determinism; missing dirs/locks are simply "no lock".
+ */
+function findFreshDrainLock(cwd: string): FreshDrainLock | undefined {
+	const tasksDir = join(cwd, ".cook", "tasks");
+	let entries: string[];
+	try {
+		entries = readdirSync(tasksDir).sort();
+	} catch {
+		return undefined; // no .cook/tasks under this cwd
+	}
+	for (const setId of entries) {
+		const lockPath = join(tasksDir, setId, "drain.lock");
+		try {
+			if (Date.now() - statSync(lockPath).mtimeMs < DRAIN_LOCK_FRESH_MS) {
+				return { lockPath, setId };
+			}
+		} catch {
+			// this set holds no lock (or the entry is not a set dir)
+		}
+	}
+	return undefined;
+}
+
+/** The continue-the-drain instruction, adapted verbatim from the stop hook. */
+function drainContinueMessage(lock: FreshDrainLock): string {
+	return [
+		`A fresh drain lock exists at ${lock.lockPath} (set: ${lock.setId}), so a cook drain`,
+		"appears to be mid-flight. If you are the drain orchestrator of this set:",
+		"continue the drain loop — re-derive the set's status from its files and run",
+		"the next iteration; do not end your turn while the set derives READY and no",
+		"gate is open. If you are NOT the orchestrator (another session holds this",
+		"lock), say so briefly and end your turn; do not touch the lock.",
+	].join("\n");
+}
+
 export default function cookExtension(pi: ExtensionAPI): void {
+	// agent_settled drain-loop hardening state (see header, third slice).
+	// `drainNudgeSent` mirrors the stop hook's `stop_hook_active` bound:
+	// once a settle has injected the continue instruction, later settles
+	// pass until genuine user input re-arms it — never inject twice in a
+	// row. `gateDialogsPending` counts open cook_gate dialogs; the
+	// hardening never fires while one is awaiting the human.
+	let drainNudgeSent = false;
+	let gateDialogsPending = 0;
+
+	pi.on("input", async (event) => {
+		// Genuine user input re-arms the hardening. Our own injected
+		// message arrives here too (source "extension") and must not.
+		if (event.source !== "extension") drainNudgeSent = false;
+		return { action: "continue" };
+	});
+
+	pi.on("agent_settled", async (_event, ctx) => {
+		if (!ctx.isIdle()) return; // another extension already started a new run
+		if (gateDialogsPending > 0) return; // a cook_gate dialog is pending
+		if (drainNudgeSent) return; // bounded: the human re-enters via /cook:drain
+		const lock = findFreshDrainLock(ctx.cwd);
+		if (!lock) return; // no fresh drain.lock — nothing mid-flight
+		drainNudgeSent = true;
+		pi.sendUserMessage(drainContinueMessage(lock));
+	});
+
 	pi.registerTool({
 		name: "cook_subagent",
 		label: "Cook subagent",
@@ -494,29 +585,36 @@ export default function cookExtension(pi: ExtensionAPI): void {
 				);
 			}
 
-			switch (params.kind) {
-				case "select": {
-					const options = params.options ?? [];
-					if (options.length === 0) {
-						throw new Error('cook_gate: kind "select" requires a non-empty options array.');
+			// While the dialog awaits the human, the agent_settled hardening
+			// must stay silent (see header, third slice).
+			gateDialogsPending += 1;
+			try {
+				switch (params.kind) {
+					case "select": {
+						const options = params.options ?? [];
+						if (options.length === 0) {
+							throw new Error('cook_gate: kind "select" requires a non-empty options array.');
+						}
+						const answer = await ctx.ui.select(params.title, [...options]);
+						if (answer === undefined) {
+							throw new Error("cook_gate: dismissed — re-ask or park; not an answer.");
+						}
+						return { content: [{ type: "text", text: answer }], details: { kind: params.kind } };
 					}
-					const answer = await ctx.ui.select(params.title, [...options]);
-					if (answer === undefined) {
-						throw new Error("cook_gate: dismissed — re-ask or park; not an answer.");
+					case "confirm": {
+						const confirmed = await ctx.ui.confirm(params.title, params.message ?? "");
+						return { content: [{ type: "text", text: confirmed ? "yes" : "no" }], details: { kind: params.kind } };
 					}
-					return { content: [{ type: "text", text: answer }], details: { kind: params.kind } };
-				}
-				case "confirm": {
-					const confirmed = await ctx.ui.confirm(params.title, params.message ?? "");
-					return { content: [{ type: "text", text: confirmed ? "yes" : "no" }], details: { kind: params.kind } };
-				}
-				case "input": {
-					const answer = await ctx.ui.input(params.title, params.placeholder);
-					if (answer === undefined) {
-						throw new Error("cook_gate: dismissed — re-ask or park; not an answer.");
+					case "input": {
+						const answer = await ctx.ui.input(params.title, params.placeholder);
+						if (answer === undefined) {
+							throw new Error("cook_gate: dismissed — re-ask or park; not an answer.");
+						}
+						return { content: [{ type: "text", text: answer }], details: { kind: params.kind } };
 					}
-					return { content: [{ type: "text", text: answer }], details: { kind: params.kind } };
 				}
+			} finally {
+				gateDialogsPending -= 1;
 			}
 		},
 	});

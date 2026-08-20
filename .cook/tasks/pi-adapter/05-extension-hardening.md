@@ -33,12 +33,12 @@ this.
 
 ## Acceptance criteria
 
-- [ ] With a fresh `drain.lock` present and the agent settling, exactly one
+- [x] With a fresh `drain.lock` present and the agent settling, exactly one
       continue-the-drain user message is injected; a second consecutive
       settle without intervening user input injects nothing.
-- [ ] With no lock, a stale lock (older than 10 minutes), or a pending gate
+- [x] With no lock, a stale lock (older than 10 minutes), or a pending gate
       dialog, settling injects nothing.
-- [ ] The injected text carries the lock path and set id and matches the
+- [x] The injected text carries the lock path and set id and matches the
       stop hook's instruction semantics (continue if orchestrator; step
       aside if not; never touch the lock).
-- [ ] The typecheck from task 03 still passes over the grown extension.
+- [x] The typecheck from task 03 still passes over the grown extension.

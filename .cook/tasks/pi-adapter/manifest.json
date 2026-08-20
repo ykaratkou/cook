@@ -44,14 +44,16 @@
       "id": "04-extension-gates-commands",
       "file": "04-extension-gates-commands.md",
       "type": "afk",
-      "status": "open",
+      "status": "done",
       "blocked_by": [
         "02-host-neutral-skills",
         "03-extension-subagent"
       ],
       "commit_subject": "feat(pi-adapter): cook_gate tool and namespaced cook commands",
       "attempts": 1,
-      "human_completed": false
+      "human_completed": false,
+      "commit_sha": "e13c57fa915cd3d6ddcb8f56dd81a0d8bca2017a",
+      "commit_subject_used": "feat(pi-adapter): cook_gate tool and namespaced cook commands"
     },
     {
       "id": "05-extension-hardening",
@@ -62,7 +64,7 @@
         "03-extension-subagent"
       ],
       "commit_subject": "feat(pi-adapter): agent_settled drain-loop hardening",
-      "attempts": 0,
+      "attempts": 1,
       "human_completed": false
     },
     {

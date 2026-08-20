@@ -220,6 +220,14 @@ asking) and which it is Blind to (Turn cap, timeout kill), pop-style: an
 incapacity is declared, never papered over.
 _Avoid_: platform, runtime
 
+**Delivery note**:
+A per-host reference file inside a skill's references, mapping each
+capability the skill names (fresh-context subagent spawn, structured gate
+ask, the shared prompts path) to that Host's concrete mechanism. Skills name
+capabilities only; the delivery note is the single place host-specific
+mechanics may appear in skill text.
+_Avoid_: host section, host mapping, platform notes
+
 **Companion skills**:
 Skills cook requires but does not ship — grill-with-docs, to-spec, to-tickets —
 orchestrated by the plan verb. A machine without them can still author sets by

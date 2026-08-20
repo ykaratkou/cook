@@ -1,0 +1,92 @@
+{
+  "id": "pi-adapter",
+  "priority": 0,
+  "tasks": [
+    {
+      "id": "01-skills-to-root",
+      "file": "01-skills-to-root.md",
+      "type": "afk",
+      "status": "open",
+      "blocked_by": [],
+      "commit_subject": "refactor(pi-adapter): move shared skills to repo root with host symlinks",
+      "attempts": 1,
+      "human_completed": false
+    },
+    {
+      "id": "02-host-neutral-skills",
+      "file": "02-host-neutral-skills.md",
+      "type": "afk",
+      "status": "open",
+      "blocked_by": [
+        "01-skills-to-root"
+      ],
+      "commit_subject": "refactor(pi-adapter): skills name capabilities, hosts supply delivery notes",
+      "attempts": 0,
+      "human_completed": false
+    },
+    {
+      "id": "03-extension-subagent",
+      "file": "03-extension-subagent.md",
+      "type": "afk",
+      "status": "open",
+      "blocked_by": [],
+      "commit_subject": "feat(pi-adapter): pi extension with sealed cook_subagent spawn",
+      "attempts": 0,
+      "human_completed": false
+    },
+    {
+      "id": "04-extension-gates-commands",
+      "file": "04-extension-gates-commands.md",
+      "type": "afk",
+      "status": "open",
+      "blocked_by": [
+        "02-host-neutral-skills",
+        "03-extension-subagent"
+      ],
+      "commit_subject": "feat(pi-adapter): cook_gate tool and namespaced cook commands",
+      "attempts": 0,
+      "human_completed": false
+    },
+    {
+      "id": "05-extension-hardening",
+      "file": "05-extension-hardening.md",
+      "type": "afk",
+      "status": "open",
+      "blocked_by": [
+        "03-extension-subagent"
+      ],
+      "commit_subject": "feat(pi-adapter): agent_settled drain-loop hardening",
+      "attempts": 0,
+      "human_completed": false
+    },
+    {
+      "id": "06-docs-ledger-sync",
+      "file": "06-docs-ledger-sync.md",
+      "type": "afk",
+      "status": "open",
+      "blocked_by": [
+        "04-extension-gates-commands",
+        "05-extension-hardening"
+      ],
+      "commit_subject": "docs(pi-adapter): sync spec, parity ledger, and pi install README",
+      "attempts": 0,
+      "human_completed": false
+    },
+    {
+      "id": "07-signoff",
+      "file": "07-signoff.md",
+      "type": "hitl",
+      "status": "open",
+      "blocked_by": [
+        "01-skills-to-root",
+        "02-host-neutral-skills",
+        "03-extension-subagent",
+        "04-extension-gates-commands",
+        "05-extension-hardening",
+        "06-docs-ledger-sync"
+      ],
+      "attempts": 0,
+      "human_completed": false
+    }
+  ]
+}

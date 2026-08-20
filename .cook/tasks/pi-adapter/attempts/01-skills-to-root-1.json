@@ -1,8 +1,0 @@
-{
-  "task_id": "01-skills-to-root",
-  "ordinal": 1,
-  "outcome": "completed",
-  "failure_reason": "",
-  "summary_tail": "Moved the shared skills tree to the repo root and wired both hosts through relative symlinks: git mv claude-code/skills skills (all 12 files, pure renames, zero content changes); created claude-code/skills -> ../skills; created pi/ with pi/skills -> ../skills and pi/prompts -> ../prompts; verified every repo file mentioning claude-code/skills/... still resolves through the symlink; ticked all four acceptance boxes. Note: CONTEXT.md modified in git status but not touched by this task.",
-  "at": "2026-08-20T14:31:41Z"
-}

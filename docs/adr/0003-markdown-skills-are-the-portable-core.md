@@ -5,6 +5,14 @@ date: 2026-08-20
 
 # Markdown skills are the portable core
 
+> **Superseded on one point** (2026-08-20, by ADR-0007): the command-surface
+> paragraph below — "`/cook` resolves unnamespaced on both hosts" — no longer
+> holds. Claude Code plugins cannot claim a bare name, and pi's commands are
+> extension-registered rather than filename-named prompt templates; both
+> hosts ship the identical namespaced verb set (`/cook:drain`, `/cook:plan`,
+> `/cook:register`, `/cook:status`, `/cook:verify`, `/cook:review`) and no
+> bare `/cook`. The rest of this ADR stands.
+
 Both target hosts implement the agentskills.io standard — Claude Code
 natively, and pi-coding-agent (verified against v0.84.2 and its shipped docs)
 discovers `SKILL.md` packages from `.agents/skills/` and even reuses

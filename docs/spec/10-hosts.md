@@ -13,11 +13,11 @@ so a human can see what the host would need.
 | Capability | claude-code | pi (v0.84.2) |
 |---|---|---|
 | Markdown skills (agentskills standard) | **Supported** — `.claude/skills/`, plugin skills | **Supported** — native; reads `.agents/skills/`, `.pi/skills/`, and can be pointed at `~/.claude/skills` |
-| Slash command mapping | **Supported** — plugin commands; `/cook` resolves without namespace when unambiguous | **Supported** — prompt templates (`.pi/prompts/*.md`, filename = command) and skills as `/skill:name` |
-| Fresh-context subagent spawn | **Supported** — built-in Agent tool | **Supported via adapter** — no built-in subagent (deliberate); cook ships one TS extension wrapping pi's first-party subagent pattern: spawn `pi --mode json -p "<prompt>"` as a child process |
+| Slash command mapping | **Supported** — plugin commands, always namespaced: `/cook:drain`, `/cook:plan`, … | **Supported** — extension-registered commands (`pi.registerCommand`), namespaced identically to claude-code: `/cook:drain`, `/cook:plan`, … (ADR-0007; hyphen names are the recorded fallback if colons ever fail) |
+| Fresh-context subagent spawn | **Supported** — built-in Agent tool | **Supported via adapter** — no built-in subagent (deliberate); cook ships one TS extension wrapping pi's first-party subagent pattern: the `cook_subagent` tool spawns `pi --mode json -p` as a child process, prompt delivered on stdin |
 | Subagent output capture | **Supported** — the subagent's final message is the Agent tool's return value | **Supported via adapter** — parse the child's `--mode json` JSONL stream; the final assistant message is the attempt output |
-| Headless child sealing | n/a (in-process subagent) | **Supported** — child runs with `--no-session --no-extensions --no-skills --no-context-files` and a `--tools` allowlist, so the attempt sees only cook's prompt and the repo |
-| Structured mid-session ask (gates) | **Supported** — AskUserQuestion | **Supported** — `ctx.ui.select` / `ctx.ui.confirm` / `ctx.ui.input` from the extension |
+| Headless child sealing | n/a (in-process subagent) | **Supported** — child runs with `--no-session --no-extensions --no-skills --no-context-files --no-prompt-templates` and a `--tools` allowlist, so the attempt sees only cook's prompt and the repo; the prompt travels via stdin, never argv |
+| Structured mid-session ask (gates) | **Supported** — AskUserQuestion | **Supported** — the `cook_gate` tool over `ctx.ui.select` / `ctx.ui.confirm` / `ctx.ui.input`; errors (never defaults) when the session has no UI |
 | Turn cap enforcement | **Blind** — the Agent tool exposes no per-spawn turn bound | **Blind** — no CLI turn cap on the child; the digest's turn-cap lesson (doc 05) stays dormant on both |
 | Timeout kill | **Blind** — no way to bound or kill a running subagent | **Blind in v1, Supported-capable** — the spawning extension owns the child process and *could* kill it on a timer; declared Blind for v1 symmetry with claude-code. Revisit: this is the first capability pi can enforce that claude-code cannot |
 | Loop-hardening hook (optional) | **Supported** — a stop hook can re-inject "continue the drain" when the orchestrator ends its turn with the set non-terminal | **Supported** — `agent_settled` event + `pi.sendUserMessage()`; purpose-built for exactly this |
@@ -41,22 +41,26 @@ occasionally types `/cook` again.
 ```
 cook/
 ├── prompts/            ← shared, single copy (doc 09's files)
+├── skills/             ← shared, single copy: the drain orchestration skill
+│                         + authoring contract (agentskills standard)
 ├── docs/               ← this spec set
 ├── claude-code/        ← the Claude Code plugin
-│   ├── commands/       ← /cook, /cook:plan, /cook:register, /cook:status,
-│   │                     /cook:verify, /cook:review
-│   ├── skills/         ← the drain orchestration skill + authoring contract
+│   ├── commands/       ← /cook:drain, /cook:plan, /cook:register,
+│   │                     /cook:status, /cook:verify, /cook:review
+│   ├── skills/         → symlink to ../skills
 │   └── hooks/          ← optional stop-hook hardening
 └── pi/                 ← the pi adapter
-    ├── extension/      ← one TS extension: subagent spawn + sealing +
-    │                     ctx.ui gate asks + optional agent_settled hardening
-    ├── prompts/        → symlink or build-copy of ../prompts
-    └── skills/         ← the same skill files (agentskills standard)
+    ├── extension/      ← one TS extension: cook_subagent (sealed spawn) +
+    │                     cook_gate (ctx.ui asks) + the six commands +
+    │                     optional agent_settled hardening
+    ├── prompts/        → symlink to ../prompts
+    └── skills/         → symlink to ../skills
 ```
 
-The prompts directory is **shared, never duplicated per host**: a pop prompt
-port lands once. Skills are likewise shared text; only the command wiring and
-the pi extension differ.
+The prompts and skills directories are **shared, never duplicated per host**:
+a pop prompt port lands once, and both hosts reach the one `skills/` copy
+through relative symlinks. Only the command wiring and the pi extension
+differ.
 
 ### claude-code specifics
 
@@ -64,8 +68,8 @@ the pi extension differ.
   the task text; the return value is parsed for sentinels / VERDICT / the
   review document.
 - Gates: AskUserQuestion with the gate's allowed outcomes (doc 08).
-- The plugin's drain skill is the orchestrator instruction set; the bare
-  `/cook` command invokes it.
+- The plugin's drain skill is the orchestrator instruction set; the
+  `/cook:drain` command invokes it.
 - The **plugin root is the repo root** (`.claude-plugin/plugin.json` at the
   top, pointing `commands` and `hooks` into `claude-code/`): plugin paths
   cannot reach outside the plugin root after installation, and rooting at
@@ -77,8 +81,9 @@ the pi extension differ.
   (`commands/drain.md`), accepted as the surface (user decision,
   2026-08-20). A personal command at `~/.claude/commands/cook.md` loading
   the drain skill would restore the bare verb if ever wanted.
-- The skill files under `claude-code/skills/` are deliberately **not
-  registered** as plugin skills: commands and skills share one namespace in
+- The skill files under `claude-code/skills/` (a relative symlink to the
+  shared root `skills/`) are deliberately **not registered** as plugin
+  skills: commands and skills share one namespace in
   current Claude Code (registering both would collide `plan`/`register`),
   and the drain/plan/register instruction sets must never fire on the
   model's own initiative. The commands load them by path; the files keep the
@@ -86,12 +91,24 @@ the pi extension differ.
 
 ### pi specifics
 
-- Cook's one TS extension registers: the subagent-spawn tool (child `pi`
-  processes, sealed as above, JSONL-parsed), the gate ask commands over
-  `ctx.ui`, and optionally the `agent_settled` hardening. It follows pi's
-  shipped first-party subagent example (`examples/extensions/subagent/`); the
-  published `pi-subagents` package is the same pattern.
-- Commands: prompt templates named for the cook verbs.
+- Cook's one TS extension (`pi/extension/index.ts`) registers two tools:
+  **`cook_subagent`** (child `pi` processes, sealed as above, prompt on
+  stdin, JSONL-parsed — the final assistant message is the result) and
+  **`cook_gate`** (the gate ask over `ctx.ui`; an error when the session
+  has no UI, so headless runs park instead of defaulting), plus optionally
+  the `agent_settled` hardening. It follows pi's shipped first-party
+  subagent example (`examples/extensions/subagent/`); the published
+  `pi-subagents` package is the same pattern.
+- Commands are **extension-registered** (`pi.registerCommand`), the same
+  namespaced verb set as claude-code: `/cook:drain`, `/cook:plan`,
+  `/cook:register`, `/cook:status`, `/cook:verify`, `/cook:review`
+  (ADR-0007). Each handler resolves the skill file, the shared prompts
+  dir, and the skills dir from the extension's own location
+  (`import.meta.url`) at invocation and injects those absolute paths into
+  the user message — no path is ever baked into shipped text.
+- Per-host delivery notes map each capability the skills name to its
+  mechanism (ADR-0006): `skills/drain/references/host-pi.md` for this
+  host, `skills/drain/references/host-claude-code.md` for the other.
 - Everything else — skills, prompts, storage, flows — is the shared core.
 
 ## Companion skills for `/cook:plan`

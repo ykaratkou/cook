@@ -59,13 +59,15 @@
       "id": "05-extension-hardening",
       "file": "05-extension-hardening.md",
       "type": "afk",
-      "status": "open",
+      "status": "done",
       "blocked_by": [
         "03-extension-subagent"
       ],
       "commit_subject": "feat(pi-adapter): agent_settled drain-loop hardening",
       "attempts": 1,
-      "human_completed": false
+      "human_completed": false,
+      "commit_sha": "a5d0771390b8f9cdf0c15288abeedffff6e3881b",
+      "commit_subject_used": "feat(pi-adapter): agent_settled drain-loop hardening"
     },
     {
       "id": "06-docs-ledger-sync",
@@ -77,7 +79,7 @@
         "05-extension-hardening"
       ],
       "commit_subject": "docs(pi-adapter): sync spec, parity ledger, and pi install README",
-      "attempts": 0,
+      "attempts": 1,
       "human_completed": false
     },
     {

@@ -99,8 +99,9 @@ Run at the end of every porting session:
 - [ ] The storage-format text inside the plan and register skills is a
       **verbatim copy** of the contract section of `docs/spec/01-storage.md`.
       The copy is shared: it lives at
-      `claude-code/skills/register/references/format-contract.md` (below its
-      header), and the plan skill reads that same file.
+      `skills/register/references/format-contract.md` (below its header, in
+      the root `skills/` directory both hosts symlink), and the plan skill
+      reads that same file.
       (Pop generates its authoring guide from validator constants; cook cannot
       generate, so this manual check is the honest substitute. If drift ever
       bites, a generator script is the v2 answer.)

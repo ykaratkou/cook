@@ -50,13 +50,13 @@ spec set finds no statement the implementation contradicts.
 
 ## Acceptance criteria
 
-- [ ] `docs/spec/10-hosts.md` describes the shipped pi adapter accurately:
+- [x] `docs/spec/10-hosts.md` describes the shipped pi adapter accurately:
       extension-registered namespaced commands, the two tool names, the
       stdin-prompt seal including `--no-prompt-templates`, the root
       `skills/` layout, and timeout kill still Blind.
-- [ ] ADR-0003 carries the supersession note pointing at ADR-0007.
-- [ ] `PARITY.md`'s drift-guard names the new format-contract path, and
+- [x] ADR-0003 carries the supersession note pointing at ADR-0007.
+- [x] `PARITY.md`'s drift-guard names the new format-contract path, and
       `grep -rn "claude-code/skills" docs/ PARITY.md` returns only hits
       that are correct as written.
-- [ ] `pi/README.md` exists with copy-pasteable settings entries for both
+- [x] `pi/README.md` exists with copy-pasteable settings entries for both
       global and project install and the smoke-test command.

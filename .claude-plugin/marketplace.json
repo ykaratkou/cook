@@ -1,0 +1,14 @@
+{
+  "name": "cook",
+  "description": "Cook: an in-agent port of pop's task-set implement feature (drain, verify, review, gates).",
+  "owner": {
+    "name": "Yauhen Karatkou"
+  },
+  "plugins": [
+    {
+      "name": "cook",
+      "source": "./",
+      "description": "In-agent port of pop's task-set implement feature."
+    }
+  ]
+}

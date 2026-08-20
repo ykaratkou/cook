@@ -81,7 +81,9 @@ passes:
    made, no commit fields recorded.
 3. **The commit** — `git add -A` (under the `continue` dirty strategy this
    deliberately sweeps pre-existing dirty state in with the agent's work),
-   then one commit with three `-m` paragraphs:
+   then unstage the set's `drain.lock` when present — cook's transient lock
+   is orchestration state, never part of an implementation commit. Then one
+   commit with three `-m` paragraphs:
    - **Subject**: the task's `commit_subject` from the manifest, used
      verbatim, when present (a *planned* subject); else the default format
      `cook(<set-id>): <task-id>`.

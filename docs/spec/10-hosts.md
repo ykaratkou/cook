@@ -67,12 +67,22 @@ the pi extension differ.
 - The plugin's drain skill is the orchestrator instruction set; the bare
   `/cook` command invokes it.
 - The **plugin root is the repo root** (`.claude-plugin/plugin.json` at the
-  top, pointing `commands`/`skills`/`hooks` into `claude-code/`): plugin
-  paths cannot reach outside the plugin root after installation, and rooting
-  at the repo keeps `prompts/` a single shared copy
-  (`${CLAUDE_PLUGIN_ROOT}/prompts`). Plugin commands are namespaced
-  (`/cook:plan`); the drain command file is `commands/cook.md`, whose
-  canonical form is `/cook:cook` and whose bare-name resolution is `/cook`.
+  top, pointing `commands` and `hooks` into `claude-code/`): plugin paths
+  cannot reach outside the plugin root after installation, and rooting at
+  the repo keeps `prompts/` a single shared copy
+  (`${CLAUDE_PLUGIN_ROOT}/prompts`). Plugin commands are always namespaced
+  (`/cook:plan`) — a plugin cannot claim a bare name, and bare names do not
+  resolve to plugin commands. The spec'd bare `/cook` is therefore not
+  available on this host; the drain verb ships as `/cook:drain`
+  (`commands/drain.md`), accepted as the surface (user decision,
+  2026-08-20). A personal command at `~/.claude/commands/cook.md` loading
+  the drain skill would restore the bare verb if ever wanted.
+- The skill files under `claude-code/skills/` are deliberately **not
+  registered** as plugin skills: commands and skills share one namespace in
+  current Claude Code (registering both would collide `plan`/`register`),
+  and the drain/plan/register instruction sets must never fire on the
+  model's own initiative. The commands load them by path; the files keep the
+  agentskills SKILL.md shape as the portable core for pi.
 
 ### pi specifics
 

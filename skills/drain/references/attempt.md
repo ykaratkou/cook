@@ -5,8 +5,10 @@
 1. Check the retry cap (`retry.md`): the task's manifest `attempts` counter
    must be below `max_tries`.
 2. **Persist the counter first**: increment the task's `attempts` in
-   `manifest.json` (atomic write) **before** the spawn. The counter on disk
-   is the enforcement — a re-entered drain resumes it, never resets it.
+   `manifest.json` **before** the spawn — one write through the cook-state
+   read and mutation capability (ground rule 4; your host's delivery note
+   names the mechanism). The counter on disk is the enforcement — a
+   re-entered drain resumes it, never resets it.
 3. Render the implementer prompt (`prompts/implementer.md`) with:
    - `{{task_path}}` — the task's markdown file
    - `{{manifest_path}}` — the set's `manifest.json`
@@ -70,10 +72,11 @@ failed.
 
 Immediately after assessment (or after observing a crash/interrupt), write
 the slim attempt record to `attempts/<task-id>-<ordinal>.json` — **whatever
-the outcome, successes included**. Do this *now*, before the commit and
-finalize steps: the record is the retry digest's only substrate, and a
-successful attempt's record still matters (a later reopen re-runs the task
-with its history). The format is below.
+the outcome, successes included**. The record is a file you create whole
+through the cook-state read and mutation capability. Do this *now*, before
+the commit and finalize steps: the record is the retry digest's only
+substrate, and a successful attempt's record still matters (a later reopen
+re-runs the task with its history). The format is below.
 
 ## The implementation commit — five steps, in order
 
@@ -104,18 +107,23 @@ The subagent never commits; you do, after assessment passes:
    verbatim (`commit_subject_used`) so the commit can be re-found by
    fixed-string search after a rebase. A root commit (no parent) records an
    empty base; the range degrades to the whole history.
-5. **Atomic finalize** — the task's `status: "done"`, its `commit_sha` and
-   `commit_subject_used`, and the reset of transient counters land in one
-   atomic `manifest.json` write; append the `progress.txt` `DONE` block
-   (summary = the SUMMARY text) in the same finalize step. A crash between
-   the git commit and the finalize leaves a commit whose trailer names a task
-   still `open` — repaired by re-running the task (its next attempt starts
-   from a checkout where the work already exists and completes as a No-Op or
-   a trivial delta).
+5. **Finalize** — the task's `status: "done"`, its `commit_sha` and
+   `commit_subject_used`, and the reset of transient counters land in **one**
+   `manifest.json` write through the cook-state read and mutation capability:
+   the done status and the `commit_sha` must land **together**, in that one
+   write, never as separate calls (ground rule 4 — your host's delivery note
+   names the mechanism that carries several replacements at once). Then
+   append the `progress.txt` `DONE` block (summary = the SUMMARY text) — one
+   further write through the same capability — in the same finalize step. A
+   crash between the git commit and the finalize leaves a commit whose trailer
+   names a task still `open` — repaired by re-running the task (its next
+   attempt starts from a checkout where the work already exists and completes
+   as a No-Op or a trivial delta).
 
 The failure path mirrors it: on retry exhaustion the task goes
-`status: "failed"` with its attempt count in the manifest, and a `FAILED`
-block (summary = the final failure reason) is appended to `progress.txt`.
+`status: "failed"` with its attempt count in the manifest — one write, both
+facts together — and a `FAILED` block (summary = the final failure reason) is
+appended to `progress.txt` through the same capability.
 
 ## The slim attempt record
 
@@ -153,6 +161,11 @@ Append-only, one block per terminal transition:
 Outcome markers: `DONE`, `FAILED`, `COMPLETE` (human completed by hand),
 `RESET` (human reopened), `SKIP` (human skipped). Set-level events use the
 literal task-file `set`.
+
+The journal is append-only: each block lands as one write through the
+cook-state read and mutation capability, appended rather than rewritten. Its
+timestamp — and the `at` in an attempt record — comes from the RFC3339 UTC
+timestamps capability.
 
 ## Sources
 

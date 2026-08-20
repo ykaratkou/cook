@@ -22,7 +22,12 @@ Opening a gate, in order:
    the prompt is your assistance charter — but the disposition happens only
    through the answer.
 4. **Execute the chosen outcome's file writes** as the direct execution of
-   that answer, then continue or exit per the outcome.
+   that answer, then continue or exit per the outcome. Every write below goes
+   through the cook-state read and mutation capability under ground rule 4:
+   one write per transition, and the facts an outcome changes together — a
+   status and the flag or counter that accompanies it — land in that one
+   write. Journal blocks and any timestamp an outcome records take their time
+   from the RFC3339 UTC timestamps capability.
 
 ## Rules common to every gate
 
@@ -55,11 +60,12 @@ completed-AFK-work summaries from `progress.txt`; the review pointer (never
 the body).
 
 **Outcomes**:
-- **complete** — the task transitions to done (`COMPLETE` journal block,
-  `human_completed: true` on the task). If it was the last open task, the
-  set is DONE.
-- **defer** (skip) — the task goes `skipped` (`SKIP` journal block);
-  downstream `blocked_by` dependents unblock; the set derives DEFERRED.
+- **complete** — the task transitions to done with
+  `human_completed: true` on the task, both in one manifest write, then a
+  `COMPLETE` journal block. If it was the last open task, the set is DONE.
+- **defer** (skip) — the task goes `skipped` in one manifest write, then a
+  `SKIP` journal block; downstream `blocked_by` dependents unblock; the set
+  derives DEFERRED.
 - **edit and rerun** — the human (with you drafting) edits tasks or
   implementation state, then re-invokes `/cook` on the set.
 - **exit** — leave the task open, no disposition.
@@ -75,12 +81,12 @@ listing; the review pointer when one exists.
 **Outcomes** (the only two, plus exit):
 - **re-run** — help the human fix the underlying problem (repair the
   checkout, sharpen the task body); then reopen the task: status back to
-  `open`, `attempts` reset to 0, and a **RESET marker** written to the
-  journal with a timestamp — the cut the retry digest scopes to. The human
-  then re-invokes `/cook` to retry AFK.
+  `open` and `attempts` reset to 0 in one manifest write, and a **RESET
+  marker** appended to the journal with a timestamp — the cut the retry
+  digest scopes to. The human then re-invokes `/cook` to retry AFK.
 - **complete by hand** — the human finishes the work directly; mark the task
-  done with `human_completed: true` (`COMPLETE` journal block). The
-  suspension rule in `verify.md` applies to it.
+  done with `human_completed: true` in one manifest write, then a `COMPLETE`
+  journal block. The suspension rule in `verify.md` applies to it.
 - **exit** — leave the task failed, no disposition.
 
 ## Verify-failed gate (`prompts/verify-failed-gate.md`)
@@ -95,15 +101,17 @@ diff on request); the task-set listing; the review pointer.
 **Outcomes**:
 - **accept** — record a **human-authored PASS** (`HUMAN-PASS` in
   `verdict_cache`, plus `last_pass`) with an optional note persisted as
-  `human_note` in `state.json`. Episode immunity applies. The note feeds
-  every future Verifier of this set as the prior-human-note section.
+  `human_note`: one `state.json` write carrying all of it. Episode immunity
+  applies. The note feeds every future Verifier of this set as the
+  prior-human-note section.
 - **remediate** — spawn a remediation task (origin `human`) carrying the
-  findings and an optional note. This is the one outcome you are expected to
+  findings and an optional note — the task file created whole, its manifest
+  entry one manifest write. This is the one outcome you are expected to
   **pre-draft**: write the task from the findings and offer the draft for
   confirmation instead of making the human retype it. Spawning invalidates
-  cached verdicts; the next `/cook` drains it. Human-origin remediation does
-  not count against the depth cap's exhausted state — the human's explicit
-  choice overrides the cap.
+  cached verdicts (a hard delete, one `state.json` write); the next `/cook`
+  drains it. Human-origin remediation does not count against the depth cap's
+  exhausted state — the human's explicit choice overrides the cap.
 - **exit** — leave the set VERIFY-FAILED, no disposition.
 
 **Not offered**: re-running the Verifier — that is `/cook:verify`, a separate
@@ -116,8 +124,9 @@ force action; a gate that offers "ask again" invites verdict-shopping.
 note).
 
 First, record the interrupted attempt in its attempt record with outcome
-`interrupted` — it consumes a try, and the digest gives the next attempt the
-*resume* lesson (the checkout already holds the partial changes).
+`interrupted` (a file created whole, per `attempt.md`) — it consumes a try,
+and the digest gives the next attempt the *resume* lesson (the checkout
+already holds the partial changes).
 
 **Show**: the interrupted task's full body; the task-set listing; the review
 pointer when one exists.

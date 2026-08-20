@@ -13,14 +13,17 @@ In the drain loop's review phase, **after a PASS verdict** (or, with
 `verify: false`, on terminal arrival), when `review` is true and the review
 episode requires one:
 
-1. Recompute the review fingerprint: the sorted ids of currently-done AFK
-   tasks joined with `,` (the same identity encoding as verification's,
-   stored independently as `review_episode_fingerprint`).
+1. Recompute the review fingerprint: the sorted ids of the currently-`done`
+   AFK tasks, joined with `,` and stored literally. The value **is** that id
+   list, so nothing hashes it and no tool is needed to compute it;
+   fingerprints are compared by string equality. It is the same literal value
+   verification uses, kept independently as `review_episode_fingerprint`.
 2. If it matches the stored fingerprint, a review of this work already
    exists — skip; the current document still describes this work.
 3. Otherwise spawn the Reviewer — a fresh-context subagent, spawned and its
    output captured per your host's delivery note (host-claude-code.md or
-   host-pi.md) — and store the new fingerprint.
+   host-pi.md) — and store the new fingerprint: one `state.json` write
+   through the cook-state read and mutation capability (ground rule 4).
 
 Order matters: the review the human reads at the sign-off gate describes work
 that already verified. The only thing that stops the flow here is the human's
@@ -48,15 +51,18 @@ The convention branch never renders in v1; the no-convention
 ## Output
 
 The subagent's return value is a Markdown document starting at a `## `
-heading — no preamble, no sign-off, no verdict line. Write it to:
+heading — no preamble, no sign-off, no verdict line. It is a file you create
+whole through the cook-state read and mutation capability, at:
 
 ```
 .cook/tasks/<set-id>/reviews/<ISO-8601-timestamp>.md
 ```
 
+The filename's timestamp comes from the RFC3339 UTC timestamps capability.
 Prepend a small header comment recording the commit it was written against
-(e.g. `<!-- reviewed-at: <sha> -->`) — the review pointer reads it. The
-latest by timestamp is *the* review; older ones stay as history.
+(e.g. `<!-- reviewed-at: <sha> -->`) — the review pointer reads it, so it
+goes in as part of that same write. The latest by timestamp is *the* review;
+older ones stay as history.
 
 ## The review pointer
 

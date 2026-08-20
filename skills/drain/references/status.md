@@ -6,6 +6,13 @@ One derivation answers "what is this set's status?" everywhere it is asked —
 miss belongs to the drain loop, never to status. Never re-derive your own
 variant; route every surface through this.
 
+Derivation starts from a fresh read of the set's `manifest.json` and
+`state.json` through the cook-state read and mutation capability (your host's
+delivery note names the mechanism) — ground rule 1: re-read them every
+iteration, never act on a remembered value. What follows is then **your own
+reasoning over the bytes you just read** — you read the tables below and
+apply them to the file in front of you.
+
 ## Task eligibility
 
 A task is **eligible** when all three hold:
@@ -72,7 +79,8 @@ modified by verdicts.
 
 No-argument `/cook` selects among sets under `.cook/tasks/`:
 
-1. Consider only sets deriving `READY`.
+1. Consider only sets deriving `READY` — read each candidate set's
+   `manifest.json` and `state.json` and derive as above.
 2. Order by `priority` descending, ties by set-id ascending.
 3. The first is the selection.
 

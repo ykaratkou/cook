@@ -10,14 +10,19 @@ zone** — manifest-derived DONE, or AWAITING-APPROVAL (no open AFK work, only
 HITL sign-off left) — and `verify` is true:
 
 1. Recompute the **episode fingerprint**: the sorted ids of the
-   currently-`done` AFK tasks joined with `,`, stored verbatim. This
-   identity encoding is the "hash" the spec requires — it is deterministic,
-   so every session (including a re-entered drain) computes the same value
-   for the same composition. Never substitute a different encoding.
+   currently-`done` AFK tasks, joined with `,` and stored literally. The
+   value **is** that id list, so nothing hashes it and no tool is needed to
+   compute it; fingerprints are compared by string equality. Reading the
+   manifest and reading off the ids is the whole computation — it is
+   deterministic, so every session (including a re-entered drain) arrives at
+   the same value for the same composition. Never substitute a different
+   encoding.
 2. If it differs from `state.json`'s stored
    `verification_episode_fingerprint`, the episode has ended: clear
-   `verdict_cache` and `last_pass`, store the new fingerprint — fresh
-   verification is required.
+   `verdict_cache` and `last_pass` and store the new fingerprint — one
+   `state.json` write through the cook-state read and mutation capability
+   (ground rule 4), carrying all three changes together. Fresh verification
+   is required.
 3. If the current episode has a `last_pass` — **PASS immunizes the episode**:
    spawn nothing; the verify phase is a cache lookup. HEAD drifting past the
    verified SHA does not re-verify.
@@ -73,27 +78,34 @@ implement attempts.
 
 ## Dispositions
 
-- **PASS** — write to `state.json`: `verdict_cache` (verdict, `work_sha`
+- **PASS** — record in `state.json`: `verdict_cache` (verdict, `work_sha`
   judged, `at`), `last_pass` (`work_sha`, `at`), and the episode fingerprint.
-  Continue the loop (terminal handling / review phase follow).
+  All three are one transition, so they land in **one** write through the
+  cook-state read and mutation capability. Continue the loop (terminal
+  handling / review phase follow).
 - **FIXABLE** —
   1. Spawn a **Remediation task**: a new AFK task file whose body carries the
      findings **verbatim** (findings live only there — never as annotations
      in another task's file), origin `auto`, appended to the manifest with at
      least one acceptance checkbox derived from the findings. Follow the
-     format contract (register skill).
+     format contract (register skill). The task file is a file you create
+     whole and the manifest entry is one manifest write, both through the
+     cook-state read and mutation capability.
   2. Wire the new task into every open HITL task's `blocked_by`, so sign-off
-     waits on the fix.
+     waits on the fix — one manifest write for all of them.
   3. **Invalidate**: hard-delete `verdict_cache` and `last_pass` from
-     `state.json` (the episode is about to change). The journal is not
-     touched — it is history, not cache.
-  4. Increment `remediation_depth_used`; continue the loop — the remediation
-     task is eligible AFK work and drains like any other. Re-verification
+     `state.json` (the episode is about to change) — a deletion is a write
+     like any other, made through the cook-state read and mutation
+     capability. The journal is not touched — it is history, not cache.
+  4. Increment `remediation_depth_used` — the same `state.json` write as the
+     invalidation above carries it; continue the loop — the remediation task
+     is eligible AFK work and drains like any other. Re-verification
      afterward is mandatory (the fingerprint changed).
   Bounded by `remediation_depth` (default **2**) per verification episode:
   when the cap is already used up, do not spawn — park the set at the
   **Verify-failed gate** (`gates.md`), recording the non-PASS verdict.
-- **NEEDS-HUMAN** — record the verdict in `verdict_cache`, park at the
+- **NEEDS-HUMAN** — record the verdict in `verdict_cache` (one `state.json`
+  write through the cook-state read and mutation capability), park at the
   **Verify-failed gate** immediately. This verdict warrants a fresh automatic
   verify on the next terminal arrival.
 
@@ -108,7 +120,8 @@ closed. The finding lands only as a verification mark beside the status.
 ## Episodes — when a cached verdict dies
 
 A verification episode is one contiguous stretch during which the set's
-done-AFK composition is unchanged (the fingerprint above).
+done-AFK composition is unchanged (the fingerprint above — recomputed by
+reading `manifest.json`, never carried over from a previous iteration).
 
 - Any AFK task moving **into open** (reopen) or **into done** (new
   completion, remediation tasks included) changes the fingerprint → every
@@ -116,7 +129,8 @@ done-AFK composition is unchanged (the fingerprint above).
   verification.
 - **HITL-only transitions never invalidate** — complete, skip, or reopen of a
   HITL task leaves the fingerprint untouched.
-- Invalidation is a hard delete of the cached verdicts in `state.json`.
+- Invalidation is a hard delete of the cached verdicts in `state.json`, made
+  through the cook-state read and mutation capability like every other write.
 
 `HUMAN-PASS` (recorded at the Verify-failed gate's *accept* outcome) is
 cached like an agent PASS: episode immunity applies.

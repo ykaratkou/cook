@@ -69,7 +69,7 @@ Reviews are deduplicated by a fingerprint in `state.json`, parallel to the
 verification episode but keyed independently:
 
 ```
-review_fingerprint = hash(sorted ids of currently-done AFK tasks)
+review_fingerprint = sorted ids of currently-done AFK tasks, joined with ","
 ```
 
 - A commit that only moves the work SHA — same done-AFK composition — does

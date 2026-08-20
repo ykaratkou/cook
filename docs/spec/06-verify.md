@@ -104,14 +104,14 @@ done-AFK composition is unchanged. Cook implements it as a fingerprint in
 `state.json`:
 
 ```
-episode_fingerprint = hash(sorted ids of currently-done AFK tasks)
+episode_fingerprint = sorted ids of currently-done AFK tasks, joined with ","
 ```
 
-The hash function is fixed as the **identity encoding** — the sorted ids
-joined with `,`, stored verbatim. Determinism is the requirement (a
+The fingerprint **is** that id list, stored verbatim and compared by string
+equality — there is no hash function. Determinism is the requirement (a
 re-entered drain must compute the same fingerprint for the same
-composition), and the identity encoding is deterministic, readable, and
-needs no tooling.
+composition), and the literal id list is deterministic, readable, and needs
+no tooling.
 
 - Any AFK task moving **into open** (reopen — the prior judgment covered work
   that no longer stands) or **into done** (new completion, including a

@@ -159,8 +159,8 @@ else writes it.
     "at": "<RFC3339>"
   },
   "last_pass": { "work_sha": "<sha>", "at": "<RFC3339>" },
-  "verification_episode_fingerprint": "<hash>",
-  "review_episode_fingerprint": "<hash>",
+  "verification_episode_fingerprint": "01-first-task,02-second-task",
+  "review_episode_fingerprint": "01-first-task,02-second-task",
   "remediation_depth_used": 0,
   "human_note": "<optional: the note a human recorded when accepting past a finding>"
 }
@@ -173,14 +173,17 @@ else writes it.
   a human-authored acceptance recorded at the Verify-failed gate.
 - `last_pass` — the latest PASS in the current episode; it immunizes the
   terminal status against later commits.
-- `verification_episode_fingerprint` — a hash of the sorted ids of the
-  currently-`done` AFK tasks. When the recomputed fingerprint differs from
-  the stored one, the episode has ended: the verdict cache and `last_pass`
-  are cleared and fresh verification is required. HITL-only transitions
-  never change the fingerprint.
-- `review_episode_fingerprint` — the same construction for the Reviewer: a
-  matching fingerprint means the current review document still describes
-  this work and no re-review runs.
+- `verification_episode_fingerprint` — the sorted ids of the
+  currently-`done` AFK tasks, joined with `,` and stored literally; the
+  value **is** that id list, so nothing hashes it and no tool is needed to
+  compute it. Fingerprints are compared by string equality. When the
+  recomputed fingerprint differs from the stored one, the episode has ended:
+  the verdict cache and `last_pass` are cleared and fresh verification is
+  required. HITL-only transitions never change the fingerprint.
+- `review_episode_fingerprint` — the same literal value computed for the
+  Reviewer: the sorted ids of the currently-`done` AFK tasks joined with
+  `,`, compared by string equality. A matching fingerprint means the current
+  review document still describes this work and no re-review runs.
 - `remediation_depth_used` — Remediation tasks spawned in this episode;
   compared against the config cap.
 

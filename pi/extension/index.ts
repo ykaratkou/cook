@@ -45,15 +45,20 @@
  *   message: per-verb framing mirroring `claude-code/commands/*.md`, an
  *   instruction to read the mapped skill file at its runtime-resolved
  *   absolute path, the user's arguments, and a trailer with the resolved
- *   prompts dir, skills dir, and pi delivery note. All paths derive from
- *   `import.meta.url` at invocation — nothing is baked at authoring time.
+ *   prompts dir, skills dir, pi delivery note, and this session's id (the
+ *   orchestrator records it as the lock's `session` field). All paths
+ *   derive from `import.meta.url` at invocation — nothing is baked at
+ *   authoring time.
  *
  * Third slice — agent_settled drain-loop hardening (optional; correctness
  * never depends on it — `docs/spec/10-hosts.md` loop-hardening row).
  * Mirrors `claude-code/hooks/stop-drain-guard.sh`: when the agent settles
  * while a fresh `drain.lock` (mtime within 10 minutes) exists at
- * `.cook/tasks/*\/drain.lock` under the session cwd, re-inject the
- * continue-the-drain instruction via `pi.sendUserMessage`. Bounded like
+ * `.cook/tasks/*\/drain.lock` under the session cwd **and its recorded
+ * `session` field equals this session's `getSessionId()`**, re-inject the
+ * continue-the-drain instruction via `pi.sendUserMessage`. Other sessions'
+ * locks never nag here — the hardening is scoped to the orchestrator
+ * session (unmatchable locks forfeit hardening only). Bounded like
  * `stop_hook_active`: never inject twice in a row — the flag re-arms only
  * on genuine user input (the `input` event with a non-"extension" source),
  * so a wandering drain becomes the human's `/cook:drain` re-entry, by
@@ -62,7 +67,7 @@
  */
 
 import { spawn } from "node:child_process";
-import { readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -247,10 +252,16 @@ interface CookPaths {
 	promptsDir: string;
 	skillsDir: string;
 	deliveryNote: string;
+	/**
+	 * This session's id (`ctx.sessionManager.getSessionId()`), injected so
+	 * the orchestrator can record it as the lock's `session` field — the
+	 * agent_settled hardening only nags the session whose id the lock holds.
+	 */
+	sessionId: string;
 }
 
-/** All runtime-resolved absolute paths the commands inject. */
-function cookPaths(): CookPaths {
+/** All runtime-resolved absolute paths (plus session id) the commands inject. */
+function cookPaths(sessionId: string): CookPaths {
 	const root = cookRoot();
 	const skillsDir = join(root, "skills");
 	return {
@@ -258,6 +269,7 @@ function cookPaths(): CookPaths {
 		promptsDir: join(root, "prompts"),
 		skillsDir,
 		deliveryNote: join(skillsDir, "drain", "references", "host-pi.md"),
+		sessionId,
 	};
 }
 
@@ -285,6 +297,7 @@ function pathsTrailer(paths: CookPaths): string {
 		`shared prompts dir: ${paths.promptsDir}`,
 		`shared skills dir: ${paths.skillsDir}`,
 		`host delivery note (capability -> mechanism on pi): ${paths.deliveryNote}`,
+		`session identifier for drain.lock: ${paths.sessionId}`,
 	].join("\n");
 }
 
@@ -427,10 +440,18 @@ interface FreshDrainLock {
 
 /**
  * First fresh `drain.lock` at `.cook/tasks/<set>/drain.lock` under `cwd`
- * (mtime within 10 minutes), or undefined. Directory order is sorted for
- * determinism; missing dirs/locks are simply "no lock".
+ * (mtime within 10 minutes) whose recorded `session` field equals
+ * `sessionId` — i.e. a lock THIS session's orchestrator wrote — or
+ * undefined. Directory order is sorted for determinism; missing dirs,
+ * missing locks, unparseable locks, and other sessions' locks are all
+ * simply "no lock": the hardening nags only on a positive identity match
+ * (it is optional by spec 10 — a false nag in an unrelated session is the
+ * failure mode being scoped out).
  */
-function findFreshDrainLock(cwd: string): FreshDrainLock | undefined {
+function findOwnFreshDrainLock(
+	cwd: string,
+	sessionId: string,
+): FreshDrainLock | undefined {
 	const tasksDir = join(cwd, ".cook", "tasks");
 	let entries: string[];
 	try {
@@ -441,25 +462,34 @@ function findFreshDrainLock(cwd: string): FreshDrainLock | undefined {
 	for (const setId of entries) {
 		const lockPath = join(tasksDir, setId, "drain.lock");
 		try {
-			if (Date.now() - statSync(lockPath).mtimeMs < DRAIN_LOCK_FRESH_MS) {
+			if (Date.now() - statSync(lockPath).mtimeMs >= DRAIN_LOCK_FRESH_MS) {
+				continue; // stale — a crashed drain, not a live one
+			}
+			const lock: unknown = JSON.parse(readFileSync(lockPath, "utf8"));
+			const session =
+				typeof lock === "object" && lock !== null && "session" in lock
+					? (lock as { session: unknown }).session
+					: undefined;
+			if (session === sessionId) {
 				return { lockPath, setId };
 			}
 		} catch {
-			// this set holds no lock (or the entry is not a set dir)
+			// this set holds no lock, or the lock is unreadable/unparseable —
+			// either way it cannot be positively ours
 		}
 	}
 	return undefined;
 }
 
-/** The continue-the-drain instruction, adapted verbatim from the stop hook. */
+/** The continue-the-drain instruction, adapted from the stop hook. */
 function drainContinueMessage(lock: FreshDrainLock): string {
 	return [
-		`A fresh drain lock exists at ${lock.lockPath} (set: ${lock.setId}), so a cook drain`,
-		"appears to be mid-flight. If you are the drain orchestrator of this set:",
-		"continue the drain loop — re-derive the set's status from its files and run",
+		`A fresh drain lock exists at ${lock.lockPath} (set: ${lock.setId}), and its session`,
+		"identifier is this session's, so your cook drain appears to be mid-flight.",
+		"Continue the drain loop — re-derive the set's status from its files and run",
 		"the next iteration; do not end your turn while the set derives READY and no",
-		"gate is open. If you are NOT the orchestrator (another session holds this",
-		"lock), say so briefly and end your turn; do not touch the lock.",
+		"gate is open. If the drain has in fact reached an exit path, remove the",
+		"stale lock and report the disposition.",
 	].join("\n");
 }
 
@@ -484,8 +514,11 @@ export default function cookExtension(pi: ExtensionAPI): void {
 		if (!ctx.isIdle()) return; // another extension already started a new run
 		if (gateDialogsPending > 0) return; // a cook_gate dialog is pending
 		if (drainNudgeSent) return; // bounded: the human re-enters via /cook:drain
-		const lock = findFreshDrainLock(ctx.cwd);
-		if (!lock) return; // no fresh drain.lock — nothing mid-flight
+		const lock = findOwnFreshDrainLock(
+			ctx.cwd,
+			ctx.sessionManager.getSessionId(),
+		);
+		if (!lock) return; // no fresh drain.lock of OURS — nothing to nudge
 		drainNudgeSent = true;
 		pi.sendUserMessage(drainContinueMessage(lock));
 	});
@@ -623,8 +656,12 @@ export default function cookExtension(pi: ExtensionAPI): void {
 		pi.registerCommand(command.name, {
 			description: command.description,
 			handler: async (args, ctx) => {
-				// Paths resolve at invocation, from this module's own location.
-				const message = command.build(cookPaths(), args);
+				// Paths resolve at invocation, from this module's own location;
+				// the session id rides along for the lock's `session` field.
+				const message = command.build(
+					cookPaths(ctx.sessionManager.getSessionId()),
+					args,
+				);
 				// sendUserMessage requires deliverAs while the agent is streaming.
 				pi.sendUserMessage(message, ctx.isIdle() ? undefined : { deliverAs: "followUp" });
 			},

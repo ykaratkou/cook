@@ -11,7 +11,7 @@ follow the matrix in `docs/spec/10-hosts.md`.
 | **Subagent output capture** | The Agent tool call's return value is the run's entire output; parse it for sentinels / VERDICT / the review document. No shared conversation state; the subagent is never spoken to again. |
 | **Structured gate ask** | AskUserQuestion, with the gate's (or confirmation's) allowed outcomes as the options. |
 | **The shared prompts directory** | `${CLAUDE_PLUGIN_ROOT}/prompts/` (the plugin root is the cook repo root). |
-| **Session identifier for `drain.lock`** | The best handle the session gives you: the Claude Code session id when you know it, else a PID-like handle, else a fresh random token. |
+| **Session identifier for `drain.lock`** | Any unique token you generate — a fresh random token is fine (no host session id is exposed to you). It is also the loop-hardening's scoping key: the stop hook recognizes the orchestrator by finding the lock's token in the session's own transcript (you typed it when you wrote the lock), and stays silent in every other session. |
 | **Interrupt observation** | The human's Esc cancels the running tool call; you observe the cancelled Agent tool spawn. |
 
 Blind on this host (never emit or fabricate a bound you cannot enforce):

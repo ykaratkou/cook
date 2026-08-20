@@ -75,7 +75,11 @@ Pop's Runtime execution lock is database-backed; cook uses a lockfile.
 
 - On drain start, create `.cook/tasks/<set-id>/drain.lock` containing
   `{ "session": "<host session identifier>", "at": "<RFC3339>" }`,
-  refreshing `at` on every loop iteration.
+  refreshing `at` on every loop iteration. The `session` value doubles as
+  the loop-hardening's scoping key: each host's hardening nags only the
+  session it can positively match to the lock (the per-host matching
+  mechanism is declared in `10-hosts.md`); an unmatchable value forfeits
+  hardening for that drain, nothing else.
 - A drain finding a fresh lock (refreshed within the staleness window,
   default 10 minutes) MUST refuse: report who holds it and stop. Never
   auto-steal a fresh lock.

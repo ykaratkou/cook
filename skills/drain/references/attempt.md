@@ -16,10 +16,11 @@
 
 ## The spawn
 
-One fresh-context subagent (Agent tool), the rendered prompt as its task
-text. Its final output is the attempt's result; parse it, never speak to the
-subagent again. A spawn that fails outright (tool error, subagent never ran)
-consumes no attempt — decrement the counter back.
+One fresh-context subagent — spawned per your host's delivery note
+(host-claude-code.md or host-pi.md) — with the rendered prompt as its task
+text. Its captured output is the attempt's result; parse it, never speak to
+the subagent again. A spawn that fails outright (spawn error, subagent never
+ran) consumes no attempt — decrement the counter back.
 
 Forbidden to the subagent (stated in its prompt, enforced by your assessment
 and by owning the commit step): modifying `manifest.json`, modifying any task
@@ -132,11 +133,11 @@ block (summary = the final failure reason) is appended to `progress.txt`.
 }
 ```
 
-On this host you can observe `completed`, `failed`, `crashed` (the subagent
-died without producing output), and `interrupted` (the human's Esc cancelled
-the running spawn); `timed_out` and `turn_cap_exhausted` are Blind — never
-record what you cannot observe; record `failed` with the best reason you
-have. The record exists solely as the retry digest's substrate; it is not
+On both current hosts you can observe `completed`, `failed`, `crashed` (the
+subagent died without producing output), and `interrupted` (the host
+interrupt cancelled the running spawn — per your host's delivery note);
+`timed_out` and `turn_cap_exhausted` are Blind — never record what you
+cannot observe; record `failed` with the best reason you have. The record exists solely as the retry digest's substrate; it is not
 telemetry and carries no raw transcript.
 
 ## Journal block format (`progress.txt`)

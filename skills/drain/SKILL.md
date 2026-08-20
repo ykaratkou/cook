@@ -2,6 +2,7 @@
 name: drain
 description: Cook's drain orchestrator — the instruction set for one Implement run over a task set (drain loop, attempts, retries, verification, review, gates). Loaded by the /cook command; never start a drain on your own initiative.
 user-invocable: false
+disable-model-invocation: true
 ---
 
 # The drain orchestrator
@@ -37,8 +38,9 @@ source; this skill is its operational rendering.
    status and its commit SHA), they land in one manifest write.
 5. **Soft enforcement.** Caps (`max_tries`, `remediation_depth`) are checked
    by you **before** each spawn against the counters on disk. You cannot
-   bound or kill a running subagent (turn cap and timeout are Blind on this
-   host) — never claim or emit a bound you cannot enforce.
+   bound or kill a running subagent (turn cap and timeout are Blind on both
+   current hosts — capability matrix, `docs/spec/10-hosts.md`) — never claim
+   or emit a bound you cannot enforce.
 
 ## Configuration
 
@@ -63,15 +65,17 @@ Per-invocation arguments override config.
    - Stale lock: tell the human the previous drain crashed without cleanup,
      then take over.
    - Otherwise create it: `{ "session": "<host session identifier>",
-     "at": "<RFC3339 UTC now>" }`. Use the best session identifier the host
-     gives you (a session id if known, else your PID-like handle or a fresh
-     random token). Refresh `at` on every loop iteration.
+     "at": "<RFC3339 UTC now>" }`. Use the session identifier for
+     `drain.lock` per your host's delivery note
+     (references/host-claude-code.md or references/host-pi.md). Refresh `at`
+     on every loop iteration.
 3. **Dirty-checkout confirmation.** If `git status --porcelain` is non-empty
    at drain start, show the human the status and this consequence: cook's
    only dirty strategy is `continue` — the first completed task's
    implementation commit (`git add -A`) will sweep these pre-existing changes
    in with the agent's work. Proceed only on the human's confirmation
-   (AskUserQuestion: proceed / stop).
+   through the structured gate ask (per your host's delivery note):
+   proceed / stop.
 
 ## The drain loop
 
@@ -129,8 +133,10 @@ mark, and the review pointer when one exists.
 
 ## Rendering prompts
 
-All subagent and gate prompts are the files in
-`${CLAUDE_PLUGIN_ROOT}/prompts/`. Render one as follows:
+All subagent and gate prompts are the files in the **shared prompts
+directory** — resolve its location per your host's delivery note
+(references/host-claude-code.md or references/host-pi.md). Render one as
+follows:
 
 1. Substitute each `{{name}}` placeholder verbatim.
 2. Evaluate `{{#if condition}}…{{/if}}` — drop the section, heading included,
@@ -142,17 +148,19 @@ All subagent and gate prompts are the files in
 5. **Never paraphrase.** The rendered prompt is the template with holes
    filled — the loop's reliability lives in this exact wording.
 
-Delivery on this host: the rendered text is the subagent's task text (the
-Agent tool prompt). Never pass a prompt on a command line.
+Delivery: the rendered text is the subagent's task text, delivered through
+the fresh-context subagent spawn mechanism in your host's delivery note.
+Never pass a prompt on a command line.
 
 ## Spawning subagents
 
 Every Attempt, Verifier run, and Reviewer run is a **fresh-context
-subagent**: one Agent tool call (`subagent_type: "general-purpose"`) whose
-prompt is the rendered template and whose return value is the run's entire
-output. No shared conversation state; the subagent is never spoken to again.
-A spawn that fails outright (the tool errors before the subagent runs)
-consumes no attempt.
+subagent**: one spawn — mechanism per your host's delivery note
+(references/host-claude-code.md or references/host-pi.md) — whose prompt is
+the rendered template and whose captured output is the run's entire output.
+No shared conversation state; the subagent is never spoken to again. A spawn
+that fails outright (the spawn errors before the subagent runs) consumes no
+attempt.
 
 ## References
 
@@ -164,11 +172,12 @@ consumes no attempt.
 | [references/verify.md](references/verify.md) | The verify phase: episodes, verdict dispositions, remediation, force mode. |
 | [references/review.md](references/review.md) | The review phase: episode, the document, the pointer, force mode. |
 | [references/gates.md](references/gates.md) | The four gates: common rules, asks, and outcome execution. |
+| [references/host-claude-code.md](references/host-claude-code.md), [references/host-pi.md](references/host-pi.md) | Per-host delivery notes: each named capability mapped to that host's concrete mechanism. Read your own host's note; apply it wherever a capability is named. |
 
 ## Sources
 
 Operational rendering of the cook spec set: `docs/spec/00-overview.md`,
 `02-status-derivation.md`, `03-drain.md` (loop order, re-entrancy, lock,
 dirty strategy), `09-prompts.md` (rendering rules), `10-hosts.md`
-(claude-code capability row). Pop sources are named in those documents'
-footers.
+(capability matrix; the delivery notes are its rows made operational). Pop
+sources are named in those documents' footers.

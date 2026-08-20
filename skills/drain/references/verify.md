@@ -25,7 +25,9 @@ HITL sign-off left) — and `verify` is true:
    disposition (below) without a fresh spawn — except NEEDS-HUMAN, which
    warrants a fresh automatic verify on the next terminal arrival after its
    gate was left.
-5. Otherwise spawn the Verifier.
+5. Otherwise spawn the Verifier — a fresh-context subagent, spawned and its
+   output captured per your host's delivery note (host-claude-code.md or
+   host-pi.md).
 
 On an AWAITING-APPROVAL set this runs **before** the HITL sign-off gate
 opens: cheap agent checking precedes expensive human time. A PASS opens the

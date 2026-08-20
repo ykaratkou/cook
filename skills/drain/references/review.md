@@ -18,7 +18,9 @@ episode requires one:
    stored independently as `review_episode_fingerprint`).
 2. If it matches the stored fingerprint, a review of this work already
    exists — skip; the current document still describes this work.
-3. Otherwise spawn the Reviewer and store the new fingerprint.
+3. Otherwise spawn the Reviewer — a fresh-context subagent, spawned and its
+   output captured per your host's delivery note (host-claude-code.md or
+   host-pi.md) — and store the new fingerprint.
 
 Order matters: the review the human reads at the sign-off gate describes work
 that already verified. The only thing that stops the flow here is the human's

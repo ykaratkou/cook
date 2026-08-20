@@ -48,15 +48,15 @@ mechanism lives in one delivery note per host.
 
 ## Acceptance criteria
 
-- [ ] `skills/drain/references/host-claude-code.md` and
+- [x] `skills/drain/references/host-claude-code.md` and
       `skills/drain/references/host-pi.md` exist and each maps subagent
       spawn, gate ask, prompts path, and lock session identifier to that
       host's mechanism.
-- [ ] `grep -rn "Agent tool\|AskUserQuestion\|CLAUDE_PLUGIN_ROOT\|subagent_type" skills/`
+- [x] `grep -rn "Agent tool\|AskUserQuestion\|CLAUDE_PLUGIN_ROOT\|subagent_type" skills/`
       hits only the two delivery notes (and no other file under `skills/`).
-- [ ] All three `skills/*/SKILL.md` frontmatters contain
+- [x] All three `skills/*/SKILL.md` frontmatters contain
       `disable-model-invocation: true`.
-- [ ] The drain skill and its references instruct spawning/gating/prompt
+- [x] The drain skill and its references instruct spawning/gating/prompt
       resolution only via capability names plus a pointer to the delivery
       notes; no orchestration semantics (loop order, caps, gate outcomes)
       changed.

@@ -2,6 +2,7 @@
 name: register
 description: Validate a cook task set (hand-authored or hand-edited) against the format contract; print the ordered fix list or READY. Loaded by the /cook:register command; also the format authority other cook skills defer to.
 user-invocable: false
+disable-model-invocation: true
 ---
 
 # Register: validate a task set

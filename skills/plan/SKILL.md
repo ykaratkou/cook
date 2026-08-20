@@ -2,6 +2,7 @@
 name: plan
 description: Author a cook task set for a feature by orchestrating the companion skills grill-with-docs, to-spec, and to-tickets, then self-validating until the set derives READY. Loaded by the /cook:plan command.
 user-invocable: false
+disable-model-invocation: true
 ---
 
 # Plan: author a task set

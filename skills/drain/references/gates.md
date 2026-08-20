@@ -1,10 +1,11 @@
 # The four gates
 
 A **gate** is where the drain stops because the next disposition belongs to a
-human: **HITL**, **Failed**, **Verify-failed**, **Interrupt**. On this host a
-gate is you stopping and asking — **AskUserQuestion presents the gate's
-allowed outcomes** — and the assistance behavior is you following the
-corresponding rendered gate prompt in-session.
+human: **HITL**, **Failed**, **Verify-failed**, **Interrupt**. A gate is you
+stopping and asking — **the structured gate ask presents the gate's allowed
+outcomes** (mechanism per your host's delivery note: host-claude-code.md or
+host-pi.md) — and the assistance behavior is you following the corresponding
+rendered gate prompt in-session.
 
 Opening a gate, in order:
 
@@ -15,7 +16,8 @@ Opening a gate, in order:
    drain SKILL.md) and adopt it as your own instructions for the gate
    conversation — it defines what you show, what you may draft, and what you
    must not do.
-3. **Ask** with AskUserQuestion: the gate's allowed outcomes as the options
+3. **Ask** through the structured gate ask: the gate's allowed outcomes as
+   the options
    (an exit option always present). Free discussion around the ask is fine —
    the prompt is your assistance charter — but the disposition happens only
    through the answer.
@@ -110,7 +112,8 @@ force action; a gate that offers "ask again" invites verdict-shopping.
 ## Interrupt gate (`prompts/interrupt-gate.md`)
 
 **Opens when** a live attempt was cut off mid-run by the human's interrupt
-(Esc cancelling the running spawn).
+(the host interrupt cancelling the running spawn — per your host's delivery
+note).
 
 First, record the interrupted attempt in its attempt record with outcome
 `interrupted` — it consumes a try, and the digest gives the next attempt the

@@ -91,9 +91,10 @@ Mapping from attempt outcome to lesson, evaluated in order:
 | Empty output / no recorded reason | `lessonReassess` |
 | Agent's own `TASK_FAILED: <reason>` | `"pivot/reassess: <reason>"` — the one branch that carries the agent's stated reason forward and licenses a new angle |
 
-Dormant branches on this host (turn cap, timeout, quota-pause) stay in the
-table so a host that can enforce them slots in without change; they cannot
-fire here — do not fabricate those outcomes.
+Dormant branches (turn cap, timeout, quota-pause — Blind on both current
+hosts, per the capability matrix and the delivery notes) stay in the table
+so a host that can enforce them slots in without change; they cannot fire
+here — do not fabricate those outcomes.
 
 ## Sources
 

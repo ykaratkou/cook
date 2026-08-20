@@ -6,11 +6,13 @@
       "id": "01-skills-to-root",
       "file": "01-skills-to-root.md",
       "type": "afk",
-      "status": "open",
+      "status": "done",
       "blocked_by": [],
       "commit_subject": "refactor(pi-adapter): move shared skills to repo root with host symlinks",
       "attempts": 1,
-      "human_completed": false
+      "human_completed": false,
+      "commit_sha": "40be825047b528e1759cbe1be660a3093ffb841b",
+      "commit_subject_used": "refactor(pi-adapter): move shared skills to repo root with host symlinks"
     },
     {
       "id": "02-host-neutral-skills",
@@ -21,7 +23,7 @@
         "01-skills-to-root"
       ],
       "commit_subject": "refactor(pi-adapter): skills name capabilities, hosts supply delivery notes",
-      "attempts": 0,
+      "attempts": 1,
       "human_completed": false
     },
     {

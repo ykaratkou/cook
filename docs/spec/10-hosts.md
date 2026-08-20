@@ -22,6 +22,14 @@ so a human can see what the host would need.
 | Timeout kill | **Blind** — no way to bound or kill a running subagent | **Blind in v1, Supported-capable** — the spawning extension owns the child process and *could* kill it on a timer; declared Blind for v1 symmetry with claude-code. Revisit: this is the first capability pi can enforce that claude-code cannot |
 | Loop-hardening hook (optional) | **Supported** — a stop hook re-injects "continue the drain" when the orchestrator ends its turn with the set non-terminal; scoped to the orchestrator session by matching the lock's `session` token against the stopping session's own transcript (the orchestrator typed it), silent in every other session | **Supported** — `agent_settled` event + `pi.sendUserMessage()`, purpose-built for exactly this; scoped to the orchestrator session by matching the lock's `session` field against `ctx.sessionManager.getSessionId()` (the command trailer supplies the id the orchestrator records), silent in every other session |
 | Interrupt detection | **Supported** — the human's Esc interrupts the running tool; the orchestrator observes the cancelled spawn | **Supported** — the extension observes the aborted child / `ctx.abort()` |
+| Cook-state read and mutation | **Supported** — the `Read`, `Edit`, and `Write` tools. `Edit` requires the file to have been read first in the session (the stale-read guard ground rule 1 asks for). Writes are **in place**: no rename-over-target primitive is offered | **Supported** — the built-in `read`, `edit`, and `write` tools (verified present in pi 0.84.2; its documented built-in set is `read, bash, edit, write, grep, find, ls`). `edit` takes **several disjoint `{oldText, newText}` replacements in one call**, so "two facts land in one write" is expressible on this host as well; `edit` requires the file to have been read first (each `oldText` must match the current bytes exactly and be unique), which is the stale-read guard ground rule 1 asks for. Writes are **in place**: no rename-over-target primitive is offered |
+| RFC3339 UTC timestamps | **Supported** — `date -u +%Y-%m-%dT%H:%M:%SZ` through the Bash tool | **Supported** — `date -u +%Y-%m-%dT%H:%M:%SZ` through the built-in `bash` tool; the same invocation, byte-for-byte, on both hosts |
+
+Neither host's file tools perform a rename-over-target — both write in
+place. That is why the portable core states the **guarantee** (one write per
+transition; facts that must land together land in one write) rather than a
+mechanism: the guarantee is holdable on both hosts, the temp-file-and-rename
+recipe on neither (ADR-0008).
 
 Both Blind rows follow pop's rule: cook never emits a bound it cannot
 recognize, and the spec keeps the behavior (turn-cap exhaustion outcome, the
@@ -138,5 +146,6 @@ document), and `to-tickets` (decomposition into the task set). Both hosts read
   adapter-doc mechanism `/cook:plan` reuses
 - Pi facts verified against pi-coding-agent v0.84.2 local install and docs
   (`docs/extensions.md`, `skills.md`, `prompt-templates.md`, `json.md`,
-  `usage.md`, `examples/extensions/subagent/`); Claude Code facts from the
+  `usage.md`, `examples/extensions/subagent/`, and `dist/core/tools/edit.js`
+  for `edit`'s multi-`edits[]` shape); Claude Code facts from the
   plugin/skill/Agent-tool surface in current Claude Code

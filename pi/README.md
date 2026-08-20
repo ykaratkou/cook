@@ -25,18 +25,45 @@ mechanisms those skills name (see `docs/spec/10-hosts.md` and
 - `skills/` → symlink to `../skills` (the shared skill set).
 - `prompts/` → symlink to `../prompts` (the shared agent prompts).
 
-No build step and no runtime `npm install`: pi loads the TypeScript
-directly and provides the `@earendil-works/pi-coding-agent` and `typebox`
-imports itself. The `package.json` here is dev-only, for typechecking.
+No build step and no runtime `npm install` of our own: pi loads the
+TypeScript directly and provides the `@earendil-works/pi-coding-agent` and
+`typebox` imports itself. The `package.json` in this directory is dev-only,
+for typechecking; the one at the repo root is the **pi package manifest**
+(`pi.extensions` / `pi.skills`), which is what makes the git install below
+work.
 
 Verified against pi-coding-agent **v0.84.2**.
 
 ## Install
 
-Installation is two settings-array entries pointing at this checkout — no
-copying, no packaging.
+### From GitHub (pi package — the usual way)
 
-### Global (all projects)
+```sh
+pi install git:github.com/ykaratkou/cook
+```
+
+That writes a `packages` entry into `~/.pi/agent/settings.json` and clones
+under `~/.pi/agent/git/`. Use `-l` to install into the current project's
+`.pi/settings.json` instead (teammates then get it auto-installed on first
+trusted start). Pin a ref with `@`:
+
+```sh
+pi install git:github.com/ykaratkou/cook@<tag-or-sha>
+```
+
+To try it without installing: `pi -e git:github.com/ykaratkou/cook`.
+
+The root manifest loads exactly the extension (`pi/extension/index.ts`) and
+the shared `skills/`; the shared `prompts/` directory is deliberately **not**
+exposed as prompt-template commands — those files are cook's internal
+subagent prompts, which the extension resolves by path at runtime.
+
+### From a local checkout (settings arrays — for hacking on cook)
+
+Two settings-array entries pointing at your clone — no copying, no
+packaging.
+
+#### Global (all projects)
 
 Add to `~/.pi/agent/settings.json` (create it if absent), with the path
 adjusted to where you cloned cook. Relative paths in this file resolve
@@ -52,7 +79,7 @@ against `~/.pi/agent`; absolute paths and `~` both work:
 If the file already exists, append to the existing `extensions` and
 `skills` arrays rather than replacing them.
 
-### Project-local (one repo)
+#### Project-local (one repo)
 
 Add to the target repo's `.pi/settings.json`. Relative paths here resolve
 against the `.pi` directory itself:

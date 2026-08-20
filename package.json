@@ -1,0 +1,13 @@
+{
+  "name": "@ykaratkou/cook",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cook: pop's task-set implement feature (drain, verify, review, gates) as an in-agent plugin. This manifest is the pi package entry point; the claude-code plugin root is .claude-plugin/plugin.json.",
+  "keywords": ["pi-package"],
+  "repository": "github:ykaratkou/cook",
+  "pi": {
+    "extensions": ["pi/extension/index.ts"],
+    "skills": ["skills"],
+    "prompts": []
+  }
+}

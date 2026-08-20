@@ -32,6 +32,23 @@ pi install git:github.com/ykaratkou/cook
 Details, project-local installs, and the local-checkout dev setup:
 [`pi/README.md`](pi/README.md).
 
+### Develop against a checkout
+
+`.claude-plugin/plugin.json` carries no `version`, so the published version
+is derived from the commit — installed copies pick up each pushed commit on
+the next session start (no bump, no release step). To run a working tree
+instead of the published copy:
+
+```sh
+claude --plugin-dir /path/to/cook     # this checkout, shadowing the installed copy
+claude                                # the published GitHub copy
+```
+
+The `--plugin-dir` copy takes precedence for that session only, so you can
+flip between your edits and the published plugin without uninstalling
+either. On pi the equivalent is `pi -e /path/to/cook` against an installed
+`git:` package.
+
 ## Use
 
 One feature, one flow — the human touches it at plan, at gates, and at

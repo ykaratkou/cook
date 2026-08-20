@@ -1,7 +1,6 @@
 {
   "name": "cook",
   "description": "In-agent port of pop's task-set implement feature: the drain loop, attempt retries with a prior-attempt digest, automatic Verifier with a remediation loop, a non-gating Reviewer, and four human gates.",
-  "version": "0.1.1",
   "author": {
     "name": "Yauhen Karatkou"
   },

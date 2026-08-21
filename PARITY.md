@@ -49,7 +49,7 @@ Each exclusion is a decision, not an omission. One line each:
 | Agent fallback across presets + quota cooldown store | In-agent, the host is the only agent; there is no preset list to fall through. |
 | Worktree bindings, fold, trunk management, drain routing | Pop-specific checkout infrastructure; cook drains the current checkout. |
 | Work daemon / supervision | There is no process to be a daemon in; cook v1 is attended-only. |
-| Dashboard / TUI surfaces | The host session is the surface; cook prints, it does not render. |
+| Dashboard / TUI surfaces | Pop's dashboard was a *place you went* to look at runs, with its own lifecycle and navigation; cook has no such place and ships no view you can open. A tool result drawing itself where the tool call already sits is not that: the pi adapter's `renderCall` / `renderResult` decorate cook's own tool call inside the host's transcript, and are in scope (ADR-0009's Human-facing row). The rule is "no surface of cook's own", not "no pixels". |
 | Captured-run telemetry + spend lens | Telemetry infrastructure; only the 10% the digest needs survives, as Attempt records. |
 | Prompt spill to file | An argv-size workaround; in-agent prompts never ride argv. |
 | Attended assistance sessions | The human is already in an agent session; gates ask in-session instead. |
@@ -70,6 +70,7 @@ and carries its reason; anything not listed here is intended to match pop.
 | Unattended operation | Work daemon spawns drains | Attended-only v1; gate semantics for a future headless mode spec'd dormant | ADR-0004. |
 | Storage formats | pop's files + pop.db | Cook-owned files only, **no pop interop** | No runtime dependency on pop; ADR-0002. |
 | State write atomicity | Atomic: write a temp file in the same directory, then rename over the target (Go) | **Non-atomic**: one in-place write through the host's cook-state read-and-mutation capability, no rename | Neither in-agent host exposes a rename primitive, so the rule could only be obeyed by authoring a program; the drain lock's single-writer discipline makes the torn-write window the lesser risk against orchestrators improvising state rewrites; ADR-0008. |
+| Adapter capability declaration | Supported / Blind | Supported / Blind / **Human-facing** | Cook's matrix also lists host affordances no cook logic reads (loop hardening, subagent trace visibility); declaring those Supported would spend the one distinction the matrix exists to make. Human-facing names the audience instead; ADR-0009. |
 | Dirty-checkout strategies | continue / commit-and-continue / stash-and-continue | `continue` only | v1 cut; the other two are ledgered, not lost. |
 
 ## Doc-to-source map
@@ -111,6 +112,11 @@ Run at the end of every porting session:
       markers stay in the shipped source; rendering strips them).
 - [ ] Every divergence discovered while porting is either resolved or added
       to the marked-divergences table.
+- [ ] Every row of `docs/spec/10-hosts.md`'s capability matrix declares one of
+      the three values, and every row cook's own logic never reads is
+      **Human-facing**, not Supported. (The loop-hardening row was Supported
+      for its whole life while the section under it said correctness never
+      depends on it — this check is what would have caught that; ADR-0009.)
 - [ ] The watermark is advanced.
 
 ## Sources in pop

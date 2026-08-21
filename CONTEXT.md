@@ -216,9 +216,16 @@ _Avoid_: runner, daemon, supervisor
 **Host**:
 The agent product cook runs inside — Claude Code or Pi. Each Host declares
 which capabilities it supports (fresh-context subagent spawn, structured
-asking) and which it is Blind to (Turn cap, timeout kill), pop-style: an
-incapacity is declared, never papered over.
+asking), which it is Blind to (Turn cap, timeout kill), and which are merely
+Human-facing, pop-style: an incapacity is declared, never papered over.
 _Avoid_: platform, runtime
+
+**Human-facing**:
+A capability declaration for a Host affordance whose audience is the human
+rather than cook's own logic. Distinct from Blind in sentiment, not just in
+degree: Blind means cook must not rely on it and that is a loss, carrying the
+reason; Human-facing means nothing relies on it and that is the design.
+_Avoid_: advisory, informational, cosmetic, nice-to-have
 
 **Delivery note**:
 A per-host reference file inside a skill's references, mapping each
@@ -227,6 +234,15 @@ ask, the shared prompts path) to that Host's concrete mechanism. Skills name
 capabilities only; the delivery note is the single place host-specific
 mechanics may appear in skill text.
 _Avoid_: host section, host mapping, platform notes
+
+**Subagent trace**:
+The JSON event stream one subagent spawn emitted, kept wherever the Host keeps
+such things — never under `.cook/`, because it is the Host's artifact and not
+cook's. Nothing in cook reads a trace: no status derives from one, no gate
+consults one, and deleting every trace on a machine changes nothing cook would
+decide. Reserve the word for this: a Progress record, an Attempt record, and a
+review are never traces.
+_Avoid_: log, transcript, telemetry, captured run, run history
 
 **Companion skills**:
 Skills cook requires but does not ship — grill-with-docs, to-spec, to-tickets —

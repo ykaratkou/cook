@@ -4,9 +4,12 @@ Cook's portable core is a markdown skill set (both hosts implement the
 agentskills standard); everything host-specific is an adapter declared here.
 The declaration pattern is ported from pop's adapter capabilities: a host
 declares each capability **Supported** (cook may rely on it, with the named
-mechanism) or **Blind** (cook must not rely on it; the spec'd behavior stays
-dormant until a host can enforce it). A Blind declaration carries the reason,
-so a human can see what the host would need.
+mechanism), **Blind** (cook must not rely on it; the spec'd behavior stays
+dormant until a host can enforce it), or **Human-facing** (the capability's
+audience is the human; no cook logic may rely on it). A Blind declaration
+carries the reason, so a human can see what the host would need. A
+Human-facing declaration has no reason to carry: nothing depending on it is
+the design, not a gap (ADR-0009).
 
 ## Capability matrix
 
@@ -20,10 +23,11 @@ so a human can see what the host would need.
 | Structured mid-session ask (gates) | **Supported** — AskUserQuestion | **Supported** — the `cook_gate` tool over `ctx.ui.select` / `ctx.ui.confirm` / `ctx.ui.input`; errors (never defaults) when the session has no UI |
 | Turn cap enforcement | **Blind** — the Agent tool exposes no per-spawn turn bound | **Blind** — no CLI turn cap on the child; the digest's turn-cap lesson (doc 05) stays dormant on both |
 | Timeout kill | **Blind** — no way to bound or kill a running subagent | **Blind in v1, Supported-capable** — the spawning extension owns the child process and *could* kill it on a timer; declared Blind for v1 symmetry with claude-code. Revisit: this is the first capability pi can enforce that claude-code cannot |
-| Loop-hardening hook (optional) | **Supported** — a stop hook re-injects "continue the drain" when the orchestrator ends its turn with the set non-terminal; scoped to the orchestrator session by matching the lock's `session` token against the stopping session's own transcript (the orchestrator typed it), silent in every other session | **Supported** — `agent_settled` event + `pi.sendUserMessage()`, purpose-built for exactly this; scoped to the orchestrator session by matching the lock's `session` field against `ctx.sessionManager.getSessionId()` (the command trailer supplies the id the orchestrator records), silent in every other session |
+| Loop-hardening hook (optional) | **Human-facing** — a stop hook re-injects "continue the drain" when the orchestrator ends its turn with the set non-terminal; scoped to the orchestrator session by matching the lock's `session` token against the stopping session's own transcript (the orchestrator typed it), silent in every other session | **Human-facing** — `agent_settled` event + `pi.sendUserMessage()`, purpose-built for exactly this; scoped to the orchestrator session by matching the lock's `session` field against `ctx.sessionManager.getSessionId()` (the command trailer supplies the id the orchestrator records), silent in every other session |
 | Interrupt detection | **Supported** — the human's Esc interrupts the running tool; the orchestrator observes the cancelled spawn | **Supported** — the extension observes the aborted child / `ctx.abort()` |
 | Cook-state read and mutation | **Supported** — the `Read`, `Edit`, and `Write` tools. `Edit` requires the file to have been read first in the session (the stale-read guard ground rule 1 asks for). Writes are **in place**: no rename-over-target primitive is offered | **Supported** — the built-in `read`, `edit`, and `write` tools (verified present in pi 0.84.2; its documented built-in set is `read, bash, edit, write, grep, find, ls`). `edit` takes **several disjoint `{oldText, newText}` replacements in one call**, so "two facts land in one write" is expressible on this host as well; `edit` requires the file to have been read first (each `oldText` must match the current bytes exactly and be unique), which is the stale-read guard ground rule 1 asks for. Writes are **in place**: no rename-over-target primitive is offered |
 | RFC3339 UTC timestamps | **Supported** — `date -u +%Y-%m-%dT%H:%M:%SZ` through the Bash tool | **Supported** — `date -u +%Y-%m-%dT%H:%M:%SZ` through the built-in `bash` tool; the same invocation, byte-for-byte, on both hosts |
+| Subagent trace visibility | **Human-facing** — host-native: `/tasks` lists running and finished subagents and opens any one's transcript, the subagent panel shows live status, and each subagent's transcript persists at `~/.claude/projects/<project>/<session>/subagents/agent-<id>.jsonl` | **Human-facing via adapter** — no host-native view of a child process: the `cook_subagent` tool streams the child's steps through pi's tool-update callback while it runs, renders the finished call with an expanded per-step view, and keeps the child's raw `--mode json` event stream as a Subagent trace under pi's own agent dir. The seal is untouched and the child stays `--no-session` |
 
 Neither host's file tools perform a rename-over-target — both write in
 place. That is why the portable core states the **guarantee** (one write per
@@ -34,6 +38,11 @@ recipe on neither (ADR-0008).
 Both Blind rows follow pop's rule: cook never emits a bound it cannot
 recognize, and the spec keeps the behavior (turn-cap exhaustion outcome, the
 resume lesson) defined so a Supported host slots in without a spec change.
+
+The two **Human-facing** rows are the opposite case: no cook behavior waits on
+them, so there is nothing to keep dormant and nothing for a future host to
+unlock. They are in the matrix because a human comparing the hosts asks about
+them, not because cook does (ADR-0009).
 
 ## Loop hardening is optional, correctness is not
 
@@ -101,7 +110,8 @@ differ.
 
 - Cook's one TS extension (`pi/extension/index.ts`) registers two tools:
   **`cook_subagent`** (child `pi` processes, sealed as above, prompt on
-  stdin, JSONL-parsed — the final assistant message is the result) and
+  stdin, JSONL-parsed — the final assistant message is the result, and the
+  only part of the stream cook parses; the rest becomes the trace) and
   **`cook_gate`** (the gate ask over `ctx.ui`; an error when the session
   has no UI, so headless runs park instead of defaulting), plus optionally
   the `agent_settled` hardening. It follows pi's shipped first-party
@@ -114,6 +124,14 @@ differ.
   dir, and the skills dir from the extension's own location
   (`import.meta.url`) at invocation and injects those absolute paths into
   the user message — no path is ever baked into shipped text.
+- A **Subagent trace** — the child's raw `--mode json` event stream — is kept
+  per `cook_subagent` run under pi's own agent dir, never under `.cook/`: it
+  is a host artifact, so doc 01's storage contract does not describe it and no
+  derived status changes when one is deleted. The seal is deliberately *not*
+  reopened to obtain it: a child session (`--session-dir`) would be the richer
+  artifact but would cost the headless-sealing row's guarantee, and the event
+  stream carries the same information. Nothing in cook reads a trace
+  (ADR-0009), so no delivery note maps it.
 - Per-host delivery notes map each capability the skills name to its
   mechanism (ADR-0006): `skills/drain/references/host-pi.md` for this
   host, `skills/drain/references/host-claude-code.md` for the other.
@@ -138,7 +156,8 @@ document), and `to-tickets` (decomposition into the task set). Both hosts read
 ## Sources in pop
 
 - `CONTEXT.md` — **Agent adapter** / adapter-capability entries (the
-  Supported/Blind declaration pattern), **Agent preset**
+  Supported/Blind declaration pattern; the third value, **Human-facing**, is
+  cook's own addition — ADR-0009, ledgered as a divergence), **Agent preset**
 - `docs/adr/0165`, `docs/adr/0166` (capability declaration seams),
   `docs/adr/0190` (turn cap: only the enforcer emits the bound; Blind
   declarations name their reason)
@@ -148,4 +167,5 @@ document), and `to-tickets` (decomposition into the task set). Both hosts read
   (`docs/extensions.md`, `skills.md`, `prompt-templates.md`, `json.md`,
   `usage.md`, `examples/extensions/subagent/`, and `dist/core/tools/edit.js`
   for `edit`'s multi-`edits[]` shape); Claude Code facts from the
-  plugin/skill/Agent-tool surface in current Claude Code
+  plugin/skill/Agent-tool surface in current Claude Code, its `/tasks` view,
+  and its per-session `subagents/*.jsonl` transcripts

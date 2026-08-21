@@ -12,7 +12,8 @@ mechanisms those skills name (see `docs/spec/10-hosts.md` and
     (`pi --mode json -p --no-session --no-extensions --no-skills
     --no-context-files --no-prompt-templates --tools
     read,bash,edit,write,grep,find,ls`, prompt on stdin, never argv);
-    returns the child's final assistant message.
+    returns the child's final assistant message, and streams the child's
+    steps to the human while it runs (see **Subagent traces** below).
   - **`cook_gate`** — structured gate asks over `ctx.ui`
     (select / confirm / input); errors instead of defaulting when the
     session has no UI (gates are attended-only, ADR-0004).
@@ -26,9 +27,10 @@ mechanisms those skills name (see `docs/spec/10-hosts.md` and
 - `prompts/` → symlink to `../prompts` (the shared agent prompts).
 
 No build step and no runtime `npm install` of our own: pi loads the
-TypeScript directly and provides the `@earendil-works/pi-coding-agent` and
-`typebox` imports itself. The `package.json` in this directory is dev-only,
-for typechecking; the one at the repo root is the **pi package manifest**
+TypeScript directly and provides the `@earendil-works/pi-coding-agent`,
+`@earendil-works/pi-tui`, and `typebox` imports itself. The `package.json` in
+this directory is dev-only, for typechecking; the one at the repo root is the
+**pi package manifest**
 (`pi.extensions` / `pi.skills`), which is what makes the git install below
 work.
 
@@ -102,6 +104,31 @@ Start `pi` and type `/cook:` — the six cook commands should complete. The
 drain/plan/register skills carry `disable-model-invocation: true`, so they
 are invisible to the model's own initiative by design; the commands are the
 only entry points.
+
+## Subagent traces
+
+Claude Code shows a subagent's turns natively (`/tasks`); a child process has
+no such view, so `cook_subagent` supplies one. While a subagent runs, its tool
+calls stream into the tool-call display; when it finishes, expanding the tool
+result shows every step, the final message, and any stderr.
+
+Each run also leaves its raw `--mode json` event stream on disk:
+
+```
+~/.pi/agent/cook/subagents/<parent-session-id>/<timestamp>.jsonl
+```
+
+Replay one with pi's own recipes, e.g. every tool the subagent called:
+
+```sh
+jq -c 'select(.type=="tool_execution_end") | .toolName' <trace>
+```
+
+Traces are the **host's** artifact, never cook's: they live outside the repo,
+nothing in cook reads them, and deleting them changes nothing cook would
+decide (`docs/spec/10-hosts.md`, ADR-0009). Directories older than 14 days are
+pruned on the next spawn. If a trace cannot be written the run is unaffected —
+you just lose the trace.
 
 ## Smoke test
 

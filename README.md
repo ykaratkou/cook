@@ -6,10 +6,17 @@ remediation loop, the non-gating code review, and the human gates — into
 agent hosts that share the markdown-skills standard. Claude Code and
 [pi](https://github.com/earendil-works/pi) are the two supported hosts.
 
+The original is [glebglazov/pop](https://github.com/glebglazov/pop) — an
+external orchestrator: a standalone binary that spawns agent CLIs as headless
+subprocesses and owns all state. Cook keeps its vocabulary and its flow, and
+drops the external process: the orchestrator is the human's own agent
+session, and files under `.cook/` are the only state.
+
 Cook is **docs-first**: the spec set under [`docs/spec/`](docs/spec/) is
 implementation-binding. Start with
 [`00-overview.md`](docs/spec/00-overview.md); the glossary is
-[`CONTEXT.md`](CONTEXT.md), the porting ledger [`PARITY.md`](PARITY.md).
+[`CONTEXT.md`](CONTEXT.md) (pop's terms, imported verbatim), the porting
+ledger [`PARITY.md`](PARITY.md).
 
 ## Install
 
@@ -98,4 +105,4 @@ All state lives in files under `.cook/` in the target repository — no
 daemon, no database; a crashed or wandering drain is resumed by invoking
 `/cook:drain` again.
 
-[pop]: CONTEXT.md
+[pop]: https://github.com/glebglazov/pop

@@ -32,6 +32,34 @@ pi install git:github.com/ykaratkou/cook
 Details, project-local installs, and the local-checkout dev setup:
 [`pi/README.md`](pi/README.md).
 
+### Companion skills for `/cook:plan`
+
+`/cook:plan` orchestrates three skills cook depends on but does not ship —
+`grill-with-docs`, `to-spec`, `to-tickets` — from Matt Pocock's
+[skills for real engineers](https://github.com/mattpocock/skills). Pick one
+route, not both; installing both leaves you with every skill twice.
+
+Claude Code — the managed bundle, updated when upstream ships. It is in
+Claude Code's official marketplace, so there is nothing to add first:
+
+```sh
+claude plugins install mattpocock-skills   # or /plugin install mattpocock-skills in-session
+```
+
+pi, or any host that reads `~/.agents/skills/` — editable copies you own.
+The installer asks which skills to take; take at least `grill-with-docs`,
+`to-spec`, and `to-tickets`:
+
+```sh
+npx skills@latest add mattpocock/skills
+```
+
+Cook needs no `/setup-matt-pocock-skills` run: it hands those skills its own
+issue-tracker adapter doc, which points `to-tickets` at `.cook/tasks/` and
+the register contract. Without the companion skills you lose `/cook:plan`
+only — author sets by hand against the format contract and validate them with
+`/cook:register`.
+
 ### Develop against a checkout
 
 `.claude-plugin/plugin.json` carries no `version`, so the published version
@@ -63,10 +91,8 @@ sign-off; everything between is automatic:
 | `/cook:verify <set-id>` | Force the Verifier now, outside the automatic flow. |
 | `/cook:review <set-id>` | Force the Reviewer now, outside the automatic flow. |
 
-`/cook:plan` additionally needs the companion skills `grill-with-docs`,
-`to-spec`, and `to-tickets` in `~/.agents/skills/` (both hosts read it);
-without them, author sets by hand against the format contract and validate
-with `/cook:register`.
+`/cook:plan` is the one verb with an outside dependency — the companion
+skills above. Every other verb works on a bare install.
 
 All state lives in files under `.cook/` in the target repository — no
 daemon, no database; a crashed or wandering drain is resumed by invoking

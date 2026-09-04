@@ -52,6 +52,11 @@ local edit would turn every future re-sync into a merge, so the rule is: fix
 - Cook now redistributes someone else's work, so attribution is a maintained
   artifact: `skills/LICENSE-mattpocock-skills` is upstream's license file
   verbatim, and the provenance record moves in the same commit as any re-sync.
+- Keeping the copies current needs a clock, not a good intention, so a daily
+  GitHub Action runs the re-sync and opens a pull request when upstream has
+  moved (`.github/workflows/resync-vendored-skills.yml`). It merges nothing:
+  this decision's review requirement is what makes the automation stop at a
+  pull request. That is mechanism, not a further decision — no ADR of its own.
 
 ## Considered Options
 

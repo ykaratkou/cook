@@ -71,6 +71,7 @@ and carries its reason; anything not listed here is intended to match pop.
 | Storage formats | pop's files + pop.db | Cook-owned files only, **no pop interop** | No runtime dependency on pop; ADR-0002. |
 | State write atomicity | Atomic: write a temp file in the same directory, then rename over the target (Go) | **Non-atomic**: one in-place write through the host's cook-state read-and-mutation capability, no rename | Neither in-agent host exposes a rename primitive, so the rule could only be obeyed by authoring a program; the drain lock's single-writer discipline makes the torn-write window the lesser risk against orchestrators improvising state rewrites; ADR-0008. |
 | Adapter capability declaration | Supported / Blind | Supported / Blind / **Human-facing** | Cook's matrix also lists host affordances no cook logic reads (loop hardening, subagent trace visibility); declaring those Supported would spend the one distinction the matrix exists to make. Human-facing names the audience instead; ADR-0009. |
+| Companion planning skills | Pop's planning path is pop's own code; cook reuses only its issue-tracker adapter-doc mechanism (`integrate/issue-tracker.md`) | **Third-party skills vendored verbatim** — `grill-with-docs`, `grilling`, `domain-modeling`, `to-spec`, `to-tickets` (MIT) ship under `skills/` | `/cook:plan` is composed from an existing skill set instead of reimplemented, so the entry verb works on a bare install; ADR-0010. |
 | Dirty-checkout strategies | continue / commit-and-continue / stash-and-continue | `continue` only | v1 cut; the other two are ledgered, not lost. |
 
 ## Doc-to-source map
@@ -117,6 +118,11 @@ Run at the end of every porting session:
       **Human-facing**, not Supported. (The loop-hardening row was Supported
       for its whole life while the section under it said correctness never
       depends on it — this check is what would have caught that; ADR-0009.)
+- [ ] `skills/PROVENANCE.md` still describes the vendored companion skills
+      truthfully: run its re-sync `diff` against a fresh upstream clone. Empty
+      output passes; otherwise re-sync and advance the recorded version,
+      commit, and copy date in the same commit. No vendored file carries a
+      local edit (ADR-0010 — an edit turns every future re-sync into a merge).
 - [ ] The watermark is advanced.
 
 ## Sources in pop

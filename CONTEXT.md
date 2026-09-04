@@ -245,9 +245,14 @@ review are never traces.
 _Avoid_: log, transcript, telemetry, captured run, run history
 
 **Companion skills**:
-Skills cook requires but does not ship — grill-with-docs, to-spec, to-tickets —
-orchestrated by the plan verb. A machine without them can still author sets by
-hand against the storage contract.
+The five skills the plan verb orchestrates but cook did not author —
+grill-with-docs, grilling, domain-modeling, to-spec, to-tickets — shipped as
+verbatim vendored copies of an upstream MIT skill set (ADR-0010,
+`skills/PROVENANCE.md`). Reserve the word for those five: cook's own drain,
+plan, and register skills are never companions. A human can still author sets
+by hand against the storage contract, but a machine missing a companion is a
+broken install, not a supported mode.
+_Avoid_: dependency skills, external skills, third-party skills
 
 ## Sources in pop
 

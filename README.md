@@ -39,33 +39,21 @@ pi install git:github.com/ykaratkou/cook
 Details, project-local installs, and the local-checkout dev setup:
 [`pi/README.md`](pi/README.md).
 
-### Companion skills for `/cook:plan`
+### Companion skills — already included
 
-`/cook:plan` orchestrates three skills cook depends on but does not ship —
-`grill-with-docs`, `to-spec`, `to-tickets` — from Matt Pocock's
-[skills for real engineers](https://github.com/mattpocock/skills). Pick one
-route, not both; installing both leaves you with every skill twice.
+`/cook:plan` runs an interview → spec → tickets flow it did not invent: the
+`grill-with-docs`, `grilling`, `domain-modeling`, `to-spec`, and `to-tickets`
+skills from Matt Pocock's [skills for real engineers](https://github.com/mattpocock/skills)
+(MIT). Cook **ships verbatim copies** of all five under `skills/`, so there is
+nothing to install and no `/setup-matt-pocock-skills` to run — cook hands them
+its own issue-tracker adapter doc, pointing the decomposition at `.cook/tasks/`.
 
-Claude Code — the managed bundle, updated when upstream ships. It is in
-Claude Code's official marketplace, so there is nothing to add first:
-
-```sh
-claude plugins install mattpocock-skills   # or /plugin install mattpocock-skills in-session
-```
-
-pi, or any host that reads `~/.agents/skills/` — editable copies you own.
-The installer asks which skills to take; take at least `grill-with-docs`,
-`to-spec`, and `to-tickets`:
-
-```sh
-npx skills@latest add mattpocock/skills
-```
-
-Cook needs no `/setup-matt-pocock-skills` run: it hands those skills its own
-issue-tracker adapter doc, which points `to-tickets` at `.cook/tasks/` and
-the register contract. Without the companion skills you lose `/cook:plan`
-only — author sets by hand against the format contract and validate them with
-`/cook:register`.
+Provenance, the verbatim rule, and the upstream re-sync procedure:
+[`skills/PROVENANCE.md`](skills/PROVENANCE.md) (the decision is
+[ADR-0010](docs/adr/0010-companion-skills-ship-with-cook.md)). If you also
+install the upstream [`mattpocock-skills`](https://github.com/mattpocock/skills)
+plugin you will have both copies — each host namespaces skills by plugin, so
+they resolve; they just appear twice.
 
 ### Develop against a checkout
 
@@ -98,8 +86,8 @@ sign-off; everything between is automatic:
 | `/cook:verify <set-id>` | Force the Verifier now, outside the automatic flow. |
 | `/cook:review <set-id>` | Force the Reviewer now, outside the automatic flow. |
 
-`/cook:plan` is the one verb with an outside dependency — the companion
-skills above. Every other verb works on a bare install.
+Every verb works on a bare install: the skills `/cook:plan` orchestrates
+ship with cook (see above).
 
 All state lives in files under `.cook/` in the target repository — no
 daemon, no database; a crashed or wandering drain is resumed by invoking

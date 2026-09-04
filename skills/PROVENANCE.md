@@ -1,0 +1,72 @@
+# Provenance: the vendored companion skills
+
+Five of the skill directories here were **not written for cook**. They are
+verbatim copies of Matt Pocock's skills, vendored so `/cook:plan` works on a
+bare install (see `docs/adr/0010-companion-skills-ship-with-cook.md`).
+
+| Vendored skill | Why cook needs it |
+| --- | --- |
+| `grill-with-docs/` | `/cook:plan` step 1 — the design interview. |
+| `grilling/` | Loaded by `grill-with-docs`. |
+| `domain-modeling/` | Loaded by `grill-with-docs` (with `CONTEXT-FORMAT.md`, `ADR-FORMAT.md`). |
+| `to-spec/` | `/cook:plan` step 2 — the spec document. |
+| `to-tickets/` | `/cook:plan` step 3 — decomposition into the task set. |
+
+Everything else under `skills/` is cook's own (`drain/`, `plan/`,
+`register/`).
+
+## Upstream
+
+- **Repository**: <https://github.com/mattpocock/skills>
+- **License**: MIT — `LICENSE-mattpocock-skills` in this directory is the
+  upstream license file, copied verbatim (Copyright (c) 2026 Matt Pocock).
+- **Copied from**: tag/version `1.2.3`, commit
+  `3cca18b368ae95cdbdebbff572ccafa662551015`
+- **Copy date**: 2026-09-04
+- **Upstream paths**: `skills/engineering/{grill-with-docs,domain-modeling,to-spec,to-tickets}`,
+  `skills/productivity/grilling` — flattened to one directory per skill here,
+  because both hosts discover skills as `skills/<name>/SKILL.md`.
+- **Excluded**: each upstream skill's `agents/openai.yaml` (display metadata
+  for the `skills.sh` installer, which cook does not use). Nothing else was
+  dropped.
+
+## The verbatim rule
+
+**Do not edit the vendored files.** They are copies, and a local edit turns
+the re-sync below from a `diff` into a merge. Cook adapts them from the
+outside instead:
+
+- `to-tickets` (and `to-spec`) expect an issue tracker configured by
+  `/setup-matt-pocock-skills`, a command cook does not ship. It never
+  applies: `/cook:plan` hands them
+  [`plan/references/issue-tracker.md`](plan/references/issue-tracker.md),
+  cook's adapter doc, which names `.cook/tasks/` as the store and the
+  register contract as the file format.
+- `grilling` and `domain-modeling` ship as upstream ships them, model-invocable
+  (no `disable-model-invocation`), so installing cook makes those two
+  available to the model in any session — not just under `/cook:plan`. That is
+  upstream's design, kept deliberately. Someone who also installs the
+  `mattpocock-skills` plugin has both copies; each host namespaces them by
+  plugin, so they resolve, they just appear twice.
+
+## Re-syncing with upstream
+
+```sh
+git clone --depth 1 https://github.com/mattpocock/skills.git /tmp/mp-skills
+for pair in \
+  engineering/grill-with-docs:grill-with-docs \
+  productivity/grilling:grilling \
+  engineering/domain-modeling:domain-modeling \
+  engineering/to-spec:to-spec \
+  engineering/to-tickets:to-tickets
+do
+  diff -ru --exclude=agents \
+    "/tmp/mp-skills/skills/${pair%%:*}/" "skills/${pair##*:}/"
+done
+```
+
+Empty output means the copies are current. Otherwise take the upstream side
+wholesale (`rsync -a --exclude agents`), re-read what changed, and update the
+commit, version, and date above in the same commit. If an upstream change
+breaks `/cook:plan`'s procedure, the fix belongs in
+[`plan/SKILL.md`](plan/SKILL.md) or the adapter doc — never in the copy.

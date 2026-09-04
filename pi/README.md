@@ -23,7 +23,9 @@ mechanisms those skills name (see `docs/spec/10-hosts.md` and
     location — nothing machine-specific is baked in).
   - Optional `agent_settled` loop hardening (re-injects "continue the
     drain" once when the model stops mid-drain).
-- `skills/` → symlink to `../skills` (the shared skill set).
+- `skills/` → symlink to `../skills` (the shared skill set: cook's drain,
+  plan, and register skills plus the five vendored companion skills
+  `/cook:plan` orchestrates — see `skills/PROVENANCE.md`).
 - `prompts/` → symlink to `../prompts` (the shared agent prompts).
 
 No build step and no runtime `npm install` of our own: pi loads the
@@ -103,7 +105,10 @@ missing, trust the project first.
 Start `pi` and type `/cook:` — the six cook commands should complete. The
 drain/plan/register skills carry `disable-model-invocation: true`, so they
 are invisible to the model's own initiative by design; the commands are the
-only entry points.
+only entry points. The vendored companion skills (`grill-with-docs`,
+`grilling`, `domain-modeling`, `to-spec`, `to-tickets`) load from the same
+directory and keep upstream's frontmatter, so `/skill:grill-with-docs` and
+friends resolve — that is what `/cook:plan` relies on.
 
 ## Subagent traces
 

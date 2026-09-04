@@ -49,9 +49,9 @@ them, not because cook does (ADR-0009).
 The hooks in the matrix's hardening row protect against one failure mode only:
 the orchestrator model ending its turn while the drain is mid-flight.
 Correctness never depends on them — all state lives in files (doc 01), so
-re-invoking `/cook` re-derives everything and resumes exactly where the drain
+re-invoking `/cook:drain` re-derives everything and resumes exactly where the drain
 stopped. A host with no hook support runs cook correctly; the human just
-occasionally types `/cook` again.
+occasionally types `/cook:drain` again.
 
 ## Per-host layout
 
@@ -59,7 +59,9 @@ occasionally types `/cook` again.
 cook/
 ├── prompts/            ← shared, single copy (doc 09's files)
 ├── skills/             ← shared, single copy: the drain orchestration skill
-│                         + authoring contract (agentskills standard)
+│                         + authoring contract (agentskills standard), plus
+│                         the five vendored companion skills and their
+│                         PROVENANCE.md (ADR-0010)
 ├── docs/               ← this spec set
 ├── claude-code/        ← the Claude Code plugin
 │   ├── commands/       ← /cook:drain, /cook:plan, /cook:register,
@@ -93,18 +95,29 @@ differ.
   the repo keeps `prompts/` a single shared copy
   (`${CLAUDE_PLUGIN_ROOT}/prompts`). Plugin commands are always namespaced
   (`/cook:plan`) — a plugin cannot claim a bare name, and bare names do not
-  resolve to plugin commands. The spec'd bare `/cook` is therefore not
-  available on this host; the drain verb ships as `/cook:drain`
-  (`commands/drain.md`), accepted as the surface (user decision,
-  2026-08-20). A personal command at `~/.claude/commands/cook.md` loading
-  the drain skill would restore the bare verb if ever wanted.
-- The skill files under `claude-code/skills/` (a relative symlink to the
-  shared root `skills/`) are deliberately **not registered** as plugin
-  skills: commands and skills share one namespace in
-  current Claude Code (registering both would collide `plan`/`register`),
-  and the drain/plan/register instruction sets must never fire on the
-  model's own initiative. The commands load them by path; the files keep the
-  agentskills SKILL.md shape as the portable core for pi.
+  resolve to plugin commands. A bare `/cook` is therefore unavailable on this
+  host, which is why the drain verb is spec'd as `/cook:drain`
+  (`commands/drain.md`) on both hosts, accepted as the surface (user decision,
+  2026-08-20; ADR-0007). A personal command at `~/.claude/commands/cook.md`
+  loading the drain skill would restore a bare verb if ever wanted.
+- **Skill registration is the plugin root's `skills/` directory**, and cook
+  cannot opt out of it: Claude Code scans a plugin's default `skills/` path
+  and registers every `<dir>/SKILL.md` it finds as `cook:<dir>` (verified
+  against Claude Code 2.1.260). Cook's own three are registered there like
+  everything else and are muzzled in **frontmatter** instead —
+  `user-invocable: false` (commands and skills share one namespace, so a
+  surfaced `plan`/`register` skill would collide with the command of that
+  name) and `disable-model-invocation: true` (the drain/plan/register
+  instruction sets must never fire on the model's own initiative). The
+  commands load them by path, through the `claude-code/skills/` relative
+  symlink; the files keep the agentskills SKILL.md shape as the portable core
+  for pi.
+- The five vendored companion skills sit in that same directory and are
+  registered the same way, as `cook:grill-with-docs`, `cook:grilling`,
+  `cook:domain-modeling`, `cook:to-spec`, `cook:to-tickets`. They keep
+  upstream's frontmatter, so — unlike cook's own three — they are meant to be
+  invoked, which is what makes `/cook:plan` work on a bare install
+  (ADR-0010).
 
 ### pi specifics
 
@@ -139,19 +152,28 @@ differ.
 
 ## Companion skills for `/cook:plan`
 
-`/cook:plan` (doc 03's front door) orchestrates three skills cook does **not**
-ship: `grill-with-docs` (interview; ADRs + glossary), `to-spec` (the spec
-document), and `to-tickets` (decomposition into the task set). Both hosts read
-`~/.agents/skills/`, which is where these live.
+`/cook:plan` (doc 03's front door) orchestrates skills cook did not author but
+**does ship**: `grill-with-docs` (interview; ADRs + glossary), `to-spec` (the
+spec document), and `to-tickets` (decomposition into the task set), plus the
+two `grill-with-docs` itself loads — `grilling` and `domain-modeling`. They are
+verbatim copies of [mattpocock/skills](https://github.com/mattpocock/skills)
+(MIT), vendored under `skills/` as one directory per skill, so both hosts
+discover them exactly as they discover cook's own three (ADR-0010).
 
+- The copies are **not forked**. `skills/PROVENANCE.md` is the record —
+  upstream repo, version, commit, copy date, what was excluded, and the
+  re-sync procedure (a `diff` against a fresh clone). An adaptation cook wants
+  goes in `skills/plan/SKILL.md` or the adapter doc below, never in a copy.
 - Cook ships an **issue-tracker adapter doc** (the mechanism those skills
   already use to pick a store): it names cook's store — `.cook/tasks/` in the
   target repo — and the register contract, so `to-tickets` publishes cook-shaped
-  sets.
-- A machine **without** the companion skills loses `/cook:plan` only: sets can
-  still be authored by hand or by any agent against doc 01's contract and
-  validated with `/cook:register`. `/cook:plan` detects a missing companion and
-  says which skill to install, rather than improvising a plan flow.
+  sets. It is also what makes the vendored copies' `/setup-matt-pocock-skills`
+  references inapplicable: the tracker is always already configured.
+- `/cook:plan` therefore assumes its companions are present, and does not open
+  by checking. A host that cannot see them is a broken install, not a degraded
+  mode. Authoring sets by hand (or with any other agent) against doc 01's
+  contract and validating with `/cook:register` remains available to a human
+  who prefers it.
 
 ## Sources in pop
 

@@ -12,20 +12,29 @@ disable-model-invocation: true
 at the end (confirming the set); the decomposition in between follows the
 companion skills.
 
-## Companion skills — required, not shipped
+## Companion skills — shipped with cook, not written by cook
 
-Plan orchestrates three skills cook depends on but does not ship:
+Plan orchestrates three skills that ship alongside this one:
 
 1. **grill-with-docs** — the design interview; produces decision records
-   (ADRs, glossary entries).
+   (ADRs, glossary entries). It loads `grilling` and `domain-modeling`, which
+   ship too.
 2. **to-spec** — turns the settled decisions into a spec document.
 3. **to-tickets** — decomposes the spec into tickets/tasks.
 
-Before starting, check each is available (installed skills; both hosts read
-`~/.agents/skills/`). **If one is missing, stop and say which skill to
-install** — do not improvise a substitute interview, spec, or decomposition.
-Hand-authoring against the format contract plus `/cook:register` remains the
-fallback the human can always use.
+All five are verbatim copies of an upstream skill set (MIT), vendored as
+sibling directories of this one — `../grill-with-docs/`, `../grilling/`,
+`../domain-modeling/`, `../to-spec/`, `../to-tickets/` — so your host
+discovers them like any other installed skill. See `../PROVENANCE.md`
+(ADR-0010). Two consequences for this procedure:
+
+- **Never improvise a substitute** interview, spec, or decomposition. If a
+  companion will not load, that is a broken install: say so and stop.
+  Hand-authoring against the format contract plus `/cook:register` is the
+  human's fallback.
+- The copies mention `/setup-matt-pocock-skills`, a command cook does not
+  ship. Ignore it — the tracker those skills ask about is supplied by cook's
+  adapter doc in step 3, and never needs configuring.
 
 ## Procedure
 
@@ -51,7 +60,7 @@ fallback the human can always use.
    faults until the set derives **READY**. Do not present a set that does
    not validate.
 5. **Report** — the set id, the task listing (type, blocked_by), and the next
-   step: `/cook <set-id>` to drain.
+   step: `/cook:drain <set-id>`.
 
 The format contract is authoritative for every file written here — when this
 skill and the contract seem to disagree, the contract wins. Every file the

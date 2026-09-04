@@ -72,7 +72,7 @@ modified by verdicts.
 
 ## Set selection
 
-No-argument `/cook` selects among sets under `.cook/tasks/`:
+No-argument `/cook:drain` selects among sets under `.cook/tasks/`:
 
 1. Consider only sets deriving `READY`.
 2. Order by `priority` descending, ties by set-id ascending.
@@ -80,7 +80,7 @@ No-argument `/cook` selects among sets under `.cook/tasks/`:
 
 Selection **passes over** `DONE`, `DEFERRED`, and `AWAITING-APPROVAL` sets;
 they are reachable only by naming them explicitly. A `MALFORMED` set is
-reported, never selected. When no READY set exists, `/cook` reports the
+reported, never selected. When no READY set exists, `/cook:drain` reports the
 nearest actionable state (an AWAITING-APPROVAL set to sign off, a BLOCKED
 set's gating HITL task) and stops — it never invents work.
 

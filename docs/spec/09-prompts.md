@@ -291,7 +291,7 @@ Human-facing task path: {{task_path}}
 ## Allowed manual outcomes
 - complete: the human marks the HITL task done after verifying the required work.
 - defer: the human skips the HITL task so downstream work can continue while the set remains Deferred.
-- edit and rerun: the human edits tasks or implementation state, then [COOK: re-invokes /cook on the set].
+- edit and rerun: the human edits tasks or implementation state, then [COOK: re-invokes /cook:drain on the set].
 - exit without changing task state: leave the HITL task open and make no manual override.
 
 ## Full HITL task body
@@ -329,7 +329,7 @@ Task path: {{task_path}}
 No structured failure reason was recorded for the last attempt.
 {{/if}}
 ## Allowed outcomes
-- re-run: fix the underlying problem in the runtime checkout so a fresh attempt can pass; the human then [COOK: re-invokes /cook] to retry the task AFK.
+- re-run: fix the underlying problem in the runtime checkout so a fresh attempt can pass; the human then [COOK: re-invokes /cook:drain] to retry the task AFK.
 - complete by hand: the human finishes the task's work directly and marks the task done.
 These are the only outcomes at the Failed gate.
 

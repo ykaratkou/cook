@@ -12,7 +12,7 @@ Task path: {{task_path}}
 No structured failure reason was recorded for the last attempt.
 {{/if}}
 ## Allowed outcomes
-- re-run: fix the underlying problem in the runtime checkout so a fresh attempt can pass; the human then [COOK: re-invokes /cook] to retry the task AFK.
+- re-run: fix the underlying problem in the runtime checkout so a fresh attempt can pass; the human then [COOK: re-invokes /cook:drain] to retry the task AFK.
 - complete by hand: the human finishes the task's work directly and marks the task done.
 These are the only outcomes at the Failed gate.
 

@@ -27,7 +27,7 @@ Three honest costs were weighed and accepted, each with its mitigation:
 2. **Loop reliability.** The drain driver is itself a model following
    instructions, so it can wander or die. The mitigation is pop's own design
    principle, imported whole: all truth lives in files. A crashed or confused
-   drain is recovered by re-invoking `/cook`, which re-derives everything from
+   drain is recovered by re-invoking `/cook:drain`, which re-derives everything from
    the manifest and sidecar state. No in-memory state may ever be load-bearing.
 3. **Host capability variance.** Claude Code and Pi expose different
    primitives. Cook imports pop's Supported/Blind capability-declaration

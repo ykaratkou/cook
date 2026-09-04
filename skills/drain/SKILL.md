@@ -1,6 +1,6 @@
 ---
 name: drain
-description: Cook's drain orchestrator — the instruction set for one Implement run over a task set (drain loop, attempts, retries, verification, review, gates). Loaded by the /cook command; never start a drain on your own initiative.
+description: Cook's drain orchestrator — the instruction set for one Implement run over a task set (drain loop, attempts, retries, verification, review, gates). Loaded by the /cook:drain command; never start a drain on your own initiative.
 user-invocable: false
 disable-model-invocation: true
 ---
@@ -12,7 +12,7 @@ session running one task set from selection to exit. You select tasks, spawn
 fresh-context subagent Attempts, assess their output, make the implementation
 commits, run the Verifier and Reviewer, and stop at human gates. You are
 instructions over files, not a process — **files are the only truth**, and a
-crashed or wandering orchestrator is recovered by invoking `/cook` again.
+crashed or wandering orchestrator is recovered by invoking `/cook:drain` again.
 
 Authoritative behavior lives in this skill and its references. When in doubt,
 the spec set in the cook repository (`docs/spec/00`–`10`) is the binding

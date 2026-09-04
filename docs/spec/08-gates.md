@@ -31,7 +31,7 @@ divergence is ledgered in `PARITY.md`.
    completes, skips, accepts and remediates **nothing**.
 4. **Every gate offers exit.** Leaving the gate changes no task state and makes
    no disposition; the set keeps its derived status and the gate reopens on the
-   next `/cook` of the set.
+   next `/cook:drain` of the set.
 5. **Non-interactive fallback (dormant).** Cook v1 is attended-only (ADR-0004).
    The defined behavior for any future headless mode is pop's: **stop and
    report** the gate, its blocking item, and the allowed outcomes — never
@@ -57,7 +57,7 @@ out-of-date flag — never the body).
   dependents unblock (a skipped prerequisite satisfies), and the set derives
   DEFERRED. Skipping is not completing: the journal records SKIP.
 - **edit and rerun** — the human (with the orchestrator drafting) edits tasks
-  or implementation state, then re-invokes `/cook` on the set.
+  or implementation state, then re-invokes `/cook:drain` on the set.
 - **exit** — leave the task open, no disposition.
 
 ## Failed gate
@@ -75,7 +75,7 @@ listing; the review pointer when one exists.
   then the task is reopened. Reopening writes a **RESET marker** to the journal
   with a timestamp — this is the cut the retry digest scopes to (doc 05): prior
   attempts are excluded and the attempt counter restarts. The human then
-  re-invokes `/cook` to retry AFK.
+  re-invokes `/cook:drain` to retry AFK.
 - **complete by hand** — the human finishes the task's work directly and marks
   the task done (recorded as a human completion; doc 06's suspension rule
   applies to it).
@@ -100,7 +100,7 @@ file's diff on request); the task-set listing; the review pointer.
   the findings and an optional note. This is the one outcome the orchestrator
   is expected to **pre-draft**: it writes the remediation task from the
   findings and offers the draft for confirmation instead of making the human
-  retype it. Spawning invalidates cached verdicts and the next `/cook` drains
+  retype it. Spawning invalidates cached verdicts and the next `/cook:drain` drains
   it; human-origin remediation does not count against the depth cap's exhausted
   state — the human's explicit choice overrides the cap.
 - **exit** — leave the set VERIFY-FAILED, no disposition.

@@ -13,4 +13,4 @@ document exists, print the review pointer (path, commit written against,
 out-of-date flag) — never the review body.
 
 Do not run the Verifier, do not spawn anything, do not write any file. A
-cache miss displays as NEEDS-VERIFY; deciding to verify belongs to `/cook`.
+cache miss displays as NEEDS-VERIFY; deciding to verify belongs to `/cook:drain`.

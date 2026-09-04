@@ -54,7 +54,7 @@ Set-level fields:
 
 - `id` (string, required) — MUST equal the directory name.
 - `priority` (integer, default 0) — selection order for no-argument
-  `/cook`: higher first, ties broken by set-id ascending.
+  `/cook:drain`: higher first, ties broken by set-id ascending.
 
 Per-task fields:
 

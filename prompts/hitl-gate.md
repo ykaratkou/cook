@@ -9,7 +9,7 @@ Human-facing task path: {{task_path}}
 ## Allowed manual outcomes
 - complete: the human marks the HITL task done after verifying the required work.
 - defer: the human skips the HITL task so downstream work can continue while the set remains Deferred.
-- edit and rerun: the human edits tasks or implementation state, then [COOK: re-invokes /cook on the set].
+- edit and rerun: the human edits tasks or implementation state, then [COOK: re-invokes /cook:drain on the set].
 - exit without changing task state: leave the HITL task open and make no manual override.
 
 ## Full HITL task body

@@ -8,7 +8,7 @@ date: 2026-08-20
 Pop's unattended story is a long-running supervisor daemon ticking
 reconcile → candidates → dispatch and spawning drains into tmux panes; nothing
 of that exists inside an agent session. We decided cook v1 is
-**attended-only**: the human invoked `/cook` and is present, so gates may
+**attended-only**: the human invoked `/cook:drain` and is present, so gates may
 always ask, and there is no daemon, no auto-drain consent, and no headless
 mode.
 

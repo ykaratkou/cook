@@ -28,7 +28,7 @@ that:
   `.cook/` in the target repository (see `01-storage.md`). There is no
   database and no in-memory state worth recovering.
 - **Re-entrancy is the crash story.** A drain that crashes, wanders, or is
-  interrupted is resumed by invoking `/cook` again: every loop iteration
+  interrupted is resumed by invoking `/cook:drain` again: every loop iteration
   re-derives the world from the manifest and sidecar state, so recovery is
   re-entry, not repair.
 - **Enforcement is soft.** Pop's supervisor kills runaway attempts from
@@ -44,7 +44,7 @@ An implement run comprises four loops, each with its own name and its own
 bound. The names are pop's, used verbatim (see the vocabulary note below).
 
 ```
-Implement run            one /cook invocation, selection to exit
+Implement run            one /cook:drain invocation, selection to exit
 │                        owns: gates, verify phase, review phase
 └── Drain                one supervised pass over the set's eligible AFK tasks
     │                    ends at: DONE, FAILED, BLOCKED, AWAITING-APPROVAL,
@@ -81,7 +81,7 @@ and at sign-off; everything between is automatic.
 1. **Plan** — `/cook:plan` interviews, decomposes the feature into a task
    set (small vertical-slice AFK tasks, a terminal HITL sign-off task),
    writes the files, and self-validates until the set derives READY.
-2. **Drain** — `/cook` selects the set and runs it: eligible AFK task →
+2. **Drain** — `/cook:drain` selects the set and runs it: eligible AFK task →
    fresh-context subagent attempt → assessment → per-task commit → next
    task, with the retry loop underneath.
 3. **Verify** — when no open AFK work remains, the Verifier fires
@@ -104,14 +104,14 @@ opens: cheap agent checking precedes expensive human time.
 
 | Command | What it does |
 | --- | --- |
-| `/cook [set-id]` | The drain. No argument picks the highest-priority READY set. |
+| `/cook:drain [set-id]` | The drain. No argument picks the highest-priority READY set. |
 | `/cook:plan <feature>` | Author a task set: grill → spec → tickets → self-validated READY. |
 | `/cook:register <set-id>` | Validate a hand-authored or hand-edited set; print the fix list or READY. |
 | `/cook:status` | Derive and print every set's status and open tasks. Read-only. |
 | `/cook:verify <set-id>` | Force the Verifier now, outside the automatic flow. |
 | `/cook:review <set-id>` | Force the Reviewer now, outside the automatic flow. |
 
-Host-specific invocation mapping (how `/cook` resolves on Claude Code vs
+Host-specific invocation mapping (how the verbs resolve on Claude Code vs
 Pi) lives in `10-hosts.md`.
 
 ## Vocabulary

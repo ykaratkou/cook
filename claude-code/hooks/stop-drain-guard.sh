@@ -15,7 +15,7 @@ set -u
 input="$(cat)"
 
 # Bound re-injection: if this stop already follows a stop-hook block, let it
-# through. A wandering drain is then the human's `/cook` re-entry, by design.
+# through. A wandering drain is then the human's `/cook:drain` re-entry, by design.
 case "$input" in
   *'"stop_hook_active":true'* | *'"stop_hook_active": true'*) exit 0 ;;
 esac

@@ -44,7 +44,7 @@ Opening a gate, in order:
    (register skill) and is validated the way `/cook:register` validates;
    creating work completes, skips, accepts and remediates **nothing**.
 4. **Every gate offers exit.** Leaving changes no task state; the set keeps
-   its derived status and the gate reopens on the next `/cook` of the set.
+   its derived status and the gate reopens on the next `/cook:drain` of the set.
 5. Cook v1 is attended-only. If you ever cannot ask, **stop and report** the
    gate, its blocking item, and the allowed outcomes — never auto-decide.
 
@@ -67,7 +67,7 @@ the body).
   `SKIP` journal block; downstream `blocked_by` dependents unblock; the set
   derives DEFERRED.
 - **edit and rerun** — the human (with you drafting) edits tasks or
-  implementation state, then re-invokes `/cook` on the set.
+  implementation state, then re-invokes `/cook:drain` on the set.
 - **exit** — leave the task open, no disposition.
 
 ## Failed gate (`prompts/failed-gate.md`)
@@ -83,7 +83,7 @@ listing; the review pointer when one exists.
   checkout, sharpen the task body); then reopen the task: status back to
   `open` and `attempts` reset to 0 in one manifest write, and a **RESET
   marker** appended to the journal with a timestamp — the cut the retry
-  digest scopes to. The human then re-invokes `/cook` to retry AFK.
+  digest scopes to. The human then re-invokes `/cook:drain` to retry AFK.
 - **complete by hand** — the human finishes the work directly; mark the task
   done with `human_completed: true` in one manifest write, then a `COMPLETE`
   journal block. The suspension rule in `verify.md` applies to it.
@@ -109,7 +109,7 @@ diff on request); the task-set listing; the review pointer.
   entry one manifest write. This is the one outcome you are expected to
   **pre-draft**: write the task from the findings and offer the draft for
   confirmation instead of making the human retype it. Spawning invalidates
-  cached verdicts (a hard delete, one `state.json` write); the next `/cook`
+  cached verdicts (a hard delete, one `state.json` write); the next `/cook:drain`
   drains it. Human-origin remediation does not count against the depth cap's
   exhausted state — the human's explicit choice overrides the cap.
 - **exit** — leave the set VERIFY-FAILED, no disposition.

@@ -58,10 +58,13 @@ occasionally types `/cook:drain` again.
 ```
 cook/
 ├── prompts/            ← shared, single copy (doc 09's files)
+├── PROVENANCE.md       ← the vendored companion skills' upstream record
+├── LICENSE-mattpocock-skills  ← their upstream license, verbatim
 ├── skills/             ← shared, single copy: the drain orchestration skill
 │                         + authoring contract (agentskills standard), plus
-│                         the five vendored companion skills and their
-│                         PROVENANCE.md (ADR-0010)
+│                         the five vendored companion skills (ADR-0010).
+│                         Skill directories only — pi reads a stray root
+│                         .md here as a skill
 ├── docs/               ← this spec set
 ├── claude-code/        ← the Claude Code plugin
 │   ├── commands/       ← /cook:drain, /cook:plan, /cook:register,
@@ -145,6 +148,18 @@ differ.
   artifact but would cost the headless-sealing row's guarantee, and the event
   stream carries the same information. Nothing in cook reads a trace
   (ADR-0009), so no delivery note maps it.
+- Skills are **not namespaced** on this host: pi has one flat skill namespace
+  with a location precedence (global `~/.pi/agent/skills/`, then
+  `~/.agents/skills/`, then project dirs, then packages) and keeps the first
+  skill found, warning about the rest under `[Skill conflicts]`. Cook's
+  package copies therefore lose to a human's own copy of the same skill,
+  which is the intended precedence for the vendored companions (ADR-0010) and
+  harmless for cook's own three, since the commands load those by absolute
+  path rather than by name.
+- pi also loads every root-level `.md` file of a package's skills directory as
+  a skill, and refuses one with no `description`. Nothing but skill
+  directories belongs in `skills/`: the provenance record and the license copy
+  for the vendored companions live at the repo root.
 - Per-host delivery notes map each capability the skills name to its
   mechanism (ADR-0006): `skills/drain/references/host-pi.md` for this
   host, `skills/drain/references/host-claude-code.md` for the other.
@@ -160,7 +175,7 @@ verbatim copies of [mattpocock/skills](https://github.com/mattpocock/skills)
 (MIT), vendored under `skills/` as one directory per skill, so both hosts
 discover them exactly as they discover cook's own three (ADR-0010).
 
-- The copies are **not forked**. `skills/PROVENANCE.md` is the record —
+- The copies are **not forked**. `PROVENANCE.md` (repo root) is the record —
   upstream repo, version, commit, copy date, what was excluded, and the
   re-sync procedure (a `diff` against a fresh clone). An adaptation cook wants
   goes in `skills/plan/SKILL.md` or the adapter doc below, never in a copy.

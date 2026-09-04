@@ -118,7 +118,7 @@ Run at the end of every porting session:
       **Human-facing**, not Supported. (The loop-hardening row was Supported
       for its whole life while the section under it said correctness never
       depends on it — this check is what would have caught that; ADR-0009.)
-- [ ] `skills/PROVENANCE.md` still describes the vendored companion skills
+- [ ] `PROVENANCE.md` still describes the vendored companion skills
       truthfully: run its re-sync `diff` against a fresh upstream clone. Empty
       output passes; otherwise re-sync and advance the recorded version,
       commit, and copy date in the same commit. No vendored file carries a

@@ -49,11 +49,12 @@ nothing to install and no `/setup-matt-pocock-skills` to run — cook hands them
 its own issue-tracker adapter doc, pointing the decomposition at `.cook/tasks/`.
 
 Provenance, the verbatim rule, and the upstream re-sync procedure:
-[`skills/PROVENANCE.md`](skills/PROVENANCE.md) (the decision is
-[ADR-0010](docs/adr/0010-companion-skills-ship-with-cook.md)). If you also
-install the upstream [`mattpocock-skills`](https://github.com/mattpocock/skills)
-plugin you will have both copies — each host namespaces skills by plugin, so
-they resolve; they just appear twice.
+[`PROVENANCE.md`](PROVENANCE.md) (the decision is
+[ADR-0010](docs/adr/0010-companion-skills-ship-with-cook.md)). If you already
+have these skills, nothing collides in a way that matters: Claude Code loads
+cook's copies under a `cook:` prefix, and pi keeps your own copy and skips
+cook's with a `[Skill conflicts]` warning — which is the right precedence,
+since your copy is the one you maintain.
 
 ### Develop against a checkout
 

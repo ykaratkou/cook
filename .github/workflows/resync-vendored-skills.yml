@@ -46,7 +46,7 @@ jobs:
           remote_branch="refs/remotes/origin/$BRANCH"
           git fetch --quiet origin "+refs/heads/$BRANCH:$remote_branch" || true
           git checkout -B "$BRANCH"
-          git add skills/
+          git add skills/ PROVENANCE.md LICENSE-mattpocock-skills
           git commit --quiet --file .resync-commit-message
 
           existing=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')

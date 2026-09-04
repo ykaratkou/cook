@@ -2,7 +2,7 @@
 #
 # Re-sync the vendored companion skills with upstream mattpocock/skills.
 #
-# This is the procedure in skills/PROVENANCE.md, executable: it takes the
+# This is the procedure in PROVENANCE.md, executable: it takes the
 # upstream side wholesale, updates the provenance record, and reports what
 # moved. It only ever writes to the working tree — staging, committing, and
 # opening the pull request belong to the caller (see
@@ -17,8 +17,8 @@
 set -euo pipefail
 
 UPSTREAM_URL=${UPSTREAM_URL:-https://github.com/mattpocock/skills.git}
-PROVENANCE=skills/PROVENANCE.md
-LICENSE_COPY=skills/LICENSE-mattpocock-skills
+PROVENANCE=PROVENANCE.md
+LICENSE_COPY=LICENSE-mattpocock-skills
 
 # upstream path : vendored directory name. The five are the dependency closure
 # of /cook:plan; adding a sixth means editing this list and PROVENANCE.md.
@@ -71,7 +71,10 @@ cp "$clone/LICENSE" "$LICENSE_COPY"
 targets=("$LICENSE_COPY")
 for pair in "${PAIRS[@]}"; do targets+=("skills/${pair##*:}"); done
 
-if git diff --quiet -- "${targets[@]}" && [[ -z $(git status --porcelain -- "${targets[@]}") ]]; then
+# Against HEAD, not the index: a staged-but-uncommitted vendored change is
+# still a change. Untracked files are checked separately — git diff misses them.
+if git diff --quiet HEAD -- "${targets[@]}" &&
+   [[ -z $(git ls-files --others --exclude-standard -- "${targets[@]}") ]]; then
   echo "IN SYNC: the vendored copies already match upstream $upstream_commit"
   emit changed false
   emit upstream_commit "$upstream_commit"
@@ -115,7 +118,7 @@ chore(skills): re-sync the vendored companion skills
 
 Upstream mattpocock/skills is at v$upstream_version, commit
 $upstream_commit. Take the upstream side wholesale and
-advance the provenance record, per skills/PROVENANCE.md.
+advance the provenance record, per PROVENANCE.md.
 
 Upstream commits touching the vendored paths:
 
@@ -125,7 +128,7 @@ EOF
 cat >"$SUMMARY_DIR/.resync-pr-body.md" <<EOF
 Daily upstream check found the vendored companion skills out of date. This
 branch takes the upstream side wholesale and advances the provenance record
-— the procedure in \`skills/PROVENANCE.md\`, run by
+— the procedure in \`PROVENANCE.md\`, run by
 \`.github/workflows/resync-vendored-skills.yml\`.
 
 The branch is machine-owned: the daily run rebuilds it from the default

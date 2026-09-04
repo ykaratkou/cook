@@ -25,7 +25,7 @@ mechanisms those skills name (see `docs/spec/10-hosts.md` and
     drain" once when the model stops mid-drain).
 - `skills/` → symlink to `../skills` (the shared skill set: cook's drain,
   plan, and register skills plus the five vendored companion skills
-  `/cook:plan` orchestrates — see `skills/PROVENANCE.md`).
+  `/cook:plan` orchestrates — see `PROVENANCE.md` at the repo root).
 - `prompts/` → symlink to `../prompts` (the shared agent prompts).
 
 No build step and no runtime `npm install` of our own: pi loads the

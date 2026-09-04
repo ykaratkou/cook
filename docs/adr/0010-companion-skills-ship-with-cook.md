@@ -24,7 +24,7 @@ three. The dependency closure is five skills, not three —
 makes redistribution in a public marketplace plugin available at all; the
 license gate is settled, not waived.
 
-**Verbatim is the whole point.** The copies are not forked: `skills/PROVENANCE.md`
+**Verbatim is the whole point.** The copies are not forked: `PROVENANCE.md`
 records the upstream repo, version, commit, and copy date, and the re-sync
 procedure is a `diff` against a fresh clone. Cook adapts the skills from the
 outside — `/cook:plan` hands `to-tickets` cook's issue-tracker adapter doc,
@@ -45,12 +45,22 @@ local edit would turn every future re-sync into a merge, so the rule is: fix
   them, so installing cook adds two skills the model may reach for outside
   `/cook:plan`. Accepted: silencing them would be an edit to a vendored file,
   and the verbatim rule is worth more than the narrower surface.
-- Installing both cook and the `mattpocock-skills` plugin yields two copies of
-  each of the five. Both hosts namespace skills by plugin, so they resolve;
-  the duplication is cosmetic and is called out in `README.md` and
-  `skills/PROVENANCE.md`.
+- A machine that already has these five resolves the duplicate names
+  per-host, and neither host breaks. Claude Code namespaces plugin skills, so
+  cook's load as `cook:grilling`, `cook:to-spec`, … alongside anyone else's.
+  pi has one flat namespace with a location precedence and keeps the first
+  skill found, so a copy in `~/.agents/skills/` wins and cook's package copy
+  is skipped with a startup warning — the human's own copy taking precedence
+  over cook's, which is the outcome we want. Renaming the vendored
+  directories to dodge the warning is rejected for the same reason forking
+  is: `grill-with-docs` reaches `grilling` and `domain-modeling` *by name*,
+  inside a file the verbatim rule forbids editing.
+- pi loads every root-level `.md` file of a package's skills directory as a
+  skill, so the provenance record and the license copy live at the repo root
+  (beside `CONTEXT.md` and `PARITY.md`) rather than in `skills/`, where pi
+  rejected `PROVENANCE.md` for having no `description`.
 - Cook now redistributes someone else's work, so attribution is a maintained
-  artifact: `skills/LICENSE-mattpocock-skills` is upstream's license file
+  artifact: `LICENSE-mattpocock-skills` is upstream's license file
   verbatim, and the provenance record moves in the same commit as any re-sync.
 - Keeping the copies current needs a clock, not a good intention, so a daily
   GitHub Action runs the re-sync and opens a pull request when upstream has

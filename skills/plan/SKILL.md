@@ -25,7 +25,7 @@ Plan orchestrates three skills that ship alongside this one:
 All five are verbatim copies of an upstream skill set (MIT), vendored as
 sibling directories of this one — `../grill-with-docs/`, `../grilling/`,
 `../domain-modeling/`, `../to-spec/`, `../to-tickets/` — so your host
-discovers them like any other installed skill. See `../PROVENANCE.md`
+discovers them like any other installed skill. See `PROVENANCE.md` at the repo root
 (ADR-0010). Two consequences for this procedure:
 
 - **Never improvise a substitute** interview, spec, or decomposition. If a

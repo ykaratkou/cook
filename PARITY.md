@@ -123,6 +123,8 @@ Run at the end of every porting session:
       output passes; otherwise re-sync and advance the recorded version,
       commit, and copy date in the same commit. No vendored file carries a
       local edit (ADR-0010 — an edit turns every future re-sync into a merge).
+      A daily GitHub Action already runs this check and opens a pull request
+      when it fails, so in practice this item is "no open re-sync PR".
 - [ ] The watermark is advanced.
 
 ## Sources in pop

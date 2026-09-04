@@ -51,6 +51,13 @@ outside instead:
 
 ## Re-syncing with upstream
 
+A GitHub Action runs this every morning
+(`.github/workflows/resync-vendored-skills.yml`, calling
+`.github/scripts/resync-vendored-skills.sh`): when the copies no longer match
+upstream it opens one pull request carrying the diff, the upstream commit list,
+and a review checklist. Nothing lands on the default branch automatically —
+cook redistributes this text, so a human reads the diff. To do it by hand:
+
 ```sh
 git clone --depth 1 https://github.com/mattpocock/skills.git /tmp/mp-skills
 for pair in \
@@ -67,6 +74,7 @@ done
 
 Empty output means the copies are current. Otherwise take the upstream side
 wholesale (`rsync -a --exclude agents`), re-read what changed, and update the
-commit, version, and date above in the same commit. If an upstream change
+commit, version, and date above in the same commit — or just run the script,
+which does exactly that. If an upstream change
 breaks `/cook:plan`'s procedure, the fix belongs in
 [`plan/SKILL.md`](plan/SKILL.md) or the adapter doc — never in the copy.

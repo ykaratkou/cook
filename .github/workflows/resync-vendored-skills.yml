@@ -1,0 +1,78 @@
+name: Re-sync vendored skills
+
+# The five companion skills under skills/ are verbatim copies of
+# mattpocock/skills (ADR-0010). Nothing in cook notices when upstream moves,
+# so this checks daily and opens one pull request carrying the diff. It never
+# pushes to the default branch: a re-sync is a change to text cook
+# redistributes, so a human reads it first.
+
+on:
+  schedule:
+    - cron: "17 5 * * *" # daily, 05:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: resync-vendored-skills
+  cancel-in-progress: false
+
+env:
+  BRANCH: chore/resync-vendored-skills
+
+jobs:
+  resync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Take the upstream side
+        id: sync
+        run: .github/scripts/resync-vendored-skills.sh
+
+      - name: Open or update the pull request
+        if: steps.sync.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE: ${{ github.event.repository.default_branch }}
+          VERSION: ${{ steps.sync.outputs.upstream_version }}
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          remote_branch="refs/remotes/origin/$BRANCH"
+          git fetch --quiet origin "+refs/heads/$BRANCH:$remote_branch" || true
+          git checkout -B "$BRANCH"
+          git add skills/
+          git commit --quiet --file .resync-commit-message
+
+          existing=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+
+          # An open PR already carrying this exact content needs no daily
+          # re-push: compare trees, not history, so a rebuilt-but-identical
+          # branch is left alone instead of churning the PR every morning.
+          if [ -n "$existing" ] && git rev-parse --verify --quiet "$remote_branch" >/dev/null &&
+             [ "$(git rev-parse 'HEAD^{tree}')" = "$(git rev-parse "$remote_branch^{tree}")" ]; then
+            echo "PR #$existing already carries this tree — nothing to push." \
+              >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          git push --force origin "$BRANCH"
+
+          title="chore(skills): re-sync the vendored companion skills (upstream v$VERSION)"
+          if [ -n "$existing" ]; then
+            gh pr edit "$existing" --title "$title" --body-file .resync-pr-body.md
+            echo "Updated PR #$existing" >> "$GITHUB_STEP_SUMMARY"
+          else
+            url=$(gh pr create --base "$BASE" --head "$BRANCH" \
+                    --title "$title" --body-file .resync-pr-body.md)
+            echo "Opened $url" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Report when already current
+        if: steps.sync.outputs.changed != 'true'
+        run: echo "Vendored skills match upstream ${{ steps.sync.outputs.upstream_commit }} — nothing to open." >> "$GITHUB_STEP_SUMMARY"

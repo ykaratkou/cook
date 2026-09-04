@@ -1,2 +1,6 @@
 .cook
 node_modules/
+
+# scratch from .github/scripts/resync-vendored-skills.sh
+.resync-commit-message
+.resync-pr-body.md

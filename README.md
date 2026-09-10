@@ -33,11 +33,15 @@ ledger [`PARITY.md`](PARITY.md).
 ### pi
 
 ```sh
+pi install @tintinweb/pi-subagents
 pi install git:github.com/ykaratkou/cook
 ```
 
-Details, project-local installs, and the local-checkout dev setup:
-[`pi/README.md`](pi/README.md).
+Pi has no built-in subagent, so cook requires
+[`@tintinweb/pi-subagents`](https://github.com/tintinweb/pi-subagents) for the
+Attempt, Verifier and Reviewer runs (ADR-0011); cook warns once per session if
+it is missing. Details, project-local installs, and the local-checkout dev
+setup: [`pi/README.md`](pi/README.md).
 
 ### Companion skills — already included
 

@@ -236,12 +236,13 @@ mechanics may appear in skill text.
 _Avoid_: host section, host mapping, platform notes
 
 **Subagent trace**:
-The JSON event stream one subagent spawn emitted, kept wherever the Host keeps
-such things — never under `.cook/`, because it is the Host's artifact and not
-cook's. Nothing in cook reads a trace: no status derives from one, no gate
-consults one, and deleting every trace on a machine changes nothing cook would
-decide. Reserve the word for this: a Progress record, an Attempt record, and a
-review are never traces.
+Whatever record of one subagent's run the Host produces and keeps — its shape
+is the Host's business, and so is where it lives, so long as that is never
+under `.cook/`: a trace is the Host's artifact, not cook's. Nothing in cook
+reads a trace: no status derives from one, no gate consults one, and deleting
+every trace on a machine changes nothing cook would decide. Reserve the word
+for this: a Progress record, an Attempt record, and a review are never
+traces.
 _Avoid_: log, transcript, telemetry, captured run, run history
 
 **Companion skills**:

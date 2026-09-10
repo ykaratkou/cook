@@ -13,6 +13,16 @@ date: 2026-08-20
 > `/cook:register`, `/cook:status`, `/cook:verify`, `/cook:review`) and no
 > bare `/cook`. The rest of this ADR stands.
 
+> **Superseded on a second point** (2026-09-10, by ADR-0011): the Pi bullet
+> below — "Cook's Pi adapter is one TypeScript extension file wrapping that
+> pattern" — no longer holds. Cook wraps nothing: `@tintinweb/pi-subagents`
+> is a prerequisite package, and cook's skills name its `Agent` tool
+> directly. The amended dependency goal reads *no dependencies beyond one
+> package per host that lacks subagent spawn*. The core's host-neutrality,
+> which is what this ADR decides, is unaffected — that the mechanism could
+> be swapped for another project's without touching a skill file is the
+> arrangement working.
+
 Both target hosts implement the agentskills.io standard — Claude Code
 natively, and pi-coding-agent (verified against v0.84.2 and its shipped docs)
 discovers `SKILL.md` packages from `.agents/skills/` and even reuses

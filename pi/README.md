@@ -7,13 +7,11 @@ at the repo root and is host-neutral; this adapter only supplies the pi
 mechanisms those skills name (see `docs/spec/10-hosts.md` and
 `skills/drain/references/host-pi.md`).
 
+**Cook does not implement subagents on this host.** That capability comes
+from [`@tintinweb/pi-subagents`](https://github.com/tintinweb/pi-subagents),
+a prerequisite package (ADR-0011) — see **Prerequisite** below.
+
 - `extension/index.ts` — the whole adapter. Registers:
-  - **`cook_subagent`** — sealed fresh-context child spawn
-    (`pi --mode json -p --no-session --no-extensions --no-skills
-    --no-context-files --no-prompt-templates --tools
-    read,bash,edit,write,grep,find,ls`, prompt on stdin, never argv);
-    returns the child's final assistant message, and streams the child's
-    steps to the human while it runs (see **Subagent traces** below).
   - **`cook_gate`** — structured gate asks over `ctx.ui`
     (select / confirm / input); errors instead of defaulting when the
     session has no UI (gates are attended-only, ADR-0004).
@@ -23,20 +21,38 @@ mechanisms those skills name (see `docs/spec/10-hosts.md` and
     location — nothing machine-specific is baked in).
   - Optional `agent_settled` loop hardening (re-injects "continue the
     drain" once when the model stops mid-drain).
+  - A once-per-session probe for the prerequisite, which warns with the
+    install command when pi-subagents is not active.
 - `skills/` → symlink to `../skills` (the shared skill set: cook's drain,
   plan, and register skills plus the five vendored companion skills
   `/cook:plan` orchestrates — see `PROVENANCE.md` at the repo root).
 - `prompts/` → symlink to `../prompts` (the shared agent prompts).
 
 No build step and no runtime `npm install` of our own: pi loads the
-TypeScript directly and provides the `@earendil-works/pi-coding-agent`,
-`@earendil-works/pi-tui`, and `typebox` imports itself. The `package.json` in
-this directory is dev-only, for typechecking; the one at the repo root is the
-**pi package manifest**
+TypeScript directly and provides the `@earendil-works/pi-coding-agent` and
+`typebox` imports itself. The `package.json` in this directory is dev-only,
+for typechecking; the one at the repo root is the **pi package manifest**
 (`pi.extensions` / `pi.skills`), which is what makes the git install below
 work.
 
-Verified against pi-coding-agent **v0.84.2**.
+Verified against pi-coding-agent **v0.84.2** and pi-subagents **v0.19.0**.
+
+## Prerequisite
+
+```sh
+pi install @tintinweb/pi-subagents
+```
+
+Every Attempt, Verifier and Reviewer run is one `Agent` call against that
+package, made with `subagent_type: "general-purpose"`, `isolated: true` and
+`run_in_background: false` — the seal and the inline result, respectively
+(`skills/drain/references/host-pi.md` is the full mapping). Without it,
+`/cook:drain`, `/cook:verify` and `/cook:review` cannot run; cook warns once
+per session rather than failing, because `/cook:status` and `/cook:register`
+spawn nothing and work regardless.
+
+Cook does not bundle it: it is useful on its own, most pi users already have
+it, and a bundled copy would load twice for them.
 
 ## Install
 
@@ -110,43 +126,31 @@ only entry points. The vendored companion skills (`grill-with-docs`,
 directory and keep upstream's frontmatter, so `/skill:grill-with-docs` and
 friends resolve — that is what `/cook:plan` relies on.
 
-## Subagent traces
+## Watching a run
 
-Claude Code shows a subagent's turns natively (`/tasks`); a child process has
-no such view, so `cook_subagent` supplies one. While a subagent runs, its tool
-calls stream into the tool-call display; when it finishes, expanding the tool
-result shows every step, the final message, and any stderr.
-
-Each run also leaves its raw `--mode json` event stream on disk:
-
-```
-~/.pi/agent/cook/subagents/<parent-session-id>/<timestamp>.jsonl
-```
-
-Replay one with pi's own recipes, e.g. every tool the subagent called:
-
-```sh
-jq -c 'select(.type=="tool_execution_end") | .toolName' <trace>
-```
-
-Traces are the **host's** artifact, never cook's: they live outside the repo,
-nothing in cook reads them, and deleting them changes nothing cook would
-decide (`docs/spec/10-hosts.md`, ADR-0009). Directories older than 14 days are
-pruned on the next spawn. If a trace cannot be written the run is unaffected —
-you just lose the trace.
+pi-subagents owns this: its live widget shows a running agent, `/agents` and
+FleetView list them, and each run leaves an `.output` transcript under the
+session directory. Cook produces none of it and reads none of it — a trace is
+the host's artifact (`docs/spec/10-hosts.md`, ADR-0009), so deleting every one
+changes nothing cook would decide.
 
 ## Smoke test
 
-Exercises the sealed-child contract against your real local `pi` binary
-(exact seal argv, prompt on stdin, JSONL parse, final-assistant-message
-extraction). Needs only bash, `pi`, and node:
+Cook depends on another project's output format: the delivery note tells the
+orchestrator that a foreground `Agent` result is a stats header, a blank
+line, then the subagent's reply, and cook's core reads a Verifier's
+`VERDICT:` as that reply's first line. This pins the framing against your
+real `pi` and your real installed pi-subagents:
 
 ```sh
 pi/extension/smoke-test.sh
 ```
 
-Expected output: `SMOKE OK: … -> COOK-SMOKE-OK`. Set `PI_BIN` to test a
-non-PATH binary.
+Expected output: `SMOKE OK: header + blank line + reply -> COOK-SMOKE-OK`.
+Exit 2 means pi-subagents was not found — set `PI_SUBAGENTS_ENTRY`, or
+`PI_BIN` for a non-PATH pi.
+
+## Typechecking
 
 To typecheck the extension against pi's real published types:
 

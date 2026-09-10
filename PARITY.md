@@ -66,7 +66,8 @@ and carries its reason; anything not listed here is intended to match pop.
 | Review default | Off (opt-in verb) | **On** | Same grill decision (ADR-0005); the Reviewer still gates nothing. |
 | Retry delays | `1m, 5m, 15m` | **Default-off** (key kept) | Sleeping inside an agent session buys little; ADR-0004. |
 | Verifier/Reviewer independence | Separate process, possibly different vendor | Fresh-context subagent, same model | The strongest independence both hosts can offer; ADR-0003. |
-| Cap enforcement | Supervisor-enforced (SIGKILL, `time.After`) | Orchestrator-checked before the next spawn; Turn cap and timeout-kill declared Blind | Instructions cannot kill mid-flight; ADR-0004. |
+| Subagent isolation on pi | Sealed subprocess pop owns end to end | A **third-party** `Agent` call — `subagent_type: "general-purpose"`, `isolated: true` — so extensions, skills and context files are stripped, but the child still inherits the parent's system prompt | A pi package manifest carries only `extensions`/`skills`/`prompts`/`themes`, so cook cannot deliver the agent-type file (`prompt_mode: replace`) that would drop the inherited prompt without costing every install a manual copy; ADR-0011. Revisit if pi packages learn to ship agent types. |
+| Cap enforcement | Supervisor-enforced (SIGKILL, `time.After`) | Orchestrator-checked before the next spawn; Turn cap and timeout-kill declared Blind | Instructions cannot kill mid-flight; ADR-0004. Pi's turn cap is now *Supported-capable* (pi-subagents' `Agent` takes `max_turns`) but stays Blind for v1 symmetry, and pi's timeout kill went from Supported-capable to plainly Blind once cook stopped owning the child process; ADR-0011. |
 | Unattended operation | Work daemon spawns drains | Attended-only v1; gate semantics for a future headless mode spec'd dormant | ADR-0004. |
 | Storage formats | pop's files + pop.db | Cook-owned files only, **no pop interop** | No runtime dependency on pop; ADR-0002. |
 | State write atomicity | Atomic: write a temp file in the same directory, then rename over the target (Go) | **Non-atomic**: one in-place write through the host's cook-state read-and-mutation capability, no rename | Neither in-agent host exposes a rename primitive, so the rule could only be obeyed by authoring a program; the drain lock's single-writer discipline makes the torn-write window the lesser risk against orchestrators improvising state rewrites; ADR-0008. |
@@ -92,7 +93,7 @@ union, for the porting diff.
 | `docs/spec/07-review.md` | `tasks/review.go`, `tasks/review_phase.go`, `tasks/review_episode.go`, `tasks/prompts/reviewer.tmpl.md`, ADR-0214 |
 | `docs/spec/08-gates.md` | `tasks/gates.go`, `tasks/interrupt_gate.go`, `tasks/prompts/*-assistance.tmpl.md` |
 | `docs/spec/09-prompts.md` | `tasks/prompts/*.tmpl.md` (all), `tasks/digest.go` (lesson strings) |
-| `docs/spec/10-hosts.md` | pop's adapter-capability pattern (ADR-0165, ADR-0166, ADR-0190) |
+| `docs/spec/10-hosts.md` | pop's adapter-capability pattern (ADR-0165, ADR-0166, ADR-0190); the pi rows also track `@tintinweb/pi-subagents` (ADR-0011), which is not a pop source |
 | `PARITY.md` | the whole of the above |
 
 ## Drift-guard checklist
@@ -125,6 +126,14 @@ Run at the end of every porting session:
       local edit (ADR-0010 — an edit turns every future re-sync into a merge).
       A daily GitHub Action already runs this check and opens a pull request
       when it fails, so in practice this item is "no open re-sync PR".
+- [ ] The pi rows of the capability matrix still match
+      `@tintinweb/pi-subagents` as installed: the `Agent` tool's parameters,
+      the foreground result framing the delivery note parses (stats header,
+      blank line, reply), and the `Agent failed:` / `STOPPED BY THE USER` /
+      `aborted at the turn limit` / `No output.` shapes. Cook depends on
+      another project's output format here (ADR-0011), and nothing but this
+      check notices when it moves. `pi/extension/smoke-test.sh` runs the
+      framing half against a real pi; the `Agent` parameters are still eyes.
 - [ ] The watermark is advanced.
 
 ## Sources in pop

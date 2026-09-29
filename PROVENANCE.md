@@ -5,10 +5,6 @@ They are verbatim copies of Matt Pocock's skills, vendored so `/cook:plan`
 works on a bare install (see
 [ADR-0010](docs/adr/0010-companion-skills-ship-with-cook.md)).
 
-This record lives at the repo root, not in `skills/`, because pi loads every
-root-level `.md` file of a package's skills directory as a skill and rejects
-this one for having no `description`.
-
 | Vendored skill | Why cook needs it |
 | --- | --- |
 | `grill-with-docs/` | `/cook:plan` step 1 — the design interview. |
@@ -31,7 +27,7 @@ Everything else under `skills/` is cook's own (`drain/`, `plan/`,
 - **Copy date**: 2026-09-04
 - **Upstream paths**: `skills/engineering/{grill-with-docs,domain-modeling,to-spec,to-tickets}`,
   `skills/productivity/grilling` — flattened to one directory per skill here,
-  because both hosts discover skills as `skills/<name>/SKILL.md`.
+  because Claude Code discovers skills as `skills/<name>/SKILL.md`.
 - **Excluded**: each upstream skill's `agents/openai.yaml` (display metadata
   for the `skills.sh` installer, which cook does not use). Nothing else was
   dropped.
@@ -55,25 +51,14 @@ outside instead:
 
 ## When the machine already has these skills
 
-The two hosts resolve a duplicate name differently, and neither breaks:
+Claude Code namespaces plugin skills, so cook's copies load as
+`cook:grilling`, `cook:to-spec`, and so on. Someone who also installs the
+upstream `mattpocock-skills` plugin sees both sets, under their own prefixes,
+and neither breaks.
 
-- **Claude Code** namespaces plugin skills, so cook's copies load as
-  `cook:grilling`, `cook:to-spec`, and so on. Someone who also installs the
-  upstream `mattpocock-skills` plugin sees both sets, under their own
-  prefixes.
-- **pi** has one flat skill namespace with a location precedence, and keeps
-  the *first* skill found: a copy in `~/.agents/skills/` (or `.agents/skills/`
-  in the project) wins, and cook's package copy is skipped with a
-  `[Skill conflicts]` warning at startup. This is the intended outcome — the
-  human's own copy of an upstream skill takes precedence over cook's vendored
-  one, and `/cook:plan` runs against whichever won, because both are the same
-  upstream skill.
-
-Cook does **not** rename the vendored directories to dodge those warnings:
-the name is how `grill-with-docs` reaches `grilling` and `domain-modeling`
-(it calls them by name, in a file the verbatim rule forbids editing), and
-being shadowed by the human's own copy is the behavior we want, not a
-collision to design around.
+Cook does **not** rename the vendored directories: the name is how
+`grill-with-docs` reaches `grilling` and `domain-modeling` (it calls them by
+name, in a file the verbatim rule forbids editing).
 
 ## Re-syncing with upstream
 

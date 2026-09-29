@@ -112,17 +112,17 @@ exact clause rather than sending the retry back over ground that was sound.
 ## Dormant branches in cook v1
 
 Kept in the table so a host that can enforce them slots in without a spec
-change; they cannot fire on either v1 host:
+change; they cannot fire on the v1 host:
 
-- **Turn cap exhausted** — turn-cap enforcement is Blind on both hosts
+- **Turn cap exhausted** — turn-cap enforcement is Blind on Claude Code
   (doc 10). The lesson is the retry's whole reason to know a turn cap exists;
   it stays specified, dormant.
 - **Quota-paused / agent-unusable** — cook has no quota detection and no
   multi-agent catalog; the host surfaces its own quota errors to the human.
   A subagent spawn that fails outright consumes no attempt.
-- **Timed out** — timeout kill is Blind in v1 (doc 10; Pi's spawning extension
-  is Supported-capable, revisit). Until a host enforces one, a hung attempt is
-  the human's interrupt, which lands in the *interrupted* branch.
+- **Timed out** — timeout kill is Blind in v1 (doc 10). Until a host
+  enforces one, a hung attempt is the human's interrupt, which lands in the
+  *interrupted* branch.
 
 ## Sources in pop
 

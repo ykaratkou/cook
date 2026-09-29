@@ -19,7 +19,7 @@
 ## The spawn
 
 One fresh-context subagent — spawned per your host's delivery note
-(host-claude-code.md or host-pi.md) — with the rendered prompt as its task
+(host-claude-code.md) — with the rendered prompt as its task
 text. Its captured output is the attempt's result; parse it, never speak to
 the subagent again. A spawn that fails outright (spawn error, subagent never
 ran) consumes no attempt — decrement the counter back.
@@ -141,7 +141,7 @@ appended to `progress.txt` through the same capability.
 }
 ```
 
-On both current hosts you can observe `completed`, `failed`, `crashed` (the
+On the current host you can observe `completed`, `failed`, `crashed` (the
 subagent died without producing output), and `interrupted` (the host
 interrupt cancelled the running spawn — per your host's delivery note);
 `timed_out` and `turn_cap_exhausted` are Blind — never record what you

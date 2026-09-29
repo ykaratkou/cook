@@ -3,8 +3,7 @@
 Cook is an **in-agent plugin** that ports [pop]'s task-set *implement*
 feature — the drain with its nested loops, the verification tail, the
 remediation loop, the non-gating code review, and the human gates — into
-agent hosts that share the markdown-skills standard. Claude Code and
-[pi](https://github.com/earendil-works/pi) are the two supported hosts.
+Claude Code.
 
 The original is [glebglazov/pop](https://github.com/glebglazov/pop) — an
 external orchestrator: a standalone binary that spawns agent CLIs as headless
@@ -20,8 +19,6 @@ ledger [`PARITY.md`](PARITY.md).
 
 ## Install
 
-### Claude Code
-
 ```
 /plugin marketplace add ykaratkou/cook
 /plugin install cook@cook
@@ -29,19 +26,6 @@ ledger [`PARITY.md`](PARITY.md).
 
 (CLI equivalent: `claude plugin marketplace add ykaratkou/cook`, then
 `claude plugin install cook@cook`.)
-
-### pi
-
-```sh
-pi install @tintinweb/pi-subagents
-pi install git:github.com/ykaratkou/cook
-```
-
-Pi has no built-in subagent, so cook requires
-[`@tintinweb/pi-subagents`](https://github.com/tintinweb/pi-subagents) for the
-Attempt, Verifier and Reviewer runs (ADR-0011); cook warns once per session if
-it is missing. Details, project-local installs, and the local-checkout dev
-setup: [`pi/README.md`](pi/README.md).
 
 ### Companion skills — already included
 
@@ -55,10 +39,8 @@ its own issue-tracker adapter doc, pointing the decomposition at `.cook/tasks/`.
 Provenance, the verbatim rule, and the upstream re-sync procedure:
 [`PROVENANCE.md`](PROVENANCE.md) (the decision is
 [ADR-0010](docs/adr/0010-companion-skills-ship-with-cook.md)). If you already
-have these skills, nothing collides in a way that matters: Claude Code loads
-cook's copies under a `cook:` prefix, and pi keeps your own copy and skips
-cook's with a `[Skill conflicts]` warning — which is the right precedence,
-since your copy is the one you maintain.
+have these skills, nothing collides: Claude Code loads cook's copies under a
+`cook:` prefix, beside your own.
 
 ### Develop against a checkout
 
@@ -74,8 +56,7 @@ claude                                # the published GitHub copy
 
 The `--plugin-dir` copy takes precedence for that session only, so you can
 flip between your edits and the published plugin without uninstalling
-either. On pi the equivalent is `pi -e /path/to/cook` against an installed
-`git:` package.
+either.
 
 ## Use
 

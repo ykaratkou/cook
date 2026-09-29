@@ -40,8 +40,8 @@ source; this skill is its operational rendering.
    status and its commit SHA), they land in one manifest write.
 5. **Soft enforcement.** Caps (`max_tries`, `remediation_depth`) are checked
    by you **before** each spawn against the counters on disk. You cannot
-   bound or kill a running subagent (turn cap and timeout are Blind on both
-   current hosts — capability matrix, `docs/spec/10-hosts.md`) — never claim
+   bound or kill a running subagent (turn cap and timeout are Blind on
+   the current host — capability matrix, `docs/spec/10-hosts.md`) — never claim
    or emit a bound you cannot enforce.
 
 ## Configuration
@@ -69,7 +69,7 @@ Per-invocation arguments override config.
    - Otherwise create it: `{ "session": "<host session identifier>",
      "at": "<RFC3339 UTC now>" }`. Use the session identifier for
      `drain.lock` per your host's delivery note
-     (references/host-claude-code.md or references/host-pi.md). Refresh `at`
+     (references/host-claude-code.md). Refresh `at`
      on every loop iteration.
 3. **Dirty-checkout confirmation.** If `git status --porcelain` is non-empty
    at drain start, show the human the status and this consequence: cook's
@@ -137,7 +137,7 @@ mark, and the review pointer when one exists.
 
 All subagent and gate prompts are the files in the **shared prompts
 directory** — resolve its location per your host's delivery note
-(references/host-claude-code.md or references/host-pi.md). Render one as
+(references/host-claude-code.md). Render one as
 follows:
 
 1. Substitute each `{{name}}` placeholder verbatim.
@@ -158,7 +158,7 @@ Never pass a prompt on a command line.
 
 Every Attempt, Verifier run, and Reviewer run is a **fresh-context
 subagent**: one spawn — mechanism per your host's delivery note
-(references/host-claude-code.md or references/host-pi.md) — whose prompt is
+(references/host-claude-code.md) — whose prompt is
 the rendered template and whose captured output is the run's entire output.
 No shared conversation state; the subagent is never spoken to again. A spawn
 that fails outright (the spawn errors before the subagent runs) consumes no
@@ -174,7 +174,7 @@ attempt.
 | [references/verify.md](references/verify.md) | The verify phase: episodes, verdict dispositions, remediation, force mode. |
 | [references/review.md](references/review.md) | The review phase: episode, the document, the pointer, force mode. |
 | [references/gates.md](references/gates.md) | The four gates: common rules, asks, and outcome execution. |
-| [references/host-claude-code.md](references/host-claude-code.md), [references/host-pi.md](references/host-pi.md) | Per-host delivery notes: each named capability mapped to that host's concrete mechanism. Read your own host's note; apply it wherever a capability is named. |
+| [references/host-claude-code.md](references/host-claude-code.md) | The host delivery note: each named capability mapped to Claude Code's concrete mechanism. Apply it wherever a capability is named. |
 
 ## Sources
 

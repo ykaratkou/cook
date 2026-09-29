@@ -21,8 +21,7 @@ episode requires one:
 2. If it matches the stored fingerprint, a review of this work already
    exists — skip; the current document still describes this work.
 3. Otherwise spawn the Reviewer — a fresh-context subagent, spawned and its
-   output captured per your host's delivery note (host-claude-code.md or
-   host-pi.md) — and store the new fingerprint: one `state.json` write
+   output captured per your host's delivery note (host-claude-code.md) — and store the new fingerprint: one `state.json` write
    through the cook-state read and mutation capability (ground rule 4).
 
 Order matters: the review the human reads at the sign-off gate describes work

@@ -1,6 +1,6 @@
 # Delivery note: claude-code
 
-The claude-code half of ADR-0006: every capability the cook skills name,
+The claude-code delivery note of ADR-0006: every capability the cook skills name,
 mapped to this host's concrete mechanism. Skill text names capabilities only;
 this note is the single place claude-code mechanics appear. Capability names
 follow the matrix in `docs/spec/10-hosts.md`.

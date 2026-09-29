@@ -2,11 +2,10 @@
 
 Cook is an **in-agent plugin** that ports pop's task-set *implement* feature —
 the drain with its nested loops, the verification tail, the remediation loop,
-the code review, and the human gates — into agent hosts that share the
-markdown-skills standard. Claude Code is the first host; Pi is the second. Pop
-remains the source of truth: cook's documents are continuously ported from the
-pop repository, and every document in this set names its pop sources in a
-closing footer.
+the code review, and the human gates — into Claude Code, built on the
+markdown-skills standard. Pop remains the source of truth: cook's documents
+are continuously ported from the pop repository, and every document in this
+set names its pop sources in a closing footer.
 
 Cook is **docs-first**: this spec set is implementation-binding. A host
 implementation is correct when it satisfies these documents, not when it
@@ -111,8 +110,8 @@ opens: cheap agent checking precedes expensive human time.
 | `/cook:verify <set-id>` | Force the Verifier now, outside the automatic flow. |
 | `/cook:review <set-id>` | Force the Reviewer now, outside the automatic flow. |
 
-Host-specific invocation mapping (how the verbs resolve on Claude Code vs
-Pi) lives in `10-hosts.md`.
+Host-specific invocation mapping (how the verbs resolve on Claude Code)
+lives in `10-hosts.md`.
 
 ## Vocabulary
 
@@ -141,7 +140,7 @@ extra weight:
 | `07-review.md` | The Reviewer: the non-gating document, review episodes, the pointer. |
 | `08-gates.md` | The four gates: HITL, Failed, Verify-failed, Interrupt. |
 | `09-prompts.md` | Every prompt verbatim, with cook's marked edits against pop's. |
-| `10-hosts.md` | The host capability matrix: Claude Code, Pi. |
+| `10-hosts.md` | The host capability matrix: Claude Code. |
 
 The parity ledger — what is IN, what is OUT, every marked divergence, and
 the pop commit watermark — is `PARITY.md` at the repo root.

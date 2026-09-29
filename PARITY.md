@@ -49,7 +49,7 @@ Each exclusion is a decision, not an omission. One line each:
 | Agent fallback across presets + quota cooldown store | In-agent, the host is the only agent; there is no preset list to fall through. |
 | Worktree bindings, fold, trunk management, drain routing | Pop-specific checkout infrastructure; cook drains the current checkout. |
 | Work daemon / supervision | There is no process to be a daemon in; cook v1 is attended-only. |
-| Dashboard / TUI surfaces | Pop's dashboard was a *place you went* to look at runs, with its own lifecycle and navigation; cook has no such place and ships no view you can open. A tool result drawing itself where the tool call already sits is not that: the pi adapter's `renderCall` / `renderResult` decorate cook's own tool call inside the host's transcript, and are in scope (ADR-0009's Human-facing row). The rule is "no surface of cook's own", not "no pixels". |
+| Dashboard / TUI surfaces | Pop's dashboard was a *place you went* to look at runs, with its own lifecycle and navigation; cook has no such place and ships no view you can open. The host's own views of cook's work (its subagent panel, `/tasks`) are the host's, not cook's (ADR-0009's Human-facing rows). |
 | Captured-run telemetry + spend lens | Telemetry infrastructure; only the 10% the digest needs survives, as Attempt records. |
 | Prompt spill to file | An argv-size workaround; in-agent prompts never ride argv. |
 | Attended assistance sessions | The human is already in an agent session; gates ask in-session instead. |
@@ -65,12 +65,11 @@ and carries its reason; anything not listed here is intended to match pop.
 | Verify default | Off | **On** | Verification is half the reason to want the feature; user decision at grill Q21; ADR-0005. |
 | Review default | Off (opt-in verb) | **On** | Same grill decision (ADR-0005); the Reviewer still gates nothing. |
 | Retry delays | `1m, 5m, 15m` | **Default-off** (key kept) | Sleeping inside an agent session buys little; ADR-0004. |
-| Verifier/Reviewer independence | Separate process, possibly different vendor | Fresh-context subagent, same model | The strongest independence both hosts can offer; ADR-0003. |
-| Subagent isolation on pi | Sealed subprocess pop owns end to end | A **third-party** `Agent` call — `subagent_type: "general-purpose"`, `isolated: true` — so extensions, skills and context files are stripped, but the child still inherits the parent's system prompt | A pi package manifest carries only `extensions`/`skills`/`prompts`/`themes`, so cook cannot deliver the agent-type file (`prompt_mode: replace`) that would drop the inherited prompt without costing every install a manual copy; ADR-0011. Revisit if pi packages learn to ship agent types. |
-| Cap enforcement | Supervisor-enforced (SIGKILL, `time.After`) | Orchestrator-checked before the next spawn; Turn cap and timeout-kill declared Blind | Instructions cannot kill mid-flight; ADR-0004. Pi's turn cap is now *Supported-capable* (pi-subagents' `Agent` takes `max_turns`) but stays Blind for v1 symmetry, and pi's timeout kill went from Supported-capable to plainly Blind once cook stopped owning the child process; ADR-0011. |
+| Verifier/Reviewer independence | Separate process, possibly different vendor | Fresh-context subagent, same model | The strongest independence the host can offer; ADR-0003. |
+| Cap enforcement | Supervisor-enforced (SIGKILL, `time.After`) | Orchestrator-checked before the next spawn; Turn cap and timeout-kill declared Blind | Instructions cannot kill mid-flight; ADR-0004. |
 | Unattended operation | Work daemon spawns drains | Attended-only v1; gate semantics for a future headless mode spec'd dormant | ADR-0004. |
 | Storage formats | pop's files + pop.db | Cook-owned files only, **no pop interop** | No runtime dependency on pop; ADR-0002. |
-| State write atomicity | Atomic: write a temp file in the same directory, then rename over the target (Go) | **Non-atomic**: one in-place write through the host's cook-state read-and-mutation capability, no rename | Neither in-agent host exposes a rename primitive, so the rule could only be obeyed by authoring a program; the drain lock's single-writer discipline makes the torn-write window the lesser risk against orchestrators improvising state rewrites; ADR-0008. |
+| State write atomicity | Atomic: write a temp file in the same directory, then rename over the target (Go) | **Non-atomic**: one in-place write through the host's cook-state read-and-mutation capability, no rename | The in-agent host exposes no rename primitive, so the rule could only be obeyed by authoring a program; the drain lock's single-writer discipline makes the torn-write window the lesser risk against orchestrators improvising state rewrites; ADR-0008. |
 | Adapter capability declaration | Supported / Blind | Supported / Blind / **Human-facing** | Cook's matrix also lists host affordances no cook logic reads (loop hardening, subagent trace visibility); declaring those Supported would spend the one distinction the matrix exists to make. Human-facing names the audience instead; ADR-0009. |
 | Companion planning skills | Pop's planning path is pop's own code; cook reuses only its issue-tracker adapter-doc mechanism (`integrate/issue-tracker.md`) | **Third-party skills vendored verbatim** — `grill-with-docs`, `grilling`, `domain-modeling`, `to-spec`, `to-tickets` (MIT) ship under `skills/` | `/cook:plan` is composed from an existing skill set instead of reimplemented, so the entry verb works on a bare install; ADR-0010. |
 | Dirty-checkout strategies | continue / commit-and-continue / stash-and-continue | `continue` only | v1 cut; the other two are ledgered, not lost. |
@@ -93,7 +92,7 @@ union, for the porting diff.
 | `docs/spec/07-review.md` | `tasks/review.go`, `tasks/review_phase.go`, `tasks/review_episode.go`, `tasks/prompts/reviewer.tmpl.md`, ADR-0214 |
 | `docs/spec/08-gates.md` | `tasks/gates.go`, `tasks/interrupt_gate.go`, `tasks/prompts/*-assistance.tmpl.md` |
 | `docs/spec/09-prompts.md` | `tasks/prompts/*.tmpl.md` (all), `tasks/digest.go` (lesson strings) |
-| `docs/spec/10-hosts.md` | pop's adapter-capability pattern (ADR-0165, ADR-0166, ADR-0190); the pi rows also track `@tintinweb/pi-subagents` (ADR-0011), which is not a pop source |
+| `docs/spec/10-hosts.md` | pop's adapter-capability pattern (ADR-0165, ADR-0166, ADR-0190) |
 | `PARITY.md` | the whole of the above |
 
 ## Drift-guard checklist
@@ -104,7 +103,7 @@ Run at the end of every porting session:
       **verbatim copy** of the contract section of `docs/spec/01-storage.md`.
       The copy is shared: it lives at
       `skills/register/references/format-contract.md` (below its header, in
-      the root `skills/` directory both hosts symlink), and the plan skill
+      the root `skills/` directory the plugin symlinks), and the plan skill
       reads that same file.
       (Pop generates its authoring guide from validator constants; cook cannot
       generate, so this manual check is the honest substitute. If drift ever
@@ -126,14 +125,6 @@ Run at the end of every porting session:
       local edit (ADR-0010 — an edit turns every future re-sync into a merge).
       A daily GitHub Action already runs this check and opens a pull request
       when it fails, so in practice this item is "no open re-sync PR".
-- [ ] The pi rows of the capability matrix still match
-      `@tintinweb/pi-subagents` as installed: the `Agent` tool's parameters,
-      the foreground result framing the delivery note parses (stats header,
-      blank line, reply), and the `Agent failed:` / `STOPPED BY THE USER` /
-      `aborted at the turn limit` / `No output.` shapes. Cook depends on
-      another project's output format here (ADR-0011), and nothing but this
-      check notices when it moves. `pi/extension/smoke-test.sh` runs the
-      framing half against a real pi; the `Agent` parameters are still eyes.
 - [ ] The watermark is advanced.
 
 ## Sources in pop

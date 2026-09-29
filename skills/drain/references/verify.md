@@ -37,11 +37,32 @@ On an AWAITING-APPROVAL set this runs **before** the HITL sign-off gate
 opens: cheap agent checking precedes expensive human time. A PASS opens the
 gate.
 
-## Force mode (`/cook:verify <set-id>`)
+## Force mode (`/cook:verify <set-id>`) — a Forced verification
 
-Always spawn a fresh Verifier, regardless of any cached verdict. Force is the
-human's escape hatch; the cache governs only automatic runs. Record and
-report the verdict exactly as below.
+1. Take `drain.lock` (refuse on a fresh lock, exactly as a drain start does —
+   SKILL.md).
+2. Recompute the episode fingerprint and, if it changed, clear the cache —
+   steps 1–2 above.
+3. Always spawn a fresh Verifier, regardless of any cached verdict. Force is
+   the human's escape hatch; the cache governs only automatic runs.
+4. **Record, never enact**: write the verdict to `verdict_cache` (a PASS also
+   sets `last_pass` and the fingerprint — the same one write as the PASS
+   disposition) and file the Verify report (below). Spawn **no** Remediation
+   task and park nothing.
+5. Remove `drain.lock`. Then:
+   - **PASS** — report it and stop.
+   - **Non-PASS** on a set whose terminal state was reached through a human
+     completion — report the verdict as a verification mark only; no gate.
+   - **Any other non-PASS** (FIXABLE under the cap included — no drain is
+     here to act on it) — open the **Verify-failed gate** (`gates.md`) in
+     this session. If the human **exits** it, the verdict stays cached; tell
+     them what the next drain will do — `The next drain spawns a Remediation
+     task from these findings (depth <used+1> of <cap>).` for FIXABLE under
+     the cap, `The next drain parks the set at VERIFY-FAILED; the Remediation
+     depth cap is exhausted.` for FIXABLE at the cap, `The next drain parks
+     the set at VERIFY-FAILED.` for NEEDS-HUMAN — and add: `Editing a task's
+     acceptance criteria does not clear this verdict; re-run verification or
+     record an Accept before the next drain.`
 
 ## Assembling the prompt
 
@@ -59,6 +80,10 @@ Render `prompts/verifier.md` (rules in the drain SKILL.md) from:
 - The **remediation history**, when remediation tasks have already run in
   this set (which tasks, their findings), so the Verifier knows what was
   already tried.
+- `verification` (always renders): the resolved **verification** convention —
+  the target repository's `docs/agents/verification.md` when present and
+  non-empty, else `${CLAUDE_PLUGIN_ROOT}/conventions/verification.md` —
+  inlined whole as the "How work is checked in this repository" section.
 
 The `{{#if convention_recorded}}` sections never render (cook v1 configures
 no commit convention); a `COMMIT-SUBJECT:` line in the reply is ignored.
@@ -68,12 +93,37 @@ no commit convention); a `COMMIT-SUBJECT:` line in the reply is ignored.
 ```
 VERDICT: PASS | FIXABLE | NEEDS-HUMAN        (first line, required)
 SUMMARY: <one line>                           (optional; omitted on PASS)
-FINDINGS: <what fails a criterion and why>    (empty on PASS)
+FINDINGS: <what was checked; why each criterion is met or unmet>   (every verdict)
 ```
 
 A reply whose first line parses to none of the three verdicts is a **failed
 Verifier attempt** — retry the spawn under the same `max_tries` cap as
-implement attempts.
+implement attempts. A failed attempt files no report.
+
+## The Verify report
+
+After **every** parsed verdict — automatic or forced, never for a verdict
+served from the cache — file one document, a file you create whole through
+the cook-state read and mutation capability, at
+`.cook/tasks/<set-id>/verify/<ISO-8601-timestamp>.md` (timestamp from the
+RFC3339 UTC timestamps capability; advance a second if the name is taken):
+
+```markdown
+# Verify report — <set-id>
+
+- Verified: <RFC3339 UTC>
+- Commit range: <set_base_commit>..<HEAD short sha>
+- Work SHA: <short sha judged>
+- Verifier: claude-code
+
+<the reply with its VERDICT: line removed — the whole reply if nothing else remains>
+```
+
+A failed write is a **warning**, never a failed verification. Reports are
+never deleted — invalidation leaves them alone. The **Verify pointer** (path
++ the header's Work SHA, never the body) is shown at the HITL and
+Verify-failed gate asks, in `/cook:status` detail, and in the exit report —
+**never** in an agent prompt.
 
 ## Dispositions
 
@@ -81,11 +131,12 @@ implement attempts.
   judged, `at`), `last_pass` (`work_sha`, `at`), and the episode fingerprint.
   All three are one transition, so they land in **one** write through the
   cook-state read and mutation capability. Continue the loop (terminal
-  handling / review phase follow).
+  handling follows).
 - **FIXABLE** —
   1. Spawn a **Remediation task**: a new AFK task file whose body carries the
      findings **verbatim** (findings live only there — never as annotations
-     in another task's file), origin `auto`, appended to the manifest with at
+     in another task's file), with `"origin": "auto"` in its manifest entry,
+     appended to the manifest with at
      least one acceptance checkbox derived from the findings. Follow the
      format contract (register skill). The task file is a file you create
      whole and the manifest entry is one manifest write, both through the
@@ -99,7 +150,8 @@ implement attempts.
   4. Increment `remediation_depth_used` — the same `state.json` write as the
      invalidation above carries it; continue the loop — the remediation task
      is eligible AFK work and drains like any other. Re-verification
-     afterward is mandatory (the fingerprint changed).
+     afterward is mandatory (the fingerprint changed); re-refining is not
+     (the Refine episode leaves Remediation tasks out — `refine.md`).
   Bounded by `remediation_depth` (default **2**) per verification episode:
   when the cap is already used up, do not spawn — park the set at the
   **Verify-failed gate** (`gates.md`), recording the non-PASS verdict.
@@ -120,7 +172,7 @@ closed. The finding lands only as a verification mark beside the status.
 
 A verification episode is one contiguous stretch during which the set's
 done-AFK composition is unchanged (the fingerprint above — recomputed by
-reading `manifest.json`, never carried over from a previous iteration).
+reading `manifest.json`, never carried over from a previous Drain turn).
 
 - Any AFK task moving **into open** (reopen) or **into done** (new
   completion, remediation tasks included) changes the fingerprint → every
@@ -130,6 +182,7 @@ reading `manifest.json`, never carried over from a previous iteration).
   HITL task leaves the fingerprint untouched.
 - Invalidation is a hard delete of the cached verdicts in `state.json`, made
   through the cook-state read and mutation capability like every other write.
+  The journal and the Verify reports are never touched.
 
 `HUMAN-PASS` (recorded at the Verify-failed gate's *accept* outcome) is
 cached like an agent PASS: episode immunity applies.

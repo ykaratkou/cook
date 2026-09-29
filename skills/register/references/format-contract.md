@@ -21,7 +21,9 @@ Verbatim copy of the contract section of `docs/spec/01-storage.md` (between its 
             ├── state.json           # sidecar: verdicts, episodes, counters
             ├── attempts/            # slim per-attempt records (digest substrate)
             │   └── <task-id>-<ordinal>.json
-            ├── reviews/             # Reviewer documents, latest by timestamp
+            ├── refine/              # Refine reports, latest by timestamp
+            │   └── <ISO-timestamp>.md
+            ├── verify/              # Verify reports, latest by timestamp
             │   └── <ISO-timestamp>.md
             └── drain.lock           # present only while a drain is live
 ```
@@ -44,7 +46,8 @@ is the set's identity everywhere (commands, commit trailers, gates).
       "blocked_by": [],
       "commit_subject": "feat(feature-x): add the widget scaffold",
       "attempts": 0,
-      "human_completed": false
+      "human_completed": false,
+      "origin": "auto"
     }
   ]
 }
@@ -73,6 +76,11 @@ Per-task fields:
 - `human_completed` (boolean, default false) — set when a human, not the
   executor, marked the task done. A human completion outranks the Verifier's
   verdict in status derivation.
+- `origin` (`"auto"` | `"human"`, optional) — present only on a
+  **Remediation task**: `auto` when the verify phase spawned it on FIXABLE,
+  `human` when a human chose *remediate* at the Verify-failed gate. Absent on
+  every planned task. It is how the Refine episode leaves Remediation tasks
+  out (`07-refine.md`).
 
 Fields written by the executor on task completion (absent until then):
 
@@ -94,6 +102,11 @@ another task's output. The task may also be self-contained.>
 ## What to build
 <the work, described so a fresh-context agent can do it without asking>
 
+## Orientation
+<optional: perishable pointers, as of authoring — the files to touch, the
+symbols and types involved, and the exact build/test command that proves the
+slice. Verify before trusting — anything here may have moved.>
+
 ## Acceptance criteria
 - [ ] <criterion one>
 - [ ] <criterion two>
@@ -104,6 +117,15 @@ implementer to tick every satisfied box (`- [ ]` → `- [x]`), and an attempt
 that leaves a box unticked is recorded as failed even when the work itself
 landed. Every AFK task MUST have at least one checkbox. The task file is
 the one file the implementer edits besides the code.
+
+`## Orientation` is the one place paths belong: "What to build" stays
+path-free, while Orientation holds the map the author already had, stamped
+as of authoring and labelled stale-able, so the executor stops re-deriving
+it. The implementer's prior-art search starts from the files it names.
+Fill it only from what was actually touched or read while planning, plus the
+command that proves the slice; omit it for a slice with no code surface (a
+HITL sign-off). Never pad it with guesses — a wrong pointer costs more than a
+missing one.
 
 ### HITL typing rules
 
@@ -140,7 +162,7 @@ Set-level events use the literal task-file `set`.
 ## spec.md (optional)
 
 The planning spec co-located with the set. It is handed to the Verifier and
-Reviewer as **context only** — the acceptance criteria in the task files
+Refiner as **context only** — the acceptance criteria in the task files
 remain authoritative, always.
 
 ## state.json
@@ -155,19 +177,20 @@ else writes it.
     "verdict": "PASS | FIXABLE | NEEDS-HUMAN | HUMAN-PASS",
     "work_sha": "<sha judged>",
     "summary": "<one line, optional>",
-    "findings": "<text, empty for PASS>",
+    "findings": "<what was checked, and why each criterion is met or unmet>",
     "at": "<RFC3339>"
   },
   "last_pass": { "work_sha": "<sha>", "at": "<RFC3339>" },
   "verification_episode_fingerprint": "01-first-task,02-second-task",
-  "review_episode_fingerprint": "01-first-task,02-second-task",
+  "refine_episode_fingerprint": "01-first-task,02-second-task",
+  "refine_last": { "outcome": "started | refined | gate-blocked | abandoned", "work_sha": "<sha>", "at": "<RFC3339>" },
   "remediation_depth_used": 0,
   "human_note": "<optional: the note a human recorded when accepting past a finding>"
 }
 ```
 
 - `set_base_commit` — the parent of the set's **first** implementation
-  commit; the Verifier/Reviewer commit range is
+  commit; the Verifier/Refiner commit range is
   `<set_base_commit>..HEAD`. Null until the first commit.
 - `verdict_cache` — the current verdict at its judged SHA. `HUMAN-PASS` is
   a human-authored acceptance recorded at the Verify-failed gate.
@@ -180,10 +203,15 @@ else writes it.
   recomputed fingerprint differs from the stored one, the episode has ended:
   the verdict cache and `last_pass` are cleared and fresh verification is
   required. HITL-only transitions never change the fingerprint.
-- `review_episode_fingerprint` — the same literal value computed for the
-  Reviewer: the sorted ids of the currently-`done` AFK tasks joined with
-  `,`, compared by string equality. A matching fingerprint means the current
-  review document still describes this work and no re-review runs.
+- `refine_episode_fingerprint` — the literal value computed for Refine: the
+  sorted ids of the currently-`done` AFK tasks **that are not Remediation
+  tasks** (no `origin`), joined with `,`, compared by string equality.
+  Recorded only when a pass reports `refined`; a matching fingerprint means
+  this composition has been refined and no automatic pass runs.
+- `refine_last` — the latest Refine pass: `started` is written before the
+  Refiner is spawned and replaced by the parsed outcome after it. It is the
+  sole input of the Refine mark; a leftover `started` means the pass never
+  finished.
 - `remediation_depth_used` — Remediation tasks spawned in this episode;
   compared against the config cap.
 
@@ -217,8 +245,9 @@ latest `RESET` journal marker are out of digest scope.
   "max_tries": 3,
   "retry_delays": [],
   "verify": true,
-  "review": true,
+  "refine": true,
   "remediation_depth": 2,
+  "include_implementation_convention": false,
   "commit_overrides": []
 }
 ```
@@ -232,8 +261,11 @@ latest `RESET` journal marker are out of digest scope.
   little.
 - `verify` (default **true**) — run the Verifier automatically at the
   drain's tail. A marked divergence: pop defaults verification off.
-- `review` (default **true**) — run the Reviewer automatically after a
-  PASS. Likewise on by default where pop's is off.
+- `refine` (default **true**) — run the refine phase automatically at the
+  drain's tail, before the verify phase. Likewise on by default where pop's
+  is off.
+- `include_implementation_convention` (default false) — inline the resolved
+  Implementation convention into every implementer prompt.
 - `remediation_depth` (default 2) — Remediation tasks per verification
   episode before the set parks at VERIFY-FAILED. The default is cook's own
   choice; pop leaves it to configuration.
@@ -241,7 +273,11 @@ latest `RESET` journal marker are out of digest scope.
   to implementation commits (e.g. disabling commit signing).
 
 Missing file or missing keys mean the defaults. Per-invocation arguments
-override config.
+override config. A drain re-reads this file at every Drain turn; a change
+applies at the next turn, except `commit_overrides`, which a drain settles at
+start. A file that fails to parse keeps the previous turn's configuration
+(and refuses a drain that has none yet). The retired `review` key is an
+error naming `refine` — never a silent alias.
 
 ## Validation rules (register)
 
@@ -255,9 +291,10 @@ is MALFORMED and will not drain) unless marked as warnings:
    existing task id; no dependency cycles.
 4. Every AFK task's file has at least one checkbox under an
    `## Acceptance criteria` heading.
-5. No orphan `.md` files: every `.md` in the set directory except
-   `spec.md` has a manifest entry.
-6. `type` and `status` hold only their allowed values.
+5. No orphan `.md` files: every `.md` at the top level of the set directory
+   except `spec.md` has a manifest entry (the `refine/`, `verify/` and any
+   legacy `reviews/` sub-directories hold reports, not tasks).
+6. `type`, `status` and `origin` hold only their allowed values.
 7. Unknown manifest keys — warning only.
 8. HITL tasks SHOULD be terminal or block AFK work deliberately; a HITL
    task whose body describes software to build — warning naming the typing

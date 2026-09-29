@@ -13,13 +13,14 @@ external tracker.
 - **One ticket = one task file** (`NN-slug.md`) plus one entry in the set's
   `manifest.json` tasks array, in authored order.
 - **The format contract** — manifest fields, task-file shape (`## What to
-  build`, `## Acceptance criteria` checkboxes), AFK/HITL typing rules — is
+  build`, the optional `## Orientation`, `## Acceptance criteria`
+  checkboxes), AFK/HITL typing rules — is
   the register skill's contract:
   `skills/register/references/format-contract.md` (a verbatim copy of cook
   spec `docs/spec/01-storage.md`). It is authoritative; follow it for every
   file written.
 - The planning spec is co-located as `spec.md` in the set directory
-  (context only for cook's Verifier/Reviewer; the task files' acceptance
+  (context only for cook's Verifier/Refiner; the task files' acceptance
   criteria remain authoritative).
 
 ## Shape requirements

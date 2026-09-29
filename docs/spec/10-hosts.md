@@ -57,6 +57,7 @@ occasionally types `/cook:drain` again.
 ```
 cook/
 ├── prompts/            ← shared, single copy (doc 09's files)
+├── conventions/        ← cook's shipped conventions (doc 07; edits in doc 09 §11)
 ├── PROVENANCE.md       ← the vendored companion skills' upstream record
 ├── LICENSE-mattpocock-skills  ← their upstream license, verbatim
 ├── skills/             ← shared, single copy: the drain orchestration skill
@@ -65,7 +66,7 @@ cook/
 ├── docs/               ← this spec set
 ├── claude-code/        ← the Claude Code plugin
 │   ├── commands/       ← /cook:drain, /cook:plan, /cook:register,
-│   │                     /cook:status, /cook:verify, /cook:review
+│   │                     /cook:status, /cook:verify, /cook:refine
 │   ├── skills/         → symlink to ../skills
 │   └── hooks/          ← optional stop-hook hardening
 ```
@@ -77,9 +78,13 @@ hooks are host-specific.
 
 ### claude-code specifics
 
-- Attempts, Verifier, Reviewer: Agent tool spawns with the rendered prompt as
-  the task text; the return value is parsed for sentinels / VERDICT / the
-  review document.
+- Attempts, Verifier, Refiner: Agent tool spawns with the rendered prompt as
+  the task text; the return value is parsed for sentinels / VERDICT /
+  REFINE-OUTCOME and the report. The Refiner is a write-capable spawn like an
+  attempt (it edits the checkout); its licence is the prompt's, not a tool
+  restriction — pop retired the read-only posture for the same reason
+  (pop ADR-0221, amended).
+- The shipped conventions resolve at `${CLAUDE_PLUGIN_ROOT}/conventions/`.
 - Gates: AskUserQuestion with the gate's allowed outcomes (doc 08).
 - The plugin's drain skill is the orchestrator instruction set; the
   `/cook:drain` command invokes it.

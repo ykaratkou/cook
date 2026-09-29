@@ -22,7 +22,7 @@ Human-facing task path: {{task_path}}
 {{/if}}{{#each completed_work}}- {{task_id}} ({{file}}, {{outcome}} at {{timestamp}})
   {{summary_lines}}
 {{/each}}
-{{> latest-code-review}}
+{{> latest-refine-report}}
 
 Use the repository and task context to help the human decide which allowed outcome is correct.
 

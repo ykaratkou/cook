@@ -2,7 +2,7 @@
 
 Cook is an **in-agent plugin** that ports [pop]'s task-set *implement*
 feature — the drain with its nested loops, the verification tail, the
-remediation loop, the non-gating code review, and the human gates — into
+remediation loop, the Refine pass, and the human gates — into
 Claude Code.
 
 The original is [glebglazov/pop](https://github.com/glebglazov/pop) — an
@@ -70,7 +70,7 @@ sign-off; everything between is automatic:
 | `/cook:register <set-id>` | Validate a hand-authored or hand-edited set; fix list or READY. |
 | `/cook:status` | Derive and print every set's status and open tasks. Read-only. |
 | `/cook:verify <set-id>` | Force the Verifier now, outside the automatic flow. |
-| `/cook:review <set-id>` | Force the Reviewer now, outside the automatic flow. |
+| `/cook:refine <set-id>` | Force a Refine pass now, outside the automatic flow. |
 
 Every verb works on a bare install: the skills `/cook:plan` orchestrates
 ship with cook (see above).

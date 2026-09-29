@@ -14,7 +14,10 @@ divergence is ledgered in `PARITY.md`.
 
 1. **A gate parks the Drain.** The current Drain finishes when the gate opens;
    choosing an outcome that resumes AFK work begins a fresh Drain (doc 03). The
-   Implement run owns the gate; the Drain never does.
+   Implement run owns the gate; the Drain never does. The one gate that also
+   opens outside a drain is the Verify-failed gate at the end of a **Forced
+   verification** (doc 06); there is no Drain to park, and the forced run has
+   released its lock before the ask.
 2. **The human decides every outcome.** Ported partial, verbatim in force for
    the orchestrator at every gate: the orchestrator effects no disposition — no
    task status change (complete, skip, reset, reopen), no verdict recorded, no
@@ -42,13 +45,15 @@ divergence is ledgered in `PARITY.md`.
 **Opens when** the drain needs a HITL task resolved: either the set is BLOCKED
 (an open AFK task is gated behind a human task) or the set is
 AWAITING-APPROVAL and only the terminal sign-off remains. On the sign-off case
-the gate opens **after** verification passed (doc 06) and the review exists
-(doc 07).
+the gate opens **after** the refine phase had its turn (doc 07) and
+verification passed (doc 06).
 
 **The ask shows**: the blocking HITL task's full body; the task-set listing;
 the completed-AFK-work summaries from `progress.txt` (what the agents actually
-did, in their own SUMMARY blocks); the review pointer (path + commit +
-out-of-date flag — never the body).
+did, in their own SUMMARY blocks); the **Refine mark** (on the sign-off
+case) and the **Refine pointer** (path + commit + out-of-date flag — never
+the body); the **Verify pointer** when a Verify report exists (path + commit
+— never the body).
 
 **Allowed outcomes**:
 - **complete** — the human verified the required work; the task transitions to
@@ -67,7 +72,7 @@ failed.
 
 **The ask shows**: the failed task's body; the structured failure reason from
 the last attempt (or "no structured failure reason was recorded"); the task-set
-listing; the review pointer when one exists.
+listing; the Refine pointer when one exists.
 
 **Allowed outcomes** (the only two, ported verbatim):
 - **re-run** — fix the underlying problem so a fresh attempt can pass: the
@@ -84,18 +89,30 @@ listing; the review pointer when one exists.
 ## Verify-failed gate
 
 **Opens when** the Verifier returned NEEDS-HUMAN, or FIXABLE with the
-remediation depth cap exhausted (doc 06).
+remediation depth cap exhausted (doc 06) — or, at the end of a **Forced
+verification**, on any non-PASS verdict, FIXABLE under the cap included
+(doc 06). Exiting the forced gate leaves the verdict cached for the next
+drain to enact, and the exit says what that drain will do.
 
 **The ask shows**: the recorded Verifier findings (or "none were recorded for
 this verdict"); the commit range and complete `git diff --stat` (fetch any
-file's diff on request); the task-set listing; the review pointer.
+file's diff on request); the task-set listing; the Verify pointer; the
+Refine pointer.
 
 **Allowed outcomes**:
 - **accept** — the human records a **human-authored PASS** with an optional
   note. The PASS is cached like an agent PASS (episode immunity applies). The
   note is persisted in `state.json` and fed to every future Verifier of this
   set as the **prior human note** prompt section: the adjudicated non-issue is
-  not re-flagged, but a genuine new regression still fails.
+  not re-flagged, but a genuine new regression still fails. The accept also
+  files an **accepted-verdict Verify report** (doc 06), read before the
+  verdict it overrides is overwritten: header as for any Verify report but
+  ending `- Accepted by: human`, then the body —
+  `A human recorded this PASS directly, overriding verification. No Verifier
+  judged this work SHA.`, a `## Overridden verdict` section with the old
+  verdict and its findings (or `None recorded at this work SHA.`), and a
+  `## Rationale` section with the note (or `The human recorded no rationale
+  with the Accept.`).
 - **remediate** — the human spawns a remediation task (origin `human`) carrying
   the findings and an optional note. This is the one outcome the orchestrator
   is expected to **pre-draft**: it writes the remediation task from the
@@ -115,7 +132,7 @@ invites verdict-shopping.
 (the in-agent analog of pop's SIGINT on a drain).
 
 **The ask shows**: the interrupted task's full body; the task-set listing; the
-review pointer when one exists.
+Refine pointer when one exists.
 
 **Allowed outcomes**:
 - **continue draining** — re-run the interrupted task; a fresh Drain begins.
@@ -133,11 +150,15 @@ the drain itself — the human chooses through the ask.
 
 - `tasks/gates.go` (HITL gate + assistance), `tasks/interrupt_gate.go`,
   `tasks/run_tasks.go` (Failed gate), `tasks/verify_phase.go` (Verify-failed
-  gate and dispositions)
+  gate and dispositions), `tasks/verify.go` (`handleForcedVerifyFailedGate` —
+  the forced-verification gate), `tasks/verify_report.go` (the
+  accepted-verdict report), `tasks/gate_menu.go` (the refine mark and the
+  verify/refine pointers in the gate preamble)
 - `tasks/prompts/hitl-assistance.tmpl.md`, `failed-assistance.tmpl.md`,
   `verify-failed-assistance.tmpl.md`, `interrupt-assistance.tmpl.md`,
   `partials.tmpl.md` (the-human-decides, you-may-draft-what-the-human-confirms)
   — all ported in doc 09
 - `CONTEXT.md` — **HITL gate prompt**, **Failed gate prompt**, Verify-failed
-  entries, **Remediation task** (origins), **Human completion**, the
+  entries, **Remediation task** (origins), **Human completion**, **Forced
+  verification**, **Refine mark**, **Verify pointer**, **Refine pointer**, the
   stop-and-advice non-interactive rule

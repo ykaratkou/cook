@@ -47,6 +47,11 @@ discovers them like any other installed skill. See `PROVENANCE.md` at the repo r
    - small **vertical-slice AFK tasks**, each self-containedly implementable
      by a fresh-context agent, each with at least one checkbox under
      `## Acceptance criteria`;
+   - an optional `## Orientation` section on each AFK task with a code
+     surface: the files and symbols actually touched or read while planning,
+     plus the exact build/test command that proves the slice — the one place
+     paths belong, where the implementer's prior-art search starts. Never
+     padded with guesses; omitted for a HITL sign-off;
    - a single **terminal HITL sign-off task**, blocked by every AFK task in
      the set (the canonical shape); HITL tasks contain only human work;
    - `blocked_by` capturing real prerequisites; manifest order as the

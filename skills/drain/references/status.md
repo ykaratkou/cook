@@ -9,7 +9,7 @@ variant; route every surface through this.
 Derivation starts from a fresh read of the set's `manifest.json` and
 `state.json` through the cook-state read and mutation capability (your host's
 delivery note names the mechanism) — ground rule 1: re-read them every
-iteration, never act on a remembered value. What follows is then **your own
+Drain turn, never act on a remembered value. What follows is then **your own
 reasoning over the bytes you just read** — you read the tables below and
 apply them to the file in front of you.
 
@@ -77,7 +77,7 @@ modified by verdicts.
 
 ## Set selection
 
-No-argument `/cook` selects among sets under `.cook/tasks/`:
+No-argument `/cook:drain` selects among sets under `.cook/tasks/`:
 
 1. Consider only sets deriving `READY` — read each candidate set's
    `manifest.json` and `state.json` and derive as above.
@@ -89,6 +89,14 @@ they are reachable only by naming them explicitly. A `MALFORMED` set is
 reported, never selected. When no READY set exists, report the nearest
 actionable state (an AWAITING-APPROVAL set to sign off, a BLOCKED set's
 gating HITL task) and stop — never invent work.
+
+## What `/cook:status` prints
+
+Every set with its derived status and open tasks; in the terminal zone its
+verification mark (including `verified at <sha>` when HEAD has moved past the
+verified SHA) and its **Refine mark** (`refine.md`); and, where those reports
+exist, the Refine pointer and the Verify pointer — never a report body. Both
+marks are derived read-only from `state.json` and never change the status.
 
 ## Sources
 

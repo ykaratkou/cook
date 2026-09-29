@@ -1,6 +1,6 @@
 ---
 name: drain
-description: Cook's drain orchestrator — the instruction set for one Implement run over a task set (drain loop, attempts, retries, verification, review, gates). Loaded by the /cook:drain command; never start a drain on your own initiative.
+description: Cook's drain orchestrator — the instruction set for one Implement run over a task set (drain loop, attempts, retries, refine, verification, gates). Loaded by the /cook:drain command; never start a drain on your own initiative.
 user-invocable: false
 disable-model-invocation: true
 ---
@@ -10,7 +10,7 @@ disable-model-invocation: true
 You are the **Orchestrator** of a cook Implement run: the human's own agent
 session running one task set from selection to exit. You select tasks, spawn
 fresh-context subagent Attempts, assess their output, make the implementation
-commits, run the Verifier and Reviewer, and stop at human gates. You are
+commits, run the Refiner and the Verifier, and stop at human gates. You are
 instructions over files, not a process — **files are the only truth**, and a
 crashed or wandering orchestrator is recovered by invoking `/cook:drain` again.
 
@@ -20,14 +20,15 @@ source; this skill is its operational rendering.
 
 ## Ground rules — in force for the whole run
 
-1. **Re-derive, never remember.** Every loop iteration re-reads
+1. **Re-derive, never remember.** Every Drain turn re-reads
    `manifest.json` and `state.json` and re-derives status
    ([references/status.md](references/status.md)). Never cache derived status
-   across iterations; never act on your recollection of a file.
+   across turns; never act on your recollection of a file.
 2. **You never implement.** Task work is done only by fresh-context subagent
-   Attempts. Your own writes are limited to: cook's files under
-   `.cook/tasks/<set-id>/`, the implementation commits, and the remediation
-   task files the verify phase spawns.
+   Attempts, and code fixes only by the Refiner. Your own writes are limited
+   to: cook's files under `.cook/tasks/<set-id>/` (reports included), the
+   implementation and Refine commits, the abandon restore of a Refine pass,
+   and the remediation task files the verify phase spawns.
 3. **The human decides every gate outcome.** You effect no disposition —
    no complete, skip, reset, accept, or remediation spawn — except as the
    direct execution of the human's answer to a gate's structured ask
@@ -49,11 +50,25 @@ source; this skill is its operational rendering.
 Read `.cook/config.json`. Missing file or missing keys mean the defaults:
 
 ```json
-{ "max_tries": 3, "retry_delays": [], "verify": true, "review": true,
-  "remediation_depth": 2, "commit_overrides": [] }
+{ "max_tries": 3, "retry_delays": [], "verify": true, "refine": true,
+  "remediation_depth": 2, "include_implementation_convention": false,
+  "commit_overrides": [] }
 ```
 
 Per-invocation arguments override config.
+
+- **Re-read it at the top of every Drain turn**, with the manifest: a change
+  made while the drain runs applies at the next turn. `commit_overrides`
+  (and the dirty strategy) are settled at drain start and hold for the whole
+  Drain.
+- A file that **fails to parse** mid-drain: keep the previous turn's
+  configuration and say once `Configuration re-read failed for <path>;
+  keeping the previous configuration: <error>`; say once `Configuration
+  re-read recovered for <path>` when it parses again. At drain start there is
+  no previous configuration — refuse and report the parse error.
+- The retired **`review`** key present: refuse (at start, or hold the
+  previous configuration mid-drain) and report `the "review" key is retired;
+  use "refine"` — never read it as an alias.
 
 ## Startup
 
@@ -70,7 +85,7 @@ Per-invocation arguments override config.
      "at": "<RFC3339 UTC now>" }`. Use the session identifier for
      `drain.lock` per your host's delivery note
      (references/host-claude-code.md). Refresh `at`
-     on every loop iteration.
+     on every Drain turn.
 3. **Dirty-checkout confirmation.** If `git status --porcelain` is non-empty
    at drain start, show the human the status and this consequence: cook's
    only dirty strategy is `continue` — the first completed task's
@@ -81,15 +96,16 @@ Per-invocation arguments override config.
 
 ## The drain loop
 
-Each iteration, in order:
+Each Drain turn, in order:
 
 ```
-re-read manifest.json + state.json; derive status     (references/status.md)
+re-read manifest.json + state.json + .cook/config.json; derive status
+                                                    (references/status.md)
 refresh drain.lock's "at"
-1. verify phase      — references/verify.md; hands back one of:
-                       keep draining | park at a gate | fall through
-2. review phase      — references/review.md; non-gating, falls through
+1. refine phase      — references/refine.md; non-gating, falls through
                        (only a human interrupt stops it)
+2. verify phase      — references/verify.md; hands back one of:
+                       keep draining | park at a gate | fall through
 3. terminal handling — DONE / FAILED / BLOCKED / AWAITING-APPROVAL /
                        VERIFY-FAILED / DEFERRED: open the matching gate
                        (references/gates.md) or exit with the disposition
@@ -101,12 +117,14 @@ repeat
 
 Consequences of the order — do not reorder:
 
+- Refine runs **before** verify, so the Verifier judges the refined work
+  and the Refine commit with it.
 - On a set entering AWAITING-APPROVAL the Verifier runs **before** the HITL
   sign-off gate opens; a PASS opens the gate.
 - A FIXABLE verdict spawns a Remediation task inside the verify phase; the
-  next iteration's derivation finds eligible AFK work again and the loop
-  continues — the remediation loop **is** this loop.
-- The review phase runs after verification and gates nothing.
+  next turn's derivation finds eligible AFK work again and the loop
+  continues — the remediation loop **is** this loop. The lap re-verifies
+  without re-refining (Remediation tasks stay out of the Refine episode).
 
 Task selection within a drain is **manifest order** among eligible tasks; the
 tasks array is the authored sequence, `blocked_by` is the dependency truth.
@@ -116,7 +134,7 @@ AWAITING-APPROVAL, VERIFY-FAILED, or DEFERRED — or on the human's interrupt
 (Interrupt gate).
 
 **Do not end your turn mid-drain.** While the set derives READY and no gate
-is open, run the next iteration. Ending the turn is for: a gate's structured
+is open, run the next Drain turn. Ending your turn is for: a gate's structured
 ask having been answered with an exit, a terminal disposition reported, or a
 refusal (lock, MALFORMED set).
 
@@ -131,7 +149,8 @@ loop. Remove the lock on **every** exit path.
 
 On exit: remove `drain.lock`, then report the disposition — the set's derived
 status, what was completed this run (from `progress.txt`), the verification
-mark, and the review pointer when one exists.
+mark, the Refine mark, and the Refine and Verify pointers when those reports
+exist.
 
 ## Rendering prompts
 
@@ -156,7 +175,7 @@ Never pass a prompt on a command line.
 
 ## Spawning subagents
 
-Every Attempt, Verifier run, and Reviewer run is a **fresh-context
+Every Attempt, Refiner run, and Verifier run is a **fresh-context
 subagent**: one spawn — mechanism per your host's delivery note
 (references/host-claude-code.md) — whose prompt is
 the rendered template and whose captured output is the run's entire output.
@@ -172,7 +191,7 @@ attempt.
 | [references/attempt.md](references/attempt.md) | One attempt: spawn, completion contract, assessment, the five-step commit. |
 | [references/retry.md](references/retry.md) | The retry loop: cap, lessons table, prior-attempt digest, RESET scope cut. |
 | [references/verify.md](references/verify.md) | The verify phase: episodes, verdict dispositions, remediation, force mode. |
-| [references/review.md](references/review.md) | The review phase: episode, the document, the pointer, force mode. |
+| [references/refine.md](references/refine.md) | The refine phase: preconditions, one pass, the Refine commit and report, episode, mark, pointer, force mode, convention resolution. |
 | [references/gates.md](references/gates.md) | The four gates: common rules, asks, and outcome execution. |
 | [references/host-claude-code.md](references/host-claude-code.md) | The host delivery note: each named capability mapped to Claude Code's concrete mechanism. Apply it wherever a capability is named. |
 

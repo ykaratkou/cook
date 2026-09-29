@@ -10,6 +10,9 @@ conversation state, given the implementer prompt (`09-prompts.md`,
 - `{{manifest_path}}` — the set's `manifest.json`
 - `{{tasks_dir}}` — the set directory
 - `{{runtime_path}}` — the checkout the work happens in
+- `{{implementation_convention}}` — the resolved Implementation convention
+  (`07-refine.md`), rendered only when `include_implementation_convention` is
+  true (default false); otherwise the section drops out
 
 On attempt ordinal > 1 the prior-attempt digest (`05-retry.md`) is appended
 to the prompt. The subagent's **final output is the attempt's result**; the
@@ -97,7 +100,7 @@ passes:
 4. **Range bookkeeping** — one `git rev-list --parents -n 1 HEAD` records
    the new SHA and its parent. When `state.json` has no `set_base_commit`
    yet, this commit's parent becomes the **Set base commit** — the
-   Verifier/Reviewer commit range is `<set_base_commit>..HEAD` forever
+   Verifier/Refiner commit range is `<set_base_commit>..HEAD` forever
    after. The subject is stored verbatim (`commit_subject_used`) so the
    commit can be re-found by fixed-string search after a rebase changes its
    SHA. A root commit (no parent) records an empty base, and the range
@@ -124,12 +127,20 @@ block (summary = the final failure reason) is appended to `progress.txt`.
 {
   "task_id": "…",
   "ordinal": 2,
-  "outcome": "completed | failed | timed_out | interrupted | turn_cap_exhausted",
-  "failure_reason": "<empty | missing-sentinel | missing-summary | unchecked-boxes | empty-output | agent's TASK_FAILED text>",
+  "outcome": "completed | failed | crashed | timed_out | interrupted | turn_cap_exhausted",
+  "failure_reason": "<empty | missing-sentinel | missing-summary | unchecked-boxes | empty-output | agent's TASK_FAILED text | crash diagnostic>",
   "summary_tail": "<last ~12 lines of the attempt's summary or narrative>",
   "at": "<RFC3339>"
 }
 ```
+
+A `crashed` attempt — the spawn returned an error after the subagent had
+started, i.e. the host's machinery stopped the run rather than the agent
+ending it — records a **crash diagnostic** as its `failure_reason`: the
+agent's `TASK_FAILED` text when its output closes on one, else the host's
+error text or the subagent's last non-empty output line, clamped to 200
+characters. A crash that left no text records an empty reason. The
+diagnostic is what the retry digest's crash lesson carries (`05-retry.md`).
 
 `timed_out`, `interrupted`, and `turn_cap_exhausted` are recorded only on
 hosts whose capability matrix (`10-hosts.md`) lets the orchestrator observe
@@ -140,16 +151,23 @@ reason it has. The record exists solely so the retry digest
 ## Sources in pop
 
 - `tasks/prompts/agent.tmpl.md` — the contract's prompt half (sentinels,
-  boxes, no-commit rule)
-- `tasks/attempts.go:457-566` — `completeSuccessfulTask`,
+  boxes, no-commit rule, the prior-art check, the optional implementation
+  convention block)
+- `tasks/attempts.go:605-730` — `completeSuccessfulTask`,
   `runtimeHasChanges`, `ImplementationCommit`, `implementationSubject`,
   `createImplementationCommit` (the five steps, `add -A`, three `-m`
   paragraphs, `rev-list --parents`)
-- `tasks/attempts.go:568-600` — `finalizeTaskFailed` / `finalizeTaskDone`
+- `tasks/attempts.go:716-750` — `finalizeTaskFailed` / `finalizeTaskDone`
   through the transition chokepoint
-- pop ADR-0207 (planned commit subjects; set base commit; fixed-string
-  re-find after rebase), ADR-0216 (the trailer derived inside the commit),
-  ADR 0020 (failure reason owned by the durable record)
+- `tasks/attempts.go` `agentExitDiagnostic` — the crash diagnostic (last
+  non-empty line, 200-rune clamp, TASK_FAILED text first)
+- `tasks/implement_implementation_convention.go` — the opt-in convention
+  block
+- pop ADR-0211 (planned commit subjects), ADR-0216 (the trailer derived
+  inside the commit; set base commit; fixed-string re-find after rebase),
+  ADR-0259 (the prior-art check), ADR-0246 (implementation convention
+  inlining), ADR-0231 (the crash diagnostic), ADR 0020 (failure reason owned
+  by the durable record)
 - Cook divergences: trailer key `Cook-Task:`; default subject format
   `cook(<set-id>): <task-id>`; slim attempt records replace Captured runs.
   See `PARITY.md`.

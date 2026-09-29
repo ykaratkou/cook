@@ -28,12 +28,12 @@ You may draft what the human then confirms. A task body, a Remediation task, an 
 5. Creating work is not a disposition — it completes, skips, accepts and remediates nothing at this gate.
 An appended task that the set's open HITL gates should wait on is wired into those gates' `blocked_by`, the way a remediation spawn wires itself.
 
-## latest-code-review
+## latest-refine-report
 
-{{#if has_review}}
-## Latest code review (NOT inlined — read the file yourself)
+{{#if has_refine}}
+## Latest Refine report (NOT inlined — read the file yourself)
 - Document: {{path}}
 {{#if commit}}- Written against: {{commit}}
 {{/if}}{{#if out_of_date}}- Out of date: the checkout has moved past that commit. Parts of it may describe files as they no longer are; check what changed since before you act on a finding.
-{{/if}}- It is one Reviewer's opinion against this repository's standards. It reaches no verdict and gates nothing; read it when the human asks what to do about the review, and treat acting on it as the human's call.
+{{/if}}- It is one Refiner's opinion against this repository's standards. It reaches no verdict and gates nothing; read it when the human asks what to do about it, and treat acting on it as the human's call.
 {{/if}}

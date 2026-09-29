@@ -2,7 +2,7 @@
 
 Cook is an **in-agent plugin** that ports pop's task-set *implement* feature —
 the drain with its nested loops, the verification tail, the remediation loop,
-the code review, and the human gates — into Claude Code, built on the
+the Refine pass, and the human gates — into Claude Code, built on the
 markdown-skills standard. Pop remains the source of truth: cook's documents
 are continuously ported from the pop repository, and every document in this
 set names its pop sources in a closing footer.
@@ -19,7 +19,7 @@ that:
 
 - **The orchestrator is the human's own agent session**, following the drain
   skill. There is no daemon, no supervisor process, no external binary.
-- **Every attempt, Verifier run, and Reviewer run is a fresh-context
+- **Every attempt, Verifier run, and Refiner run is a fresh-context
   subagent** — a subtask spawned with no shared conversation state, whose
   final output the orchestrator parses. This mirrors pop's
   process-per-attempt isolation exactly.
@@ -44,7 +44,7 @@ bound. The names are pop's, used verbatim (see the vocabulary note below).
 
 ```
 Implement run            one /cook:drain invocation, selection to exit
-│                        owns: gates, verify phase, review phase
+│                        owns: gates, refine phase, verify phase
 └── Drain                one supervised pass over the set's eligible AFK tasks
     │                    ends at: DONE, FAILED, BLOCKED, AWAITING-APPROVAL,
     │                             VERIFY-FAILED, DEFERRED
@@ -83,17 +83,22 @@ and at sign-off; everything between is automatic.
 2. **Drain** — `/cook:drain` selects the set and runs it: eligible AFK task →
    fresh-context subagent attempt → assessment → per-task commit → next
    task, with the retry loop underneath.
-3. **Verify** — when no open AFK work remains, the Verifier fires
-   automatically (a fresh-context subagent judging the done work against
-   the acceptance criteria over the set's commit range).
-4. **Disposition** — PASS is cached and immunizes the episode; FIXABLE
-   spawns a Remediation task and loops back to the drain; NEEDS-HUMAN (or
-   an exhausted remediation cap) parks the set at the Verify-failed gate.
-5. **Review** — after a PASS, the Reviewer fires automatically and writes a
-   non-gating code-review document into the set folder. Whatever it says,
-   the flow continues; the document is the human's to read.
-6. **Sign-off** — an open HITL task opens the HITL gate, with the review
-   document pointed to. The human completes or defers it.
+3. **Refine** — when no open AFK work remains, the Refiner fires
+   automatically: a fresh-context subagent that holds the changeset to the
+   repository's Implementation convention, fixes in place what is
+   reversible, and writes a Refine report; the orchestrator commits its
+   fixes as one Refine commit. It gates nothing — whatever it does, the
+   flow continues.
+4. **Verify** — the Verifier fires next (a fresh-context subagent judging
+   the done work — refined — against the acceptance criteria over the set's
+   commit range) and publishes a Verify report of what it checked.
+5. **Disposition** — PASS is cached and immunizes the episode; FIXABLE
+   spawns a Remediation task and loops back to the drain (the lap
+   re-verifies without re-refining); NEEDS-HUMAN (or an exhausted
+   remediation cap) parks the set at the Verify-failed gate.
+6. **Sign-off** — an open HITL task opens the HITL gate, with the Refine
+   mark shown and the Refine and Verify reports pointed to. The human
+   completes or defers it.
 7. **DONE.**
 
 On a set with a pending HITL sign-off, verification runs **before** the gate
@@ -108,7 +113,7 @@ opens: cheap agent checking precedes expensive human time.
 | `/cook:register <set-id>` | Validate a hand-authored or hand-edited set; print the fix list or READY. |
 | `/cook:status` | Derive and print every set's status and open tasks. Read-only. |
 | `/cook:verify <set-id>` | Force the Verifier now, outside the automatic flow. |
-| `/cook:review <set-id>` | Force the Reviewer now, outside the automatic flow. |
+| `/cook:refine <set-id>` | Force a Refine pass now, outside the automatic flow. |
 
 Host-specific invocation mapping (how the verbs resolve on Claude Code)
 lives in `10-hosts.md`.
@@ -116,7 +121,7 @@ lives in `10-hosts.md`.
 ## Vocabulary
 
 Cook imports pop's glossary verbatim: Drain, Implement run, Attempt, Turn,
-AFK task, HITL task, Verifier, Reviewer, Remediation task, verification
+AFK task, HITL task, Verifier, Refiner, Remediation task, verification
 episode, and the rest (see `CONTEXT.md` at the repo root). Two rules carry
 extra weight:
 
@@ -137,7 +142,7 @@ extra weight:
 | `04-attempt.md` | The attempt contract: sentinels, assessment, the five-step commit. |
 | `05-retry.md` | The retry loop: max_tries, the lessons table, the prior-attempt digest. |
 | `06-verify.md` | The Verifier: verdicts, episodes, the remediation loop, invalidation. |
-| `07-review.md` | The Reviewer: the non-gating document, review episodes, the pointer. |
+| `07-refine.md` | Refine: the Refiner, the Refine commit and report, the episode, the mark, the conventions. |
 | `08-gates.md` | The four gates: HITL, Failed, Verify-failed, Interrupt. |
 | `09-prompts.md` | Every prompt verbatim, with cook's marked edits against pop's. |
 | `10-hosts.md` | The host capability matrix: Claude Code. |

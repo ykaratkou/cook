@@ -19,7 +19,7 @@ and edit by hand only:
 
 ## Task set context
 {{> task-listing}}
-{{> latest-code-review}}
+{{> latest-refine-report}}
 
 Use the repository and task context to help the human decide whether to continue draining this task or exit.
 

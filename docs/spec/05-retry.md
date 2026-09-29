@@ -13,11 +13,27 @@ prior attempts did and how they ended.
   started (host refused to spawn) consumes nothing.
 - Attempt counters are persisted per task in the manifest's `attempts` field
   (doc 01) **before** each spawn. A re-entered drain — crash, interrupt, session restart — resumes
-  the count; it never resets. Re-entrancy is cook's substitute for a supervisor:
+  the count; only a human reset or a crash ending (below) resets it. Re-entrancy is cook's substitute for a supervisor:
   the counter on disk is the enforcement, not the orchestrator's memory.
-- Exhausting the cap transitions the task `open → failed` with the last
-  attempt's failure reason, records the FAILED journal entry (doc 01), and the
-  drain stops at the **Failed gate** (doc 08).
+- What exhausting the cap does turns on **how the last attempt stopped**
+  (pop's Exhausted walk disposition, ADR-0231):
+  - **Crashed** — the host's machinery stopped the run (doc 04). That is the
+    provider falling over, never the task's fault, so the task **stays
+    `open`**: its `attempts` counter is reset to 0 in one manifest write, no
+    journal block is appended (the Progress record's grain is terminal), no
+    `RESET` is written (the digest keeps the crashes and their lessons), the
+    Failed gate does **not** open, and the drain stops with `Every attempt
+    died on the host's side, which is never the task's fault: <set>/<task>
+    stays open and a later drain retries it.` followed by the last crash
+    diagnostic.
+  - **Ran to an ending and missed the contract** (a contract failure, the
+    agent's own `TASK_FAILED`, empty output) — the task transitions
+    `open → failed` with the last attempt's failure reason, records the
+    FAILED journal entry (doc 01), and the drain stops at the **Failed gate**
+    (doc 08).
+  - **Overran** (timed out, turn cap exhausted) — failed as above, plus the
+    one piece of advice retrying cannot deliver: `split the task rather than
+    re-running it`. Dormant on the v1 host (both are Blind, doc 10).
 - There is **no agent fallback**. Pop walks an ordered preset list when one
   agent's cap is exhausted; cook has exactly one agent — the host — so the cap
   is final. Ledgered OUT in `PARITY.md`.
@@ -71,12 +87,13 @@ Attempt 2 — <lesson>
 The lesson attached to each prior attempt is derived from that attempt's
 `(outcome, reason)` — never asked of a model. (Pop's mapping also reads the
 subprocess exit code; a subagent has none, so cook's `crashed` outcome — the
-spawn errored or the subagent died without producing output — stands in for
-pop's non-zero exit.) The design intuition
+spawn errored after the subagent started, or the subagent died without
+producing its ending — stands in for pop's non-zero exit.) The design intuition
 (pop ADR 0040): the dominant real failure is a **correct line of attack cut off
 before the completion sentinel**, where "try a different angle" is exactly the
-wrong instruction. Contract failures therefore *continue*; only a crash or an
-empty session *reassesses*.
+wrong instruction. Contract failures therefore *continue*; a crash that left a
+diagnostic *resumes* (the machinery failed, not the approach — pop
+ADR-0231); only a textless crash or an empty session *reassesses*.
 
 Lesson texts, ported verbatim:
 
@@ -87,6 +104,7 @@ Lesson texts, ported verbatim:
 | `lessonMissingSentinel` | continue — your approach stood; the attempt ended without any line opening on TASK_COMPLETE. Do the remaining work, then close out with the sentinel exactly as the prompt spells it: it starts its own line, and anything you add after it belongs on that line or below. |
 | `lessonMissingSummary` | continue — your approach stood; the attempt printed no usable SUMMARY_START…SUMMARY_END block. Close out with a non-empty summary block above TASK_COMPLETE. |
 | `lessonReassess` | reassess |
+| `crashLesson(reason)` | resume — the previous attempt did not finish because its agent stopped: `<reason>`. That is the machinery failing, not your approach. Its changes are already in the runtime checkout; read the uncommitted working-tree diff first and continue from it. *(`<reason>` is the crash diagnostic with trailing periods stripped)* |
 | `lessonResume` | resume — this attempt was cut off mid-flight (not a failure). The runtime checkout already holds the partial changes; read the uncommitted working-tree diff first and continue from it. |
 | `lessonTurnCapExhausted` | resume — the previous attempt was cut short at its turn cap (not a failure): it ran out of turns before it could finish. Its changes are already in the runtime checkout; read the uncommitted working-tree diff first, continue from it, and spend your own turns on the remaining work rather than re-deriving what it did. |
 
@@ -97,7 +115,8 @@ Mapping from attempt outcome to lesson, evaluated in order:
 | Turn cap exhausted | `lessonTurnCapExhausted` |
 | Interrupted / quota-paused / agent-unusable | `lessonResume` |
 | Timed out | `lessonContinue` |
-| Crashed (spawn errored, or the subagent died without output) | `lessonReassess` |
+| Crashed, with a crash diagnostic | `crashLesson(<diagnostic>)` |
+| Crashed, leaving no text | `lessonReassess` |
 | Contract failure: unchecked acceptance boxes | `lessonUncheckedBoxes` |
 | Contract failure: missing TASK_COMPLETE sentinel | `lessonMissingSentinel` |
 | Contract failure: missing/empty SUMMARY block | `lessonMissingSummary` |
@@ -126,10 +145,15 @@ change; they cannot fire on the v1 host:
 
 ## Sources in pop
 
-- `tasks/digest.go` — lesson constants, `attemptLesson`, `isContractReason`,
-  `contractLesson`, `formatPriorAttemptDigest`, the since-last-RESET scope cut
+- `tasks/digest.go` — lesson constants, `attemptLesson`, `crashLesson`,
+  `isContractReason`, `contractLesson`, `formatPriorAttemptDigest`, the
+  since-last-RESET scope cut
 - `tasks/attempts.go` — `executeTaskAttempts` (cap, delays, finalizeTaskFailed)
+- `tasks/attempt_cap_exhaustion.go` — the three endings by fault (provider →
+  stays open; contract → failed; overrun → failed, split advice)
 - `CONTEXT.md` — **Task retry cap**, **Task attempt retry schedule**,
-  **Turn cap exhaustion**, **Agent fallback** (ported OUT)
+  **Turn cap exhaustion**, **Task attempt**, **Exhausted walk disposition**
+  (ported with one agent), **Agent fallback** (ported OUT)
 - `docs/adr/0040` (retry carry-forward), `docs/adr/0190` (turn cap; exhaustion
-  consumes a try and enters the digest)
+  consumes a try and enters the digest), `docs/adr/0231` (a provider crash
+  leaves the task open; the crash lesson)

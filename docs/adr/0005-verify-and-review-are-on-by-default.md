@@ -5,6 +5,11 @@ date: 2026-08-20
 
 # Verify and review are on by default
 
+> **Amended by ADR-0013 (2026-09-29).** The Reviewer became **Refine**, which
+> fixes in place and commits, and runs *before* the verify phase. The `review`
+> key became `refine`, still on by default. Item 3 below describes the retired
+> Reviewer; the rest stands.
+
 Pop gates Agent verification behind user config, off by default, and code
 review is a separate opt-in phase. Cook flips both defaults: **verify and
 review are ON** in `.cook/config.json`, because the user judged automatic

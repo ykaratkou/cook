@@ -22,7 +22,7 @@ Read it in full and satisfy every acceptance criterion:
 
 ## Task set context
 {{> task-listing}}
-{{> latest-code-review}}
+{{> latest-refine-report}}
 
 Help the human get this task to a passing state.
 

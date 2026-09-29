@@ -85,7 +85,10 @@ nearest actionable state (an AWAITING-APPROVAL set to sign off, a BLOCKED
 set's gating HITL task) and stops — it never invents work.
 
 `/cook:status` prints every set with its derived status, its open tasks,
-and — in the terminal zone — its verification mark.
+and — in the terminal zone — its verification mark and its **Refine mark**
+(`07-refine.md`), plus the Verify and Refine pointers when those reports
+exist. The Refine mark is derived here like the verification mark —
+read-only, from `state.json` — and, like it, never changes the status.
 
 ## Sources in pop
 
@@ -99,7 +102,8 @@ and — in the terminal zone — its verification mark.
   **Human completion**
 - `tasks/verified_status.go`, `tasks/status.go`
 - pop ADR-0096 (PASS immunity), ADR-0179 (human completion outranks the
-  verdict)
+  verdict), ADR-0260 (the Refine mark resolves beside verified status and
+  gates nothing)
 - Cook divergences: selection order is `priority` desc + set-id (pop uses
   registration order in its Work store); `NEXT`-badge and dashboard
   surfaces are OUT. See `PARITY.md`.

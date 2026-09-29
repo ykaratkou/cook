@@ -10,9 +10,12 @@ Opening a gate, in order:
 
 1. **Park the drain**: remove `drain.lock` (the gate conversation runs
    lock-free). Choosing an outcome that resumes AFK work begins a fresh
-   Drain — retake the lock.
+   Drain — retake the lock. (A forced `/cook:verify` reaching the
+   Verify-failed gate has no drain to park; it has already removed its
+   lock.)
 2. **Render the gate's prompt** from `prompts/<gate>-gate.md` (rules in the
-   drain SKILL.md) and adopt it as your own instructions for the gate
+   drain SKILL.md) — its `latest-refine-report` partial filled from the
+   Refine pointer (`refine.md`) — and adopt it as your own instructions for the gate
    conversation — it defines what you show, what you may draft, and what you
    must not do.
 3. **Ask** through the structured gate ask: the gate's allowed outcomes as
@@ -51,12 +54,13 @@ Opening a gate, in order:
 
 **Opens when** the drain needs a HITL task resolved: the set is BLOCKED (open
 AFK work gated behind a human task), or AWAITING-APPROVAL with only the
-terminal sign-off left. In the sign-off case it opens **after** verification
-passed and the review exists.
+terminal sign-off left. In the sign-off case it opens **after** the refine
+phase had its turn and verification passed.
 
 **Show**: the blocking HITL task's full body; the task-set listing; the
-completed-AFK-work summaries from `progress.txt`; the review pointer (never
-the body).
+completed-AFK-work summaries from `progress.txt`; in the sign-off case the
+**Refine mark** (`refine.md`); the Refine pointer and the Verify pointer
+(`verify.md`) when those reports exist (never the bodies).
 
 **Outcomes**:
 - **complete** — the task transitions to done with
@@ -75,7 +79,7 @@ the body).
 
 **Show**: the failed task's body; the structured failure reason from the last
 attempt (or "no structured failure reason was recorded"); the task-set
-listing; the review pointer when one exists.
+listing; the Refine pointer when one exists.
 
 **Outcomes** (the only two, plus exit):
 - **re-run** — help the human fix the underlying problem (repair the
@@ -91,19 +95,44 @@ listing; the review pointer when one exists.
 ## Verify-failed gate (`prompts/verify-failed-gate.md`)
 
 **Opens when** the Verifier returned NEEDS-HUMAN, or FIXABLE with the
-remediation depth cap exhausted.
+remediation depth cap exhausted — or at the end of a forced `/cook:verify`
+on **any** non-PASS verdict (`verify.md`, force mode; its exit prints what
+the next drain will do).
 
 **Show**: the recorded Verifier findings (or "none were recorded for this
 verdict"); the commit range and complete `git diff --stat` (fetch any file's
-diff on request); the task-set listing; the review pointer.
+diff on request); the task-set listing; the Verify pointer; the Refine
+pointer.
 
 **Outcomes**:
 - **accept** — record a **human-authored PASS** (`HUMAN-PASS` in
   `verdict_cache`, plus `last_pass`) with an optional note persisted as
   `human_note`: one `state.json` write carrying all of it. Episode immunity
   applies. The note feeds every future Verifier of this set as the
-  prior-human-note section.
-- **remediate** — spawn a remediation task (origin `human`) carrying the
+  prior-human-note section. **Before** that write overwrites the verdict,
+  read the verdict being overridden, then file an **accepted-verdict Verify
+  report** at `verify/<ISO-8601-timestamp>.md` (a file created whole):
+
+  ```markdown
+  # Verify report — <set-id>
+
+  - Verified: <RFC3339 UTC>
+  - Commit range: <set_base_commit>..<HEAD short sha>
+  - Work SHA: <HEAD short sha>
+  - Accepted by: human
+
+  A human recorded this PASS directly, overriding verification. No Verifier judged this work SHA.
+
+  ## Overridden verdict
+
+  <old verdict and its findings — or: None recorded at this work SHA.>
+
+  ## Rationale
+
+  <the note — or: The human recorded no rationale with the Accept.>
+  ```
+- **remediate** — spawn a remediation task (`"origin": "human"` in its
+  manifest entry) carrying the
   findings and an optional note — the task file created whole, its manifest
   entry one manifest write. This is the one outcome you are expected to
   **pre-draft**: write the task from the findings and offer the draft for
@@ -127,7 +156,7 @@ First, record the interrupted attempt in its attempt record with outcome
 and the digest gives the next attempt the *resume* lesson (the checkout
 already holds the partial changes).
 
-**Show**: the interrupted task's full body; the task-set listing; the review
+**Show**: the interrupted task's full body; the task-set listing; the Refine
 pointer when one exists.
 
 **Outcomes**:

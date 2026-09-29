@@ -30,7 +30,12 @@ The diff bodies are deliberately not inlined; you are in the checkout under veri
 {{work_stat}}
 ```
 {{/if}}
-{{#if convention_recorded}}## This repository's commit convention
+{{#if verification_recorded}}## How work is checked in this repository
+This section is this repository's verification convention: what it takes to believe the work above is sound. It is the repository's and the human's, not [COOK: cook]'s — check the work the way it says.
+
+{{verification}}
+
+{{/if}}{{#if convention_recorded}}## This repository's commit convention
 {{convention}}
 
 {{/if}}## Respond in exactly this format
@@ -41,8 +46,9 @@ VERDICT: NEEDS-HUMAN
 Then, on the following lines:
 SUMMARY: <in one line, what needs fixing — optional; omit for PASS>
 {{#if convention_recorded}}COMMIT-SUBJECT: <one line — the commit subject the fix should be committed under>
-{{/if}}FINDINGS: <what fails a criterion and why — leave empty for PASS>
+{{/if}}FINDINGS: <what you checked, and why each acceptance criterion is met or unmet>
 
 PASS = every acceptance criterion is met. FIXABLE = criteria are unmet but an agent could resolve the findings. NEEDS-HUMAN = the findings need a human decision. SUMMARY names, in one line, what needs fixing when remediation is warranted — it is optional and must not affect the verdict.
+FINDINGS is written on every verdict, PASS included: name the evidence you actually read and say why each acceptance criterion is met or unmet. Everything after the verdict line is published as a Verify report for a human who later asks why this set was judged as it was — a PASS recording nothing leaves that reader nothing. Write the verdict line first anyway: commit to it, then justify it.
 {{#if convention_recorded}}COMMIT-SUBJECT is the final, literal subject line the fix work will be committed under, written in the convention above — a real message describing the fix, not a template or a placeholder. Write it only when remediation is warranted; it is optional, must not affect the verdict, and must be a single line with no surrounding quotes or backticks.
 {{/if}}

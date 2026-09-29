@@ -11,10 +11,21 @@ carries a digest of what the prior attempts did and how they ended.
   nothing.
 - The counter is the manifest's per-task `attempts` field, persisted
   **before** each spawn (`attempt.md`). A re-entered drain resumes the count;
-  it never resets. The counter on disk is the enforcement, not your memory.
-- Exhausting the cap transitions the task `open → failed` with the last
-  attempt's failure reason, appends the `FAILED` journal block, and the drain
-  stops at the **Failed gate** (`gates.md`).
+  only a human reset or a crash ending (below) resets it. The counter on disk is the enforcement, not your memory.
+- What exhausting the cap does turns on **how the last attempt stopped**:
+  - **Crashed** (the host's machinery stopped the run — `attempt.md`): the
+    task **stays `open`**. Reset its `attempts` to 0 in one manifest write;
+    append **no** journal block; write **no** `RESET` (the digest keeps the
+    crash lessons); do **not** open the Failed gate. Stop the drain with:
+    `Every attempt died on the host's side, which is never the task's fault:
+    <set>/<task> stays open and a later drain retries it.` and the last crash
+    diagnostic.
+  - **Ran to an ending and missed the contract** (contract failure, the
+    agent's `TASK_FAILED`, empty output): transition the task
+    `open → failed` with the last failure reason, append the `FAILED`
+    journal block, and stop at the **Failed gate** (`gates.md`).
+  - **Overran** (timed out, turn cap): failed as above, plus `split the task
+    rather than re-running it`. Blind on the current host — cannot fire.
 - There is **no agent fallback**: cook has exactly one agent — the host — so
   the cap is final.
 
@@ -62,7 +73,8 @@ Derive each prior attempt's lesson from its `(outcome, reason)` — never ask a
 model. The design intuition: the dominant real failure is a **correct line of
 attack cut off before the completion sentinel**, where "try a different
 angle" is exactly the wrong instruction. Contract failures therefore
-*continue*; only a crash or an empty session *reassesses*.
+*continue*; a crash that left a diagnostic *resumes*; only a textless
+crash or an empty session *reassesses*.
 
 Lesson texts, verbatim:
 
@@ -73,6 +85,7 @@ Lesson texts, verbatim:
 | `lessonMissingSentinel` | continue — your approach stood; the attempt ended without any line opening on TASK_COMPLETE. Do the remaining work, then close out with the sentinel exactly as the prompt spells it: it starts its own line, and anything you add after it belongs on that line or below. |
 | `lessonMissingSummary` | continue — your approach stood; the attempt printed no usable SUMMARY_START…SUMMARY_END block. Close out with a non-empty summary block above TASK_COMPLETE. |
 | `lessonReassess` | reassess |
+| `crashLesson(reason)` | resume — the previous attempt did not finish because its agent stopped: `<reason>`. That is the machinery failing, not your approach. Its changes are already in the runtime checkout; read the uncommitted working-tree diff first and continue from it. *(`<reason>` is the crash diagnostic with trailing periods stripped)* |
 | `lessonResume` | resume — this attempt was cut off mid-flight (not a failure). The runtime checkout already holds the partial changes; read the uncommitted working-tree diff first and continue from it. |
 | `lessonTurnCapExhausted` | resume — the previous attempt was cut short at its turn cap (not a failure): it ran out of turns before it could finish. Its changes are already in the runtime checkout; read the uncommitted working-tree diff first, continue from it, and spend your own turns on the remaining work rather than re-deriving what it did. |
 
@@ -83,7 +96,8 @@ Mapping from attempt outcome to lesson, evaluated in order:
 | Turn cap exhausted | `lessonTurnCapExhausted` |
 | Interrupted / quota-paused / agent-unusable | `lessonResume` |
 | Timed out | `lessonContinue` |
-| Crashed (spawn errored, or the subagent died without output) | `lessonReassess` |
+| Crashed, with a crash diagnostic | `crashLesson(<diagnostic>)` |
+| Crashed, leaving no text | `lessonReassess` |
 | Contract failure: unchecked acceptance boxes | `lessonUncheckedBoxes` |
 | Contract failure: missing TASK_COMPLETE sentinel | `lessonMissingSentinel` |
 | Contract failure: missing/empty SUMMARY block | `lessonMissingSummary` |

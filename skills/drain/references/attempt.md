@@ -8,12 +8,19 @@
    `manifest.json` **before** the spawn — one write through the cook-state
    read and mutation capability (ground rule 4; your host's delivery note
    names the mechanism). The counter on disk is the enforcement — a
-   re-entered drain resumes it, never resets it.
+   re-entered drain resumes it; only a human reset or a crash ending
+   (`retry.md`) resets it.
 3. Render the implementer prompt (`prompts/implementer.md`) with:
    - `{{task_path}}` — the task's markdown file
    - `{{manifest_path}}` — the set's `manifest.json`
    - `{{tasks_dir}}` — the set directory
    - `{{runtime_path}}` — the checkout the work happens in
+   - `implementation_convention_recorded` / `{{implementation_convention}}` —
+     only when config `include_implementation_convention` is true: the
+     resolved implementation convention (the target repository's
+     `docs/agents/implementation.md` when present and non-empty, else
+     `${CLAUDE_PLUGIN_ROOT}/conventions/implementation.md`), inlined whole.
+     Otherwise the section drops.
    On attempt ordinal > 1, append the prior-attempt digest (`retry.md`).
 
 ## The spawn
@@ -102,7 +109,7 @@ The subagent never commits; you do, after assessment passes:
    Apply config `commit_overrides` entries as `git -c` pairs to this commit.
 4. **Range bookkeeping** — `git rev-list --parents -n 1 HEAD` records the new
    SHA and its parent. When `state.json` has no `set_base_commit` yet, this
-   commit's parent becomes the **set base commit** — the Verifier/Reviewer
+   commit's parent becomes the **set base commit** — the Verifier/Refiner
    range is `<set_base_commit>..HEAD` forever after. Store the subject
    verbatim (`commit_subject_used`) so the commit can be re-found by
    fixed-string search after a rebase. A root commit (no parent) records an
@@ -135,18 +142,25 @@ appended to `progress.txt` through the same capability.
   "task_id": "01-first-task",
   "ordinal": 2,
   "outcome": "completed | failed | crashed | timed_out | interrupted | turn_cap_exhausted",
-  "failure_reason": "<empty | missing-sentinel | missing-summary | unchecked-boxes | empty-output | the agent's TASK_FAILED text>",
+  "failure_reason": "<empty | missing-sentinel | missing-summary | unchecked-boxes | empty-output | the agent's TASK_FAILED text | crash diagnostic>",
   "summary_tail": "<the last ~12 lines of the attempt's narrative/summary>",
   "at": "<RFC3339>"
 }
 ```
 
 On the current host you can observe `completed`, `failed`, `crashed` (the
-subagent died without producing output), and `interrupted` (the host
+spawn returned an error after the subagent started — the host's machinery
+stopped the run), and `interrupted` (the host
 interrupt cancelled the running spawn — per your host's delivery note);
 `timed_out` and `turn_cap_exhausted` are Blind — never record what you
 cannot observe; record `failed` with the best reason you have. The record exists solely as the retry digest's substrate; it is not
 telemetry and carries no raw transcript.
+
+A `crashed` record's `failure_reason` is the **crash diagnostic**: the
+agent's `TASK_FAILED` text when its output closes on one, else the host's
+error text or the subagent's last non-empty output line, clamped to 200
+characters; empty when the crash left no text. The retry digest's crash
+lesson carries it (`retry.md`).
 
 ## Journal block format (`progress.txt`)
 

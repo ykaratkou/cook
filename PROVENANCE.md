@@ -27,8 +27,8 @@ Everything else under `skills/` is cook's own (`drain/`, `plan/`,
   beside this file is the upstream license file, copied verbatim
   (Copyright (c) 2026 Matt Pocock).
 - **Copied from**: tag/version `1.2.3`, commit
-  `3cca18b368ae95cdbdebbff572ccafa662551015`
-- **Copy date**: 2026-09-04
+  `d81f3a183412e71a5b1e84ca21bc1a35eea03a60`
+- **Copy date**: 2026-10-03
 - **Upstream paths**: `skills/engineering/{grill-with-docs,domain-modeling,to-spec,to-tickets}`,
   `skills/productivity/grilling` — flattened to one directory per skill here,
   because both hosts discover skills as `skills/<name>/SKILL.md`.

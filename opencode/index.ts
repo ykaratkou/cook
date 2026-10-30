@@ -21,7 +21,9 @@ const dirs = {
 const notAutoinvoked = new Set(["drain", "plan", "register"])
 
 // The cook verbs this adapter registers; each has `commands/<verb>.md`.
-const verbs = ["status"]
+// Drift note: each `commands/<verb>.md` mirrors the Claude Code command of the
+// same verb (`claude-code/commands/<verb>.md`) — edit the two together.
+const verbs = ["drain", "plan", "refine", "register", "status", "verify"]
 
 type Markdown = { meta: Record<string, unknown>; body: string }
 

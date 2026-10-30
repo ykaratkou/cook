@@ -1,9 +1,16 @@
 ---
-status: accepted
+status: accepted; partly superseded by ADR-0014
 date: 2026-09-28
 ---
 
 # Pi is dropped; Claude Code is the one host
+
+> **Superseded on one point** (2026-09-29, by ADR-0014): the "one host"
+> clause below — "cook supports Claude Code only" — no longer holds.
+> opencode 2.x is a second peer host, wired through the seam this ADR kept
+> (a matrix column, a delivery note, command wiring; no skill fork). The
+> removal of pi stands, ADR-0007 and ADR-0011 stay superseded, and the rest
+> of this ADR stands.
 
 Cook shipped for two hosts: the Claude Code plugin and a pi adapter — a TS
 extension (`cook_gate`, the six commands, `agent_settled` hardening, a probe

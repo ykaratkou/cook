@@ -33,14 +33,16 @@ transition, one write.
 and its `commit_sha` live in the same file precisely so a single write
 carries both — that is the reason the requirement is expressible at all.
 
-Cook **does not** guarantee crash-atomic writes. The host's file tools
-write in place and offer no rename-over-target, so a process killed
+Cook **does not** guarantee crash-atomic writes. Both hosts' file tools
+write in place; neither offers a rename-over-target, so a process killed
 mid-write can leave a torn file. What makes that tolerable is the
 single-writer discipline: the Orchestrator is the only writer of a set's
-files, and `drain.lock` is what makes that true. The prior read that the
-host's edit tool requires is the stale-read guard ground rule 1 already asks
-for. The trade — a mechanism the host cannot perform, exchanged for a
-guarantee it can hold — was deliberate;
+files, and `drain.lock` is what makes that true. The prior read that Claude
+Code's edit tool requires is the stale-read guard ground rule 1 already asks
+for. opencode's edit tool has **no** read-before-edit guard, so on that host
+the prior read is the Orchestrator's own discipline, not a tool check. The
+trade — a mechanism no host can perform, exchanged for a guarantee both can
+hold — was deliberate;
 see `docs/adr/0008-cook-state-uses-the-host-file-mutation-capability.md`
 (ADR-0008).
 

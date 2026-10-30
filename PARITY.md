@@ -52,7 +52,7 @@ Each exclusion is a decision, not an omission. One line each:
 | Agent fallback across presets + quota cooldown store | In-agent, the host is the only agent; there is no preset list to fall through. |
 | Worktree bindings, fold, trunk management, drain routing | Pop-specific checkout infrastructure; cook drains the current checkout. |
 | Work daemon / supervision | There is no process to be a daemon in; cook v1 is attended-only. |
-| Dashboard / TUI surfaces | Pop's dashboard was a *place you went* to look at runs, with its own lifecycle and navigation; cook has no such place and ships no view you can open. The host's own views of cook's work (its subagent panel, `/tasks`) are the host's, not cook's (ADR-0009's Human-facing rows). |
+| Dashboard / TUI surfaces | Pop's dashboard was a *place you went* to look at runs, with its own lifecycle and navigation; cook has no such place and ships no view you can open. Each host's own views of cook's work (Claude Code's subagent panel and `/tasks`, opencode's child sessions) are that host's, not cook's (ADR-0009's Human-facing rows). |
 | Captured-run telemetry + spend lens | Telemetry infrastructure; only the 10% the digest needs survives, as Attempt records. |
 | Prompt spill to file | An argv-size workaround; in-agent prompts never ride argv. |
 | Attended assistance sessions | The human is already in an agent session; gates ask in-session instead. |
@@ -94,11 +94,11 @@ and carries its reason; anything not listed here is intended to match pop.
 | Shipped convention files | Embedded in the binary | `conventions/*.md` at the plugin root, **unmarked**; their edits recorded in doc 09 §11 | Agents read them straight from disk (the Refiner opens the verification convention by path), so `[COOK: …]` markers would reach the agent. |
 | Forced verbs and the lock | Checkout admission (`AcquireTreeStable`), waits at a terminal | `/cook:verify` and `/cook:refine` take the set's `drain.lock` and refuse on a fresh one | Admission is deferred (above); refusing matches cook's drain lock rule. |
 | Retry delays | `1m, 5m, 15m` | **Default-off** (key kept) | Sleeping inside an agent session buys little; ADR-0004. |
-| Verifier/Refiner independence | Separate process, possibly different vendor | Fresh-context subagent, same model | The strongest independence the host can offer; ADR-0003. |
+| Verifier/Refiner independence | Separate process, possibly different vendor | Fresh-context subagent, same model | The strongest independence either host can offer; ADR-0003. |
 | Cap enforcement | Supervisor-enforced (SIGKILL, `time.After`) | Orchestrator-checked before the next spawn; Turn cap and timeout-kill declared Blind | Instructions cannot kill mid-flight; ADR-0004. |
 | Unattended operation | Work daemon spawns drains | Attended-only v1; gate semantics for a future headless mode spec'd dormant | ADR-0004. |
 | Storage formats | pop's files + pop.db | Cook-owned files only, **no pop interop** | No runtime dependency on pop; ADR-0002. |
-| State write atomicity | Atomic: write a temp file in the same directory, then rename over the target (Go) | **Non-atomic**: one in-place write through the host's cook-state read-and-mutation capability, no rename | The in-agent host exposes no rename primitive, so the rule could only be obeyed by authoring a program; the drain lock's single-writer discipline makes the torn-write window the lesser risk against orchestrators improvising state rewrites; ADR-0008. |
+| State write atomicity | Atomic: write a temp file in the same directory, then rename over the target (Go) | **Non-atomic**: one in-place write through the host's cook-state read-and-mutation capability, no rename | Neither in-agent host exposes a rename primitive, so the rule could only be obeyed by authoring a program; the drain lock's single-writer discipline makes the torn-write window the lesser risk against orchestrators improvising state rewrites; ADR-0008. |
 | Adapter capability declaration | Supported / Blind | Supported / Blind / **Human-facing** | Cook's matrix also lists host affordances no cook logic reads (loop hardening, subagent trace visibility); declaring those Supported would spend the one distinction the matrix exists to make. Human-facing names the audience instead; ADR-0009. |
 | Companion planning skills | Pop's planning path is pop's own code; cook reuses only its issue-tracker adapter-doc mechanism (`integrate/issue-tracker.md`) | **Third-party skills vendored verbatim** — `grill-with-docs`, `grilling`, `domain-modeling`, `to-spec`, `to-tickets` (MIT) ship under `skills/` | `/cook:plan` is composed from an existing skill set instead of reimplemented, so the entry verb works on a bare install; ADR-0010. |
 | Dirty-checkout strategies | continue / commit-and-continue / stash-and-continue | `continue` only | v1 cut; the other two are ledgered, not lost. |
@@ -121,7 +121,7 @@ union, for the porting diff.
 | `docs/spec/07-refine.md` | `tasks/refine.go`, `tasks/refine_phase.go`, `tasks/refine_commit.go`, `tasks/refine_episode.go`, `tasks/refine_mark.go`, `tasks/refine_pointer.go`, `tasks/pass_report.go`, `tasks/prompts/refiner.tmpl.md`, `conventions/shipped/implementation.md`, `conventions/overlay.go`, ADR-0226, ADR-0246, ADR-0247, ADR-0248, ADR-0252, ADR-0260 |
 | `docs/spec/08-gates.md` | `tasks/gates.go`, `tasks/gate_menu.go`, `tasks/interrupt_gate.go`, `tasks/verify_gate.go`, `tasks/prompts/*-assistance.tmpl.md` |
 | `docs/spec/09-prompts.md` | `tasks/prompts/*.tmpl.md` (all), `tasks/digest.go` (lesson strings), `conventions/shipped/implementation.md`, `conventions/shipped/verification.md` |
-| `docs/spec/10-hosts.md` | pop's adapter-capability pattern (ADR-0165, ADR-0166, ADR-0190) |
+| `docs/spec/10-hosts.md` | pop's adapter-capability pattern (ADR-0165, ADR-0166, ADR-0190); the opencode column also tracks opencode v2.0.20 as installed (ADR-0014), which is not a pop source |
 | `PARITY.md` | the whole of the above |
 
 ## Drift-guard checklist
@@ -132,8 +132,9 @@ Run at the end of every porting session:
       **verbatim copy** of the contract section of `docs/spec/01-storage.md`.
       The copy is shared: it lives at
       `skills/register/references/format-contract.md` (below its header, in
-      the root `skills/` directory the plugin symlinks), and the plan skill
-      reads that same file.
+      the root `skills/` directory both hosts load — the Claude Code plugin
+      through a symlink, the opencode plugin by its resolved root), and the
+      plan skill reads that same file.
       (Pop generates its authoring guide from validator constants; cook cannot
       generate, so this manual check is the honest substitute. If drift ever
       bites, a generator script is the v2 answer.)
@@ -158,6 +159,22 @@ Run at the end of every porting session:
       local edit (ADR-0010 — an edit turns every future re-sync into a merge).
       A daily GitHub Action already runs this check and opens a pull request
       when it fails, so in practice this item is "no open re-sync PR".
+- [ ] The opencode column of `docs/spec/10-hosts.md`'s capability matrix
+      (and `skills/drain/references/host-opencode.md`) still matches opencode
+      as installed: run `opencode/smoke-test.sh` and expect `SMOKE OK`. It
+      checks the plugin load, the six `cook:<verb>` commands and eight
+      `cook/<dir>` skills, the `subagent` round-trip and its `completed`
+      wrapper, a write-and-shell child, and a dismissed headless `question`.
+      Cook depends on opencode's tool shapes here, and nothing but this check
+      notices when a release moves them; a version other than 2.0.20 is a
+      prompt to re-pin the plugin dependency and re-read the V2 docs.
+- [ ] Each opencode command mirrors its Claude Code command:
+      `opencode/commands/<verb>.md` says what `claude-code/commands/<verb>.md`
+      says (skill or reference to read, force and lock rules, the
+      delivery-note line), with only the path spelling (`${COOK_ROOT}` for
+      `${CLAUDE_PLUGIN_ROOT}`) and the host's own delivery note differing.
+      `diff` each pair; an edit to one side lands on the other in the same
+      commit.
 - [ ] The watermark is advanced.
 
 ## Sources in pop

@@ -1,8 +1,9 @@
 # 10 — Hosts
 
 Cook's portable core is a markdown skill set (the agentskills standard);
-everything host-specific is an adapter declared here. Claude Code is the one
-supported host (ADR-0012). The declaration pattern is ported from pop's
+everything host-specific is an adapter declared here. Claude Code and
+opencode 2.x are the two supported hosts (ADR-0014; every opencode fact is
+pinned to v2.0.20, and opencode 1.x is not supported). The declaration pattern is ported from pop's
 adapter capabilities: a host declares each capability **Supported** (cook may
 rely on it, with the named mechanism), **Blind** (cook must not rely on it;
 the spec'd behavior stays dormant until a host can enforce it), or
@@ -13,30 +14,31 @@ nothing depending on it is the design, not a gap (ADR-0009).
 
 ## Capability matrix
 
-| Capability | claude-code |
-|---|---|
-| Markdown skills (agentskills standard) | **Supported** — `.claude/skills/`, plugin skills |
-| Slash command mapping | **Supported** — plugin commands, always namespaced: `/cook:drain`, `/cook:plan`, … |
-| Fresh-context subagent spawn | **Supported** — built-in Agent tool |
-| Subagent output capture | **Supported** — the subagent's final message is the Agent tool's return value |
-| Structured mid-session ask (gates) | **Supported** — AskUserQuestion |
-| Turn cap enforcement | **Blind** — the Agent tool exposes no per-spawn turn bound |
-| Timeout kill | **Blind** — no way to bound or kill a running subagent |
-| Loop-hardening hook (optional) | **Human-facing** — a stop hook re-injects "continue the drain" when the orchestrator ends its turn with the set non-terminal; scoped to the orchestrator session by matching the lock's `session` token against the stopping session's own transcript (the orchestrator typed it), silent in every other session |
-| Interrupt detection | **Supported** — the human's Esc interrupts the running tool; the orchestrator observes the cancelled spawn |
-| Cook-state read and mutation | **Supported** — the `Read`, `Edit`, and `Write` tools. `Edit` requires the file to have been read first in the session (the stale-read guard ground rule 1 asks for). Writes are **in place**: no rename-over-target primitive is offered |
-| RFC3339 UTC timestamps | **Supported** — `date -u +%Y-%m-%dT%H:%M:%SZ` through the Bash tool |
-| Subagent trace visibility | **Human-facing** — host-native: `/tasks` lists running and finished subagents and opens any one's transcript, the subagent panel shows live status, and each subagent's transcript persists at `~/.claude/projects/<project>/<session>/subagents/agent-<id>.jsonl` |
+| Capability | claude-code | opencode (2.0.20) |
+|---|---|---|
+| Markdown skills (agentskills standard) | **Supported** — `.claude/skills/`, plugin skills | **Supported** — the plugin registers each root `skills/<dir>/SKILL.md` programmatically as `cook/<dir>`, with its absolute location; cook's own three with autoinvoke off |
+| Slash command mapping | **Supported** — plugin commands, always namespaced: `/cook:drain`, `/cook:plan`, … | **Supported** — plugin-registered commands named `cook:<verb>`, typed `/cook:drain`, `/cook:plan`, … exactly as on Claude Code |
+| Fresh-context subagent spawn | **Supported** — built-in Agent tool | **Supported** — the `subagent` tool with `agent: "general"`, never `background`, never a `sessionID` |
+| Subagent output capture | **Supported** — the subagent's final message is the Agent tool's return value | **Supported** — the text inside the `<subagent … state="completed">` wrapper; a spawn the human pushed to the background (Ctrl+B) returns a notice, not an outcome — the completion notification is parsed instead |
+| Structured mid-session ask (gates) | **Supported** — AskUserQuestion | **Supported** — the `question` tool; a "dismissed" error (headless `opencode run`) is not an answer: park the set and exit (ADR-0004) |
+| Turn cap enforcement | **Blind** — the Agent tool exposes no per-spawn turn bound | **Blind** — a per-agent `steps` cap exists, but a capped child reports `completed` with a forced summary, so exhaustion is unrecognizable |
+| Timeout kill | **Blind** — no way to bound or kill a running subagent | **Blind** — opencode has no subagent timeout |
+| Loop-hardening hook (optional) | **Human-facing** — a stop hook re-injects "continue the drain" when the orchestrator ends its turn with the set non-terminal; scoped to the orchestrator session by matching the lock's `session` token against the stopping session's own transcript (the orchestrator typed it), silent in every other session | **Human-facing** — event-driven, not a blocking stop: when a session's turn ends (`session.execution.succeeded`; 2.0.20 delivers no `session.idle` to plugins) and a `drain.lock` fresher than 10 minutes names that session's real id, the plugin queues one "continue the drain" prompt, never twice before the human prompts again; silent while a `question` is open and in every other session |
+| Interrupt detection | **Supported** — the human's Esc interrupts the running tool; the orchestrator observes the cancelled spawn | **Supported** — the human's Esc, pressed twice, interrupts; the running spawn returns `Subagent cancelled` |
+| Cook-state read and mutation | **Supported** — the `Read`, `Edit`, and `Write` tools. `Edit` requires the file to have been read first in the session (the stale-read guard ground rule 1 asks for). Writes are **in place**: no rename-over-target primitive is offered | **Supported** — the `read`, `edit`, and `write` tools (`patch` on models opencode serves it to). **No** read-before-edit guard: ground rule 1's prior read is the orchestrator's own discipline. Writes are **in place**: no rename-over-target primitive is offered |
+| RFC3339 UTC timestamps | **Supported** — `date -u +%Y-%m-%dT%H:%M:%SZ` through the Bash tool | **Supported** — `date -u +%Y-%m-%dT%H:%M:%SZ` through the `shell` tool |
+| Subagent trace visibility | **Human-facing** — host-native: `/tasks` lists running and finished subagents and opens any one's transcript, the subagent panel shows live status, and each subagent's transcript persists at `~/.claude/projects/<project>/<session>/subagents/agent-<id>.jsonl` | **Human-facing** — host-native: each spawn is a child session the human can open and follow in the TUI, and every session's messages persist in opencode's SQLite store under `~/.local/share/opencode` |
 
-The host's file tools perform no rename-over-target — they write in place.
+Neither host's file tools perform a rename-over-target — they write in place.
 That is why the portable core states the **guarantee** (one write per
 transition; facts that must land together land in one write) rather than a
 mechanism: the guarantee is holdable, the temp-file-and-rename recipe is not
 (ADR-0008).
 
-Both Blind rows follow pop's rule: cook never emits a bound it cannot
-recognize, and the spec keeps the behavior (turn-cap exhaustion outcome, the
-resume lesson) defined so a Supported host slots in without a spec change.
+Both Blind rows are Blind on both hosts, and both follow pop's rule: cook
+never emits a bound it cannot recognize, and the spec keeps the behavior
+(turn-cap exhaustion outcome, the resume lesson) defined so a Supported host
+slots in without a spec change.
 
 The two **Human-facing** rows are the opposite case: no cook behavior waits on
 them, so there is nothing to keep dormant and nothing for a future host to
@@ -69,12 +71,29 @@ cook/
 │   │                     /cook:status, /cook:verify, /cook:refine
 │   ├── skills/         → symlink to ../skills
 │   └── hooks/          ← optional stop-hook hardening
+├── opencode/           ← the opencode v2 plugin (the whole adapter)
+│   ├── index.ts        ← registers the six commands and eight skills,
+│   │                     appends the runtime trailer, and runs the
+│   │                     optional idle-event hardening
+│   ├── commands/       ← cook:drain … cook:refine, each mirroring
+│   │                     claude-code/commands/<verb>.md
+│   ├── smoke-test.sh   ← checks the opencode matrix column against the
+│   │                     installed binary
+│   └── package.json    ← @opencode/plugin, pinned to 2.0.20
 ```
 
-The prompts and skills directories live at the repo root, outside the
-host adapter: a pop prompt port lands once, and the plugin reaches the one
-`skills/` copy through a relative symlink. Only the command wiring and the
-hooks are host-specific.
+The prompts and skills directories live at the repo root, outside the host
+adapters: a pop prompt port lands once, the Claude Code plugin reaches the
+one `skills/` copy through a relative symlink, and the opencode plugin
+resolves the repo root from its own location. Only the command wiring and
+the hardening are host-specific.
+
+Each host has one delivery note (ADR-0006), under `skills/drain/references/`,
+and each host's command wiring names its own; skill text only ever says
+"your host's delivery note":
+
+- `host-claude-code.md` — Claude Code;
+- `host-opencode.md` — opencode.
 
 ### claude-code specifics
 
@@ -120,6 +139,55 @@ hooks are host-specific.
 - The delivery note mapping each capability the skills name to its
   mechanism (ADR-0006) is `skills/drain/references/host-claude-code.md`.
 
+### opencode specifics
+
+- **One plugin is the adapter** (ADR-0014): `opencode/index.ts`, an opencode
+  v2 plugin (`Plugin.define`, `@opencode/plugin` pinned to 2.0.20). opencode
+  has no counterpart to `${CLAUDE_PLUGIN_ROOT}` and markdown commands cannot
+  resolve their own location, so the plugin resolves the cook repo root from
+  its own file and is what points shipped text at the one shared copy.
+- Attempts, Verifier, Refiner: `subagent` spawns (`agent: "general"`, the
+  rendered prompt as `prompt`); the completed wrapper's text is parsed for
+  sentinels / VERDICT / REFINE-OUTCOME and the report, exactly as on Claude
+  Code. A backgrounded spawn is waited for, never recorded as an outcome.
+- Gates: the `question` tool with the gate's allowed outcomes (doc 08).
+- **Skill ids are `cook/<dir>`.** opencode derives skill ids from folder
+  names with no plugin namespace, lets a later source with the same id win,
+  and also reads `~/.claude/skills`; the `cook/` prefix plays the role of
+  Claude Code's `cook:`, so a user's own `grilling` or `to-spec` and cook's
+  copy never shadow each other. All eight root skills are registered with
+  their absolute `SKILL.md` location, so opencode's injected base directory
+  resolves their relative references. opencode ignores
+  `disable-model-invocation`, so cook's own three (`cook/drain`, `cook/plan`,
+  `cook/register`) are registered with autoinvoke off; the five vendored
+  companions keep the default and stay verbatim (ADR-0010), which is what
+  makes `/cook:plan` work on a bare install.
+- **Command spelling is `/cook:<verb>`**, the same as Claude Code: the six
+  commands are registered as `cook:drain`, `cook:plan`, `cook:register`,
+  `cook:status`, `cook:verify`, `cook:refine`. The colon autocompletes and
+  runs in the 2.0.20 TUI, so the nested `/cook/<verb>` fallback is unused
+  (ADR-0014, amendment). Each command's text is
+  `opencode/commands/<verb>.md`, mirroring `claude-code/commands/<verb>.md`
+  with `${COOK_ROOT}` in place of `${CLAUDE_PLUGIN_ROOT}`; arguments land
+  where Claude Code puts `$ARGUMENTS`.
+- **Every command ends with a runtime trailer** the plugin appends: the cook
+  root, the skills, prompts, and conventions directories, the opencode
+  delivery note's path, and the session id. The shipped conventions resolve
+  at the trailer's conventions directory. The session id is the real opencode
+  session id, so it is both `drain.lock`'s `session` token and the
+  hardening's scoping key.
+- The delivery note mapping each capability the skills name to its
+  mechanism (ADR-0006) is `skills/drain/references/host-opencode.md`.
+- **Install routes.** Supported: the cook checkout's `opencode/` directory
+  in opencode's `plugins` config array, after `npm ci` in that directory
+  (opencode installs no dependencies for a checkout-path plugin); installing
+  and developing are the same step. Not yet supported: a git-spec install
+  (`opencode plugin add`, subpath spelled `#path:opencode` in 2.0.20)
+  installs only the `opencode/` subfolder, so the repo-root `skills/`,
+  `prompts/`, and `conventions/` are unreachable — revisit when opencode
+  keeps the repo root. `opencode/smoke-test.sh` re-checks this column, and
+  reports that git-spec finding, against the installed opencode.
+
 ## Companion skills for `/cook:plan`
 
 `/cook:plan` (doc 03's front door) orchestrates skills cook did not author but
@@ -158,3 +226,8 @@ discovers them exactly as it discovers cook's own three (ADR-0010).
 - Claude Code facts from the
   plugin/skill/Agent-tool surface in current Claude Code, its `/tasks` view,
   and its per-session `subagents/*.jsonl` transcripts
+- opencode facts from opencode v2.0.20 as installed
+  (`~/.opencode/bin/opencode`) and the V2 docs at
+  https://opencode.ai/v2/docs/ (the unversioned docs describe V1), checked
+  by `opencode/smoke-test.sh`; the decisions are cook ADR-0014 and its
+  amendment

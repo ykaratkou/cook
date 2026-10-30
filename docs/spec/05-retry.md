@@ -33,7 +33,7 @@ prior attempts did and how they ended.
     (doc 08).
   - **Overran** (timed out, turn cap exhausted) — failed as above, plus the
     one piece of advice retrying cannot deliver: `split the task rather than
-    re-running it`. Dormant on the v1 host (both are Blind, doc 10).
+    re-running it`. Dormant on both hosts (both are Blind, doc 10).
 - There is **no agent fallback**. Pop walks an ordered preset list when one
   agent's cap is exhausted; cook has exactly one agent — the host — so the cap
   is final. Ledgered OUT in `PARITY.md`.
@@ -131,15 +131,19 @@ exact clause rather than sending the retry back over ground that was sound.
 ## Dormant branches in cook v1
 
 Kept in the table so a host that can enforce them slots in without a spec
-change; they cannot fire on the v1 host:
+change; they cannot fire on either host:
 
-- **Turn cap exhausted** — turn-cap enforcement is Blind on Claude Code
-  (doc 10). The lesson is the retry's whole reason to know a turn cap exists;
+- **Turn cap exhausted** — turn-cap enforcement is Blind on both hosts
+  (doc 10). Claude Code's Agent tool exposes no per-spawn turn bound;
+  opencode has a per-agent `steps` cap, but a capped child reports
+  `completed` with a forced summary, so the orchestrator cannot recognize
+  exhaustion and must not emit the bound. The lesson is the retry's whole reason to know a turn cap exists;
   it stays specified, dormant.
 - **Quota-paused / agent-unusable** — cook has no quota detection and no
   multi-agent catalog; the host surfaces its own quota errors to the human.
   A subagent spawn that fails outright consumes no attempt.
-- **Timed out** — timeout kill is Blind in v1 (doc 10). Until a host
+- **Timed out** — timeout kill is Blind on both hosts (doc 10; opencode
+  has no subagent timeout either). Until a host
   enforces one, a hung attempt is the human's interrupt, which lands in the
   *interrupted* branch.
 

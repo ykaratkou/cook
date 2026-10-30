@@ -27,7 +27,8 @@ Everything else under `skills/` is cook's own (`drain/`, `plan/`,
 - **Copy date**: 2026-09-04
 - **Upstream paths**: `skills/engineering/{grill-with-docs,domain-modeling,to-spec,to-tickets}`,
   `skills/productivity/grilling` — flattened to one directory per skill here,
-  because Claude Code discovers skills as `skills/<name>/SKILL.md`.
+  because Claude Code discovers skills as `skills/<name>/SKILL.md` and cook's
+  opencode plugin registers them from that same layout.
 - **Excluded**: each upstream skill's `agents/openai.yaml` (display metadata
   for the `skills.sh` installer, which cook does not use). Nothing else was
   dropped.
@@ -51,12 +52,22 @@ outside instead:
 
 ## When the machine already has these skills
 
-Claude Code namespaces plugin skills, so cook's copies load as
-`cook:grilling`, `cook:to-spec`, and so on. Someone who also installs the
-upstream `mattpocock-skills` plugin sees both sets, under their own prefixes,
-and neither breaks.
+The two hosts resolve a duplicate name differently, and neither breaks:
 
-Cook does **not** rename the vendored directories: the name is how
+- **Claude Code** namespaces plugin skills, so cook's copies load as
+  `cook:grilling`, `cook:to-spec`, and so on. Someone who also installs the
+  upstream `mattpocock-skills` plugin sees both sets, under their own
+  prefixes.
+- **opencode** has one flat skill namespace with no plugin prefix: it derives
+  a skill's id from its folder name, a later source with the same id wins,
+  and it also reads `~/.claude/skills`. Cook's plugin therefore registers
+  every copy as `cook/<dir>` (`cook/grilling`, `cook/to-spec`, …). A human's
+  own `grilling` or `to-spec` keeps its bare id, so cook's copies never shadow
+  it and are never shadowed by it; `/cook:plan` always runs against cook's
+  `cook/`-prefixed copies (ADR-0014).
+
+Cook does **not** rename the vendored directories (the `cook/` prefix is an
+id the plugin assigns at registration, not a directory name): the name is how
 `grill-with-docs` reaches `grilling` and `domain-modeling` (it calls them by
 name, in a file the verbatim rule forbids editing).
 

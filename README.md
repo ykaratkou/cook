@@ -2,8 +2,9 @@
 
 Cook is an **in-agent plugin** that ports [pop]'s task-set *implement*
 feature — the drain with its nested loops, the verification tail, the
-remediation loop, the Refine pass, and the human gates — into
-Claude Code.
+remediation loop, the Refine pass, and the human gates — into agent hosts
+that share the markdown-skills standard. Claude Code and
+[opencode](https://opencode.ai) 2.x are the two supported hosts.
 
 The original is [glebglazov/pop](https://github.com/glebglazov/pop) — an
 external orchestrator: a standalone binary that spawns agent CLIs as headless
@@ -19,6 +20,8 @@ ledger [`PARITY.md`](PARITY.md).
 
 ## Install
 
+### Claude Code
+
 ```
 /plugin marketplace add ykaratkou/cook
 /plugin install cook@cook
@@ -26,6 +29,51 @@ ledger [`PARITY.md`](PARITY.md).
 
 (CLI equivalent: `claude plugin marketplace add ykaratkou/cook`, then
 `claude plugin install cook@cook`.)
+
+### opencode
+
+Cook's opencode adapter is one opencode **v2** plugin in `opencode/` (opencode
+1.x is not supported; facts are pinned to v2.0.20). Install it by pointing
+opencode's `plugins` array at a cook checkout — installing and developing are
+the same step:
+
+```sh
+git clone https://github.com/ykaratkou/cook.git ~/src/cook
+(cd ~/src/cook/opencode && npm ci)    # opencode installs no dependencies for a checkout-path plugin
+```
+
+Then add the adapter directory to `~/.config/opencode/opencode.json` (or a
+project's `opencode.json`), using the absolute path of your checkout:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugins": [{ "package": "/Users/you/src/cook/opencode" }]
+}
+```
+
+Restart opencode; `/cook:status` should autocomplete. The verbs are spelled
+exactly as on Claude Code (`/cook:drain`, `/cook:plan`, …), and `git pull` in
+the checkout is the update.
+
+A git-spec install without a checkout (`opencode plugin add` with a
+`#path:opencode` subpath) is **not supported yet**: opencode 2.0.20 installs
+only the `opencode/` subfolder, so the plugin cannot reach the repo-root
+`skills/`, `prompts/`, and `conventions/` it serves. Follow-up: revisit when
+opencode keeps the repo root reachable (the smoke script below reports this
+finding on every run).
+
+To check the adapter against your installed opencode (plugin load, the six
+commands and eight skills, a `subagent` round-trip, a dismissed headless
+`question`), run the smoke script from the checkout:
+
+```sh
+opencode/smoke-test.sh                # expects `SMOKE OK`; spends a few model calls
+```
+
+It runs a private `opencode serve` against a throwaway config dir and never
+writes `~/.config/opencode`. `OPENCODE_BIN` overrides the binary and
+`COOK_SMOKE_MODEL` (`provider/model`) the model.
 
 ### Companion skills — already included
 
@@ -40,10 +88,11 @@ Provenance, the verbatim rule, and the upstream re-sync procedure:
 [`PROVENANCE.md`](PROVENANCE.md) (the decision is
 [ADR-0010](docs/adr/0010-companion-skills-ship-with-cook.md)). If you already
 have these skills, nothing collides: Claude Code loads cook's copies under a
-`cook:` prefix, beside your own.
+`cook:` prefix and opencode under a `cook/` prefix, beside your own.
 
 ### Develop against a checkout
 
+On opencode the install above already runs your checkout. On Claude Code,
 `.claude-plugin/plugin.json` carries no `version`, so the published version
 is derived from the commit — installed copies pick up each pushed commit on
 the next session start (no bump, no release step). To run a working tree

@@ -127,7 +127,7 @@ const hardeningMarker = "cook.drain-hardening"
 const hardenDrainLoop = async (ctx: Plugin.Context) => {
   // Sessions we injected into since their last human prompt: the stop hook's
   // `stop_hook_active` guard. Our own prompt also passes through the prompt
-  // hook; its metadata marker keeps it from re-arming the guard.
+  // hook; its metadata marker keeps it from clearing the guard.
   const injected = new Set<string>()
   // Open `question` forms per session: a gate is waiting for the human.
   const questions = new Map<string, Set<string>>()

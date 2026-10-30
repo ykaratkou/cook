@@ -172,7 +172,10 @@ Run at the end of every porting session:
       `opencode/commands/<verb>.md` says what `claude-code/commands/<verb>.md`
       says (skill or reference to read, force and lock rules, the
       delivery-note line), with only the path spelling (`${COOK_ROOT}` for
-      `${CLAUDE_PLUGIN_ROOT}`) and the host's own delivery note differing.
+      `${CLAUDE_PLUGIN_ROOT}`, and absolute where Claude Code's is relative),
+      the host's own delivery note, and two host-only gaps differing: no
+      `argument-hint` (opencode commands carry none) and, in `plan.md` only,
+      the paragraph naming the `cook/`-prefixed companion skill ids.
       `diff` each pair; an edit to one side lands on the other in the same
       commit.
 - [ ] The watermark is advanced.

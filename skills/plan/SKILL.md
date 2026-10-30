@@ -67,6 +67,12 @@ discovers them like any other installed skill. See `PROVENANCE.md` at the repo r
 5. **Report** — the set id, the task listing (type, blocked_by), and the next
    step: `/cook:drain <set-id>`.
 
+**Map-sourced entry.** `/cook:map <map-id> handoff` enters this procedure at
+step 2: a Map's resolved tickets are the decisions, so there is no
+interview. The set it produces is Map-sourced — follow the adapter doc's
+"Map-sourced sets" section in step 3 (one set, Mint checkboxes). The map
+skill records the lineage after step 4.
+
 The format contract is authoritative for every file written here — when this
 skill and the contract seem to disagree, the contract wins. Every file the
 plan produces (`manifest.json`, each task file, `spec.md`) is written through

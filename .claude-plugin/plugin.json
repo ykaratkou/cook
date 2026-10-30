@@ -1,6 +1,6 @@
 {
   "name": "cook",
-  "description": "In-agent port of pop's task-set implement feature: the drain loop, attempt retries with a prior-attempt digest, a Refine pass that fixes in place before an automatic Verifier with a remediation loop, and four human gates.",
+  "description": "In-agent port of pop's task-set implement feature: the drain loop, attempt retries with a prior-attempt digest, a Refine pass that fixes in place before an automatic Verifier with a remediation loop, and four human gates; plus Wayfinding (/cook:map) for work too big for one session.",
   "author": {
     "name": "Yauhen Karatkou"
   },

@@ -4,7 +4,7 @@
 # The opencode delivery note (skills/drain/references/host-opencode.md) and
 # the plugin (opencode/index.ts) assume rows of the capability matrix that
 # only the real binary can confirm: the plugin loads from a checkout path and
-# registers six `cook:<verb>` commands and eight `cook/<dir>` skills; a git-spec
+# registers seven `cook:<verb>` commands and twelve `cook/<dir>` skills; a git-spec
 # install of the repo root reaches the shared skills/, prompts/, and
 # conventions/ (ADR-0016); a
 # `subagent` spawn with `agent: "general"` hands back the child's final text
@@ -42,9 +42,9 @@ adapter_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(dirname "$adapter_dir")"
 user_config="${XDG_CONFIG_HOME:-$HOME/.config}/opencode"
 
-expected_commands="cook:drain cook:plan cook:refine cook:register cook:status cook:verify"
-expected_skills="cook/domain-modeling cook/drain cook/grill-with-docs cook/grilling cook/plan cook/register cook/to-spec cook/to-tickets"
-not_autoinvoked="cook/drain cook/plan cook/register"
+expected_commands="cook:drain cook:map cook:plan cook:refine cook:register cook:status cook:verify"
+expected_skills="cook/domain-modeling cook/drain cook/grill-with-docs cook/grilling cook/map cook/plan cook/prototype cook/register cook/research cook/to-spec cook/to-tickets cook/wayfinder"
+not_autoinvoked="cook/drain cook/map cook/plan cook/register cook/wayfinder"
 
 scratch="$(mktemp -d "${TMPDIR:-/tmp}/cook-opencode-smoke.XXXXXX")"
 server_pid=""
@@ -136,7 +136,7 @@ esac
 
 # --- 2. Load ----------------------------------------------------------------
 
-label 2 "Load: plugin loads; six commands and eight skills under settled names"
+label 2 "Load: plugin loads; seven commands and twelve skills under settled names"
 # opencode installs no dependencies for a checkout-path plugin, so a clean
 # checkout needs the root package's pinned install first (gitignored). A local
 # plugin directory loads from its own index.ts, so the config names opencode/,

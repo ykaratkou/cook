@@ -50,8 +50,8 @@ does not install them on its own. `opencode plugin update` installs them;
 restart opencode afterwards. Pin a commit with
 `github:ykaratkou/cook#<full-sha>` (`plugin update` skips pinned specs).
 
-To check the adapter against your installed opencode (plugin load, the six
-commands and eight skills, a `subagent` round-trip, a dismissed headless
+To check the adapter against your installed opencode (plugin load, the seven
+commands and twelve skills, a `subagent` round-trip, a dismissed headless
 `question`, a git-spec install of the committed `HEAD`), run the smoke script
 from a checkout:
 
@@ -137,8 +137,15 @@ sign-off; everything between is automatic:
 | `/cook:verify <set-id>` | Force the Verifier now, outside the automatic flow. |
 | `/cook:refine <set-id>` | Force a Refine pass now, outside the automatic flow. |
 
-Every verb works on a bare install: the skills `/cook:plan` orchestrates
-ship with cook (see above).
+Work too big for one session starts one step earlier, with **Wayfinding**:
+`/cook:map <idea>` charts a Map of decision tickets, `/cook:map <map-id>`
+resolves them a session at a time (agent-only tickets in parallel
+subagents), and `/cook:map <map-id> handoff` turns the finished Map into one
+task set for `/cook:drain`. Bare `/cook:map` lists your Maps; `<map-id> assist`
+reshapes one without deciding anything.
+
+Every verb works on a bare install: the skills `/cook:plan` and `/cook:map`
+orchestrate ship with cook (see above).
 
 All state lives in files under `.cook/` in the target repository — no
 daemon, no database; a crashed or wandering drain is resumed by invoking

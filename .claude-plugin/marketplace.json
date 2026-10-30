@@ -1,6 +1,6 @@
 {
   "name": "cook",
-  "description": "Cook: an in-agent port of pop's task-set implement feature (drain, refine, verify, gates).",
+  "description": "Cook: an in-agent port of pop's task-set implement feature (drain, refine, verify, gates) and its Wayfinding (map).",
   "owner": {
     "name": "Yauhen Karatkou"
   },
@@ -8,7 +8,7 @@
     {
       "name": "cook",
       "source": "./",
-      "description": "In-agent port of pop's task-set implement feature."
+      "description": "In-agent port of pop's task-set implement feature and Wayfinding."
     }
   ]
 }

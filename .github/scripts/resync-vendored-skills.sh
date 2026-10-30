@@ -20,14 +20,18 @@ UPSTREAM_URL=${UPSTREAM_URL:-https://github.com/mattpocock/skills.git}
 PROVENANCE=PROVENANCE.md
 LICENSE_COPY=LICENSE-mattpocock-skills
 
-# upstream path : vendored directory name. The five are the dependency closure
-# of /cook:plan; adding a sixth means editing this list and PROVENANCE.md.
+# upstream path : vendored directory name. The first five are the dependency
+# closure of /cook:plan, the last three that of /cook:map; adding another
+# means editing this list and PROVENANCE.md.
 PAIRS=(
   "engineering/grill-with-docs:grill-with-docs"
   "productivity/grilling:grilling"
   "engineering/domain-modeling:domain-modeling"
   "engineering/to-spec:to-spec"
   "engineering/to-tickets:to-tickets"
+  "engineering/wayfinder:wayfinder"
+  "engineering/research:research"
+  "engineering/prototype:prototype"
 )
 
 cd "$(git rev-parse --show-toplevel)"
@@ -160,7 +164,9 @@ New files: $untracked
 - [ ] Check \`skills/plan/SKILL.md\`'s procedure still describes what the
       companions do (interview → spec → tickets), and that the
       issue-tracker adapter doc still overrides whatever tracker the copies
-      name. An adaptation cook needs goes in the plan skill or the adapter
+      name. Likewise \`skills/map/SKILL.md\` for \`wayfinder\`,
+      \`research\`, and \`prototype\`: its overrides must still name what the
+      copies do. An adaptation cook needs goes in the plan skill or the adapter
       doc, never in a vendored file (ADR-0010).
 - [ ] Check upstream's license is still MIT: \`$LICENSE_COPY\` is part of
       this diff whenever it changes.

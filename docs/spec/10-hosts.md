@@ -16,7 +16,7 @@ nothing depending on it is the design, not a gap (ADR-0009).
 
 | Capability | claude-code | opencode (2.0.20) |
 |---|---|---|
-| Markdown skills (agentskills standard) | **Supported** — `.claude/skills/`, plugin skills | **Supported** — the plugin registers each root `skills/<dir>/SKILL.md` programmatically as `cook/<dir>`, with its absolute location; cook's own three with autoinvoke off |
+| Markdown skills (agentskills standard) | **Supported** — `.claude/skills/`, plugin skills | **Supported** — the plugin registers each root `skills/<dir>/SKILL.md` programmatically as `cook/<dir>`, with its absolute location; cook's own four and the vendored `wayfinder` with autoinvoke off |
 | Slash command mapping | **Supported** — plugin commands, always namespaced: `/cook:drain`, `/cook:plan`, … | **Supported** — plugin-registered commands named `cook:<verb>`, typed `/cook:drain`, `/cook:plan`, … exactly as on Claude Code |
 | Fresh-context subagent spawn | **Supported** — built-in Agent tool | **Supported** — the `subagent` tool with `agent: "general"`, never `background`, never a `sessionID` |
 | Subagent output capture | **Supported** — the subagent's final message is the Agent tool's return value | **Supported** — the text inside the `<subagent … state="completed">` wrapper; a spawn the human pushed to the background (Ctrl+B) returns a notice, not an outcome — the completion notification is parsed instead |
@@ -62,16 +62,18 @@ cook/
 ├── LICENSE-mattpocock-skills  ← their upstream license, verbatim
 ├── skills/             ← shared, single copy: the drain orchestration skill
 │                         + authoring contract (agentskills standard), plus
-│                         the five vendored companion skills (ADR-0010).
+│                         the map skill, and the eight vendored companion
+│                         skills (ADR-0010, ADR-0017).
 ├── docs/               ← this spec set
 ├── claude-code/        ← the Claude Code plugin
 │   ├── commands/       ← /cook:drain, /cook:plan, /cook:register,
-│   │                     /cook:status, /cook:verify, /cook:refine
+│   │                     /cook:status, /cook:verify, /cook:refine,
+│   │                     /cook:map
 │   └── skills/         → symlink to ../skills
 ├── opencode/           ← the opencode v2 plugin (the whole adapter)
-│   ├── index.ts        ← registers the six commands and eight skills,
+│   ├── index.ts        ← registers the seven commands and twelve skills,
 │   │                     and appends the runtime trailer
-│   ├── commands/       ← cook:drain … cook:refine, each mirroring
+│   ├── commands/       ← cook:drain … cook:map, each mirroring
 │   │                     claude-code/commands/<verb>.md
 │   └── smoke-test.sh   ← checks the opencode matrix column against the
 │                         installed binary
@@ -118,21 +120,24 @@ and each host's command wiring names its own; skill text only ever says
 - **Skill registration is the plugin root's `skills/` directory**, and cook
   cannot opt out of it: Claude Code scans a plugin's default `skills/` path
   and registers every `<dir>/SKILL.md` it finds as `cook:<dir>` (verified
-  against Claude Code 2.1.260). Cook's own three are registered there like
+  against Claude Code 2.1.260). Cook's own four are registered there like
   everything else and are muzzled in **frontmatter** instead —
   `user-invocable: false` (commands and skills share one namespace, so a
-  surfaced `plan`/`register` skill would collide with the command of that
-  name) and `disable-model-invocation: true` (the drain/plan/register
+  surfaced `plan`/`register`/`map` skill would collide with the command of
+  that name) and `disable-model-invocation: true` (the drain/plan/register/map
   instruction sets must never fire on the model's own initiative). The
   commands load them by path, through the `claude-code/skills/` relative
   symlink; the files keep the agentskills SKILL.md shape as the portable core
   (ADR-0003).
-- The five vendored companion skills sit in that same directory and are
+- The eight vendored companion skills sit in that same directory and are
   registered the same way, as `cook:grill-with-docs`, `cook:grilling`,
-  `cook:domain-modeling`, `cook:to-spec`, `cook:to-tickets`. They keep
-  upstream's frontmatter, so — unlike cook's own three — they are meant to be
-  invoked, which is what makes `/cook:plan` work on a bare install
-  (ADR-0010).
+  `cook:domain-modeling`, `cook:to-spec`, `cook:to-tickets`,
+  `cook:wayfinder`, `cook:research`, `cook:prototype`. They keep upstream's
+  frontmatter, so — unlike cook's own four — they are meant to be invoked,
+  which is what makes `/cook:plan` work on a bare install (ADR-0010). The
+  exception is `wayfinder`, which upstream marks
+  `disable-model-invocation: true`; the map skill reads it by path, as it
+  reads every vendored skill it uses (ADR-0017).
 - The delivery note mapping each capability the skills name to its
   mechanism (ADR-0006) is `skills/drain/references/host-claude-code.md`.
 
@@ -152,16 +157,17 @@ and each host's command wiring names its own; skill text only ever says
   names with no plugin namespace, lets a later source with the same id win,
   and also reads `~/.claude/skills`; the `cook/` prefix plays the role of
   Claude Code's `cook:`, so a user's own `grilling` or `to-spec` and cook's
-  copy never shadow each other. All eight root skills are registered with
+  copy never shadow each other. All twelve root skills are registered with
   their absolute `SKILL.md` location, so opencode's injected base directory
   resolves their relative references. opencode ignores
-  `disable-model-invocation`, so cook's own three (`cook/drain`, `cook/plan`,
-  `cook/register`) are registered with autoinvoke off; the five vendored
-  companions keep the default and stay verbatim (ADR-0010), which is what
-  makes `/cook:plan` work on a bare install.
-- **Command spelling is `/cook:<verb>`**, the same as Claude Code: the six
+  `disable-model-invocation`, so cook's own four (`cook/drain`, `cook/map`,
+  `cook/plan`, `cook/register`) and the vendored `cook/wayfinder` (manual-only
+  upstream) are registered with autoinvoke off; the other seven vendored
+  companions keep the default and stay verbatim (ADR-0010, ADR-0017), which
+  is what makes `/cook:plan` work on a bare install.
+- **Command spelling is `/cook:<verb>`**, the same as Claude Code: the seven
   commands are registered as `cook:drain`, `cook:plan`, `cook:register`,
-  `cook:status`, `cook:verify`, `cook:refine`. The colon autocompletes and
+  `cook:status`, `cook:verify`, `cook:refine`, `cook:map`. The colon autocompletes and
   runs in the 2.0.20 TUI, so the nested `/cook/<verb>` fallback is unused
   (ADR-0014, amendment). Each command's text is
   `opencode/commands/<verb>.md`, mirroring `claude-code/commands/<verb>.md`
@@ -195,7 +201,11 @@ spec document), and `to-tickets` (decomposition into the task set), plus the
 two `grill-with-docs` itself loads — `grilling` and `domain-modeling`. They are
 verbatim copies of [mattpocock/skills](https://github.com/mattpocock/skills)
 (MIT), vendored under `skills/` as one directory per skill, so the host
-discovers them exactly as it discovers cook's own three (ADR-0010).
+discovers them exactly as it discovers cook's own four (ADR-0010).
+`/cook:map` (doc 11) ships three more the same way: `wayfinder`, `research`,
+and `prototype`, with its own tracker doc
+(`skills/map/references/wayfinding-operations.md`) in the role the
+adapter doc below plays for `/cook:plan` (ADR-0017).
 
 - The copies are **not forked**. `PROVENANCE.md` (repo root) is the record —
   upstream repo, version, commit, copy date, what was excluded, and the

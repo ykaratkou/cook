@@ -1,9 +1,10 @@
 # Provenance: the vendored companion skills
 
-Five of the skill directories under `skills/` were **not written for cook**.
-They are verbatim copies of Matt Pocock's skills, vendored so `/cook:plan`
-works on a bare install (see
-[ADR-0010](docs/adr/0010-companion-skills-ship-with-cook.md)).
+Eight of the skill directories under `skills/` were **not written for cook**.
+They are verbatim copies of Matt Pocock's skills, vendored so `/cook:plan` and
+`/cook:map` work on a bare install (see
+[ADR-0010](docs/adr/0010-companion-skills-ship-with-cook.md) and
+[ADR-0017](docs/adr/0017-cook-ports-wayfinding-as-cook-map.md)).
 
 | Vendored skill | Why cook needs it |
 | --- | --- |
@@ -12,8 +13,11 @@ works on a bare install (see
 | `domain-modeling/` | Loaded by `grill-with-docs` (with `CONTEXT-FORMAT.md`, `ADR-FORMAT.md`). |
 | `to-spec/` | `/cook:plan` step 2 — the spec document. |
 | `to-tickets/` | `/cook:plan` step 3 — decomposition into the task set. |
+| `wayfinder/` | `/cook:map` — the Wayfinding skill; read by path, never invoked. |
+| `research/` | `/cook:map` — resolves research tickets, in subagents. |
+| `prototype/` | `/cook:map` — resolves prototype tickets (with `LOGIC.md`, `UI.md`). |
 
-Everything else under `skills/` is cook's own (`drain/`, `plan/`,
+Everything else under `skills/` is cook's own (`drain/`, `map/`, `plan/`,
 `register/`).
 
 ## Upstream
@@ -25,7 +29,7 @@ Everything else under `skills/` is cook's own (`drain/`, `plan/`,
 - **Copied from**: tag/version `1.3.2`, commit
   `a496f5513d4a4cf889bc48e189e579f4b0bdf6aa`
 - **Copy date**: 2026-10-30
-- **Upstream paths**: `skills/engineering/{grill-with-docs,domain-modeling,to-spec,to-tickets}`,
+- **Upstream paths**: `skills/engineering/{grill-with-docs,domain-modeling,to-spec,to-tickets,wayfinder,research,prototype}`,
   `skills/productivity/grilling` — flattened to one directory per skill here,
   because Claude Code discovers skills as `skills/<name>/SKILL.md` and cook's
   opencode plugin registers them from that same layout.
@@ -45,10 +49,18 @@ outside instead:
   [`skills/plan/references/issue-tracker.md`](skills/plan/references/issue-tracker.md),
   cook's adapter doc, which names `.cook/tasks/` as the store and the
   register contract as the file format.
-- `grilling` and `domain-modeling` ship as upstream ships them, model-invocable
-  (no `disable-model-invocation`), so installing cook makes those two
-  available to the model in any session — not just under `/cook:plan`. That is
-  upstream's design, kept deliberately.
+- `wayfinder` asks for the same tracker doc's "Wayfinding operations" section.
+  `/cook:map` hands it
+  [`skills/map/references/wayfinding-operations.md`](skills/map/references/wayfinding-operations.md),
+  and cook's `map` skill carries pop's adjustments to it (ADR-0017).
+- `wayfinder` ships `disable-model-invocation: true`, so `/cook:map` reads it
+  by path. opencode ignores that flag, so cook's plugin registers
+  `cook/wayfinder` with autoinvoke off: a registration choice, not an edit.
+- `grilling`, `domain-modeling`, `research`, and `prototype` ship as upstream
+  ships them, model-invocable (no `disable-model-invocation`), so installing
+  cook makes those four available to the model in any session — not just
+  under `/cook:plan` or `/cook:map`. That is upstream's design, kept
+  deliberately.
 
 ## When the machine already has these skills
 
@@ -87,7 +99,10 @@ for pair in \
   productivity/grilling:grilling \
   engineering/domain-modeling:domain-modeling \
   engineering/to-spec:to-spec \
-  engineering/to-tickets:to-tickets
+  engineering/to-tickets:to-tickets \
+  engineering/wayfinder:wayfinder \
+  engineering/research:research \
+  engineering/prototype:prototype
 do
   diff -ru --exclude=agents \
     "/tmp/mp-skills/skills/${pair%%:*}/" "skills/${pair##*:}/"

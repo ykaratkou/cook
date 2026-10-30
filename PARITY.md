@@ -1,6 +1,7 @@
 # Parity ledger
 
-Cook is a continuous port of pop's task-set implement feature. This ledger is
+Cook is a continuous port of pop's task-set implement feature and its
+Wayfinding (ADR-0017). This ledger is
 the porting instrument: it records how far the port has caught up with pop,
 which pop subsystems are deliberately in or out, where cook knowingly
 diverges, and which pop sources each cook document is written from. Cook takes
@@ -42,6 +43,7 @@ Previous watermarks: `17648e6` (2026-09-27), `ee676f0` (2026-08-20).
 | The four gates (HITL, Failed, Verify-failed, Interrupt) | `docs/spec/08-gates.md` |
 | Every agent prompt and shipped convention, verbatim with marked edits | `docs/spec/09-prompts.md` |
 | Host capability matrix | `docs/spec/10-hosts.md` |
+| Wayfinding: Maps, Decision tickets, handoff and Mint (`/cook:map`) | `docs/spec/11-map.md` |
 
 ## Scope: OUT
 
@@ -61,6 +63,7 @@ Each exclusion is a decision, not an omission. One line each:
 | Cache database, Manifest memo, Derivation stamp (pop ADR-0243, ADR-0265) | Cook caches no derived answer: every surface re-derives from files, so nothing can outlive the rules that produced it. The stamp covers pop's manifest-*validation* cache, not Verify verdicts. |
 | Work journal (severity, spent retry caps, Drain endings, `pop work log`) | pop.db telemetry. Cook's only journal is `progress.txt`. |
 | Per-phase agent choice and Verify offered at every gate (pop ADR-0264/0266/0269) | Part of attended assistance and agent fallback; cook has one agent, and its Verify-failed gate keeps pop's glossary rule that re-verify is not offered there. |
+| Map manifest (`index.json`), generated regions of `map.md`, `pop map register`, Ticket claims, Map sessions and pane fan-out, Map archive | Each serves pop's dashboard, tmux panes, or parallel panes appending to one index; cook keeps upstream's file-per-ticket shape, a self-check, and subagents for AFK tickets (ADR-0017). |
 | Objective gates (pop ADR-0277) | In pop's docs only, not its code, at the watermark. Needs its own IN/OUT decision once pop ships it. |
 
 ## Deferred
@@ -75,7 +78,7 @@ The watermark does not cover them.
 | Exploration report: `explore: true`, the Explore phase, EXPLORE-FAILED, the Exploration mark, `pop tasks explore` | ADR-0262; `tasks/explore*.go`, `tasks/exploration_pointer.go`, `tasks/prompts/explorer.tmpl.md`, the exploration arm of `agent.tmpl.md` and `assist.tmpl.md` | A new spec doc; `exploration.md` in the set directory, unstaged from commits; the fact that a pass gave up recorded in `state.json`; a read-only subagent posture (plugin agent definition); `/cook:explore`. |
 | Planning sources and Intent drift | ADR-0276; `tasks/verify_planning_sources.go`, `tasks/implement_planning_sources.go`, the planning-sources sections of `verifier.tmpl.md` / `agent.tmpl.md`, `conventions/shipped/planning-sources.md` | Manifest `planning_sources` (set) and per-task claims plus validation; Verifier section with fixed cook text in place of the convention; plan skill records the source ticket. |
 | AFK standstill trigger: Refine and verify also at a mid-ladder BLOCKED HITL gate | ADR-0258; pop `GLOSSARY.md` **AFK standstill** (decided in pop, *not yet coded* at the watermark: `refine_phase.go` / `verify_phase.go` still fire only at the terminal zone) | A standstill predicate beside the terminal zone in doc 02; doc 06/07 triggers; remediation wired into the mid-ladder gate. Port once pop codes it. |
-| Writing convention, and a commit body written apart from the run summary (deferred 2026-10-30) | ADR-0286, ADR-0287; `conventions/shipped/writing.md`, `conventions/kind.go`, `tasks/writing_convention.go`, `tasks/assess.go` (`COMMIT_BODY` block), `tasks/attempts.go` / `tasks/refine_commit.go` (body sanitising), the writing blocks of `agent.tmpl.md`, `refiner.tmpl.md`, `verifier.tmpl.md`, `partials.tmpl.md` (`writing-convention`) and every gate prompt | `conventions/writing.md` plus its stack in doc 07; the writing section in every prompt, and pop's generic prose lines ("No preamble, no sign-off") deleted from them; doc 04 stops using SUMMARY as the commit body. The `COMMIT_BODY` block only renders with a recorded commit convention, which cook v1 lacks, so cook would need its own body rule or convention support first. |
+| Writing convention, and a commit body written apart from the run summary (deferred 2026-10-30) | ADR-0286, ADR-0287; the writing-convention steps of `integrate/skills/pop/wayfinder/SKILL.md` and `grill-with-map/SKILL.md` (left out of doc 11); `conventions/shipped/writing.md`, `conventions/kind.go`, `tasks/writing_convention.go`, `tasks/assess.go` (`COMMIT_BODY` block), `tasks/attempts.go` / `tasks/refine_commit.go` (body sanitising), the writing blocks of `agent.tmpl.md`, `refiner.tmpl.md`, `verifier.tmpl.md`, `partials.tmpl.md` (`writing-convention`) and every gate prompt | `conventions/writing.md` plus its stack in doc 07; the writing section in every prompt, and pop's generic prose lines ("No preamble, no sign-off") deleted from them; doc 04 stops using SUMMARY as the commit body. The `COMMIT_BODY` block only renders with a recorded commit convention, which cook v1 lacks, so cook would need its own body rule or convention support first. |
 | Checkout-wide admission: tree-stable operations hold the checkout, and a human command waits instead of refusing | ADR-0238, ADR-0239, ADR-0240; `tasks/admission.go`, `tasks/tree_stable.go`, `tasks/checkout_claim.go` | A checkout-wide lock that drains and forced verbs take; cook has had no lock since ADR-0015. Waiting instead of refusing would be a marked divergence (no sleep loops in-session, ADR-0004). |
 
 ## Marked divergences
@@ -101,6 +104,8 @@ and carries its reason; anything not listed here is intended to match pop.
 | State write atomicity | Atomic: write a temp file in the same directory, then rename over the target (Go) | **Non-atomic**: one in-place write through the host's cook-state read-and-mutation capability, no rename | Neither in-agent host exposes a rename primitive, so the rule could only be obeyed by authoring a program; the single-writer discipline (one drain per set, kept by the human; ADR-0015) makes the torn-write window the lesser risk against orchestrators improvising state rewrites; ADR-0008. |
 | Adapter capability declaration | Supported / Blind | Supported / Blind / **Human-facing** | Cook's matrix also lists host affordances no cook logic reads (subagent trace visibility; loop hardening until ADR-0015 dropped it); declaring those Supported would spend the one distinction the matrix exists to make. Human-facing names the audience instead; ADR-0009. |
 | Companion planning skills | Pop's planning path is pop's own code; cook reuses only its issue-tracker adapter-doc mechanism (`integrate/issue-tracker.md`) | **Third-party skills vendored verbatim** — `grill-with-docs`, `grilling`, `domain-modeling`, `to-spec`, `to-tickets` (MIT) ship under `skills/` | `/cook:plan` is composed from an existing skill set instead of reimplemented, so the entry verb works on a bare install; ADR-0010. |
+| Wayfinding skills | Pop's overlay on upstream `wayfinder`, its own `grill-with-map` skill, and the `pop map` verbs over `index.json` | **Upstream `wayfinder`, `research`, `prototype` vendored verbatim**; pop's adjustments in cook's `map` skill and its Wayfinding-operations doc; upstream's local-markdown file shape; no claims; drafts named `NN-<slug>` after their ticket, not by 8-hex id | Same vendor-and-adapt pattern as `/cook:plan` (ADR-0010), without a binary to own the lifecycle; ADR-0017. |
+| Map lineage | `spawned_sets` in the Map manifest; `planning_sources` (legacy `source_map`) on the set | `## Spawned sets` lines in `map.md`; `Source map:` first line of `spec.md`, parsed by nothing | No Map manifest, and Planning sources is deferred (above); ADR-0017. |
 | Dirty-checkout strategies | continue / commit-and-continue / stash-and-continue | `continue` only | v1 cut; the other two are ledgered, not lost. |
 
 ## Doc-to-source map
@@ -121,6 +126,7 @@ union, for the porting diff.
 | `docs/spec/07-refine.md` | `tasks/refine.go`, `tasks/refine_phase.go`, `tasks/refine_commit.go`, `tasks/refine_episode.go`, `tasks/refine_mark.go`, `tasks/refine_pointer.go`, `tasks/pass_report.go`, `tasks/prompts/refiner.tmpl.md`, `conventions/shipped/implementation.md`, `conventions/overlay.go`, ADR-0226, ADR-0246, ADR-0247, ADR-0248, ADR-0252, ADR-0260 |
 | `docs/spec/08-gates.md` | `tasks/gates.go`, `tasks/gate_menu.go`, `tasks/interrupt_gate.go`, `tasks/verify_gate.go`, `tasks/prompts/*-assistance.tmpl.md` |
 | `docs/spec/09-prompts.md` | `tasks/prompts/*.tmpl.md` (all), `tasks/digest.go` (lesson strings), `conventions/shipped/implementation.md`, `conventions/shipped/verification.md` |
+| `docs/spec/11-map.md` | pop `GLOSSARY.md` (`### Wayfinder`), ADR-0129, ADR-0171, ADR-0172, ADR-0184, ADR-0186, `integrate/skills/pop/wayfinder/SKILL.md`, `integrate/skills/pop/grill-with-map/SKILL.md`, `conventions/shipped/issue-tracker.md` (Wayfinding operations, Map-sourced sets), `wayfinder/` (`manifest.go`, `parse.go`, `frontier.go`, `resolution.go`, `register.go`) |
 | `docs/spec/10-hosts.md` | pop's adapter-capability pattern (ADR-0165, ADR-0166, ADR-0190); the opencode column also tracks opencode v2.0.20 as installed (ADR-0014), which is not a pop source |
 | `PARITY.md` | the whole of the above |
 
@@ -163,7 +169,7 @@ Run at the end of every porting session:
 - [ ] The opencode column of `docs/spec/10-hosts.md`'s capability matrix
       (and `skills/drain/references/host-opencode.md`) still matches opencode
       as installed: run `opencode/smoke-test.sh` and expect `SMOKE OK`. It
-      checks the plugin load, the six `cook:<verb>` commands and eight
+      checks the plugin load, the seven `cook:<verb>` commands and twelve
       `cook/<dir>` skills, the `subagent` round-trip and its `completed`
       wrapper, a write-and-shell child, and a dismissed headless `question`.
       Cook depends on opencode's tool shapes here, and nothing but this check
@@ -195,3 +201,4 @@ Run at the end of every porting session:
 - Deferred features: ADR-0238/0239/0240, 0258, 0262, 0276, 0286/0287.
 - ADR-0284 (the Verifier checks every clause of a criterion) — ported in doc 06
   and doc 09 §3.
+- Wayfinding (doc 11): ADR-0129, 0171, 0172, 0184, 0186.

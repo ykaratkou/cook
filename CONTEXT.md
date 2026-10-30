@@ -2,7 +2,8 @@
 
 Cook is an in-agent plugin (Claude Code, opencode) that ports pop's task-set
 implement feature: the drain with its nested loops, the verification tail, the
-remediation loop, the Refine pass, and the human gates. This glossary
+remediation loop, the Refine pass, and the human gates; and pop's Wayfinding,
+which charts work too big for one session before it becomes a task set. This glossary
 imports pop's terms verbatim; a term defined here means what it means in pop
 unless the entry says otherwise.
 
@@ -399,6 +400,61 @@ by hand against the storage contract, but a machine missing a companion is a
 broken install, not a supported mode.
 _Avoid_: dependency skills, external skills, third-party skills
 
+### Wayfinding
+
+**Wayfinding**:
+The search phase of a large effort: resolving Decision tickets one at a time
+until the way to a Destination is clear. Produces decisions, not deliverables;
+implementation happens in the Task set a Map hands off to.
+_Avoid_: exploration, discovery, planning effort
+
+**Map**:
+The canonical artifact of one Wayfinding effort: its Destination, notes, the
+index of decisions so far, the Fog, the out-of-scope list, and its Decision
+tickets. A sibling of a Task set, not a kind of one: it never drains, and its
+tickets grow and shrink as Fog graduates.
+_Avoid_: wayfinder task set, plan, chart
+
+**Destination**:
+What reaching the end of a Map looks like — the spec, decision, or change the
+effort is finding its way to. Named first; it fixes the Map's scope.
+
+**Decision ticket**:
+One unit of a Map: a question whose resolution is a decision, typed research,
+prototype, grilling, or task. Distinct from a task: no acceptance criteria and
+no commit of its own.
+_Avoid_: task, issue, slice
+
+**Frontier**:
+A Map's Decision tickets that are open and unblocked (every blocker resolved or
+ruled out of scope). There is no claimed state: parallel sessions name distinct
+tickets. An empty Frontier is not arrival — the Map may still carry Fog.
+
+**Fog**:
+In-scope questions a Map can tell are coming but cannot yet phrase sharply
+enough to ticket. Graduates into Decision tickets as the Frontier advances.
+_Avoid_: backlog, todo, not-yet-specified (that is the section's heading, not the concept)
+
+**Out-of-scope ruling**:
+Closing a Decision ticket because it sits past the Destination. A scoping act,
+not a step on the route: it never enters the decision index and never
+graduates back.
+
+**ADR draft**:
+An ADR body written during Wayfinding into the Map, carrying no ADR number.
+The single copy of the decision's repo-facing form until it is Minted.
+
+**Context draft**:
+The glossary additions, changes, and removals one Decision ticket settles,
+written into the Map instead of the repository's glossary.
+
+**Mint**:
+To copy an ADR draft or Context draft out of the Map into the repository — a
+numbered ADR, or an edit to the glossary — done by the task that implements
+the decision, as an acceptance criterion, so the decision lands in the same
+commit as the change it describes. Nothing else writes Wayfinding's decisions
+into the repository's docs.
+
 ## Sources in pop
 
 - `GLOSSARY.md` in pop (its `CONTEXT.md` until pop ADR-0285) — the glossary these terms are imported from verbatim:
@@ -416,3 +472,7 @@ _Avoid_: dependency skills, external skills, third-party skills
   ADR-0246/0247/0248/0252/0260 (Refine), ADR-0259 (Prior-art check), ADR-0267
   (Drain turn).
 - pop ADR-0216 — the task trailer on every Implementation commit.
+- pop `GLOSSARY.md` `### Wayfinder` — Wayfinding, Map, Decision ticket,
+  Frontier, Out-of-scope ruling, ADR draft, Context draft, Mint; pop ADR-0171
+  (Mint), ADR-0172 (pop owns the lifecycle). Cook's Frontier drops pop's
+  claimed state (no claims in cook).

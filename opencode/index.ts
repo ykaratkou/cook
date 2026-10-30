@@ -124,21 +124,30 @@ const continueDrain = (lock: string, set: string) =>
 
 const hardeningMarker = "cook.drain-hardening"
 
+// opencode 2.0.20 sets the plugin up once per location (working directory), and
+// every instance's event stream carries every session's events. Each instance
+// acting on every session is what injected once per instance, again and again.
+// So only the instance whose location is the session's acts, and the once-only
+// guard is read from the session's history rather than kept in memory: an
+// instance set up later (an evicted location re-created, a plugin reload)
+// holds no state, but the history still says who prompted last. (Evicting a
+// location also cancels its open forms, so a fresh instance's empty form map
+// stays true.)
 const hardenDrainLoop = async (ctx: Plugin.Context) => {
-  // Sessions we injected into since their last human prompt: the stop hook's
-  // `stop_hook_active` guard. Our own prompt also passes through the prompt
-  // hook; its metadata marker keeps it from clearing the guard.
-  const injected = new Set<string>()
+  const here = ctx.location.directory
   // Open `question` forms per session: a gate is waiting for the human.
   const questions = new Map<string, Set<string>>()
+  const questionOpen = (sessionID: string) => (questions.get(sessionID)?.size ?? 0) > 0
 
-  await ctx.session.hook("prompt", (input) => {
-    try {
-      if (input.metadata?.[hardeningMarker] !== true) injected.delete(input.sessionID)
-    } catch (error) {
-      log(error)
-    }
-  })
+  // The stop hook's `stop_hook_active` guard: stay silent while the session's
+  // latest user message is our own injection. Only a human-typed prompt (a user
+  // message without our marker) re-arms it; with no user message in view there
+  // is no human prompt to answer, so stay silent too.
+  const lastPromptIsOurs = async (sessionID: string) => {
+    const messages = await ctx.session.context({ sessionID })
+    const last = messages.findLast((message) => message.type === "user")
+    return last?.type !== "user" || last.metadata?.[hardeningMarker] === true
+  }
 
   // Sessions with a check in flight, so one turn's end never injects twice.
   const checking = new Set<string>()
@@ -154,11 +163,11 @@ const hardenDrainLoop = async (ctx: Plugin.Context) => {
   }
 
   const checkAndInject = async (sessionID: string) => {
-    if (injected.has(sessionID) || (questions.get(sessionID)?.size ?? 0) > 0) return
+    if (questionOpen(sessionID)) return
     const session = await ctx.session.get({ sessionID })
+    if (session.location.directory !== here) return
     const own = await ownFreshLock(session.location.directory, sessionID)
-    if (own === undefined || injected.has(sessionID) || (questions.get(sessionID)?.size ?? 0) > 0) return
-    injected.add(sessionID)
+    if (own === undefined || (await lastPromptIsOurs(sessionID)) || questionOpen(sessionID)) return
     await ctx.session.prompt({
       sessionID,
       text: continueDrain(own.lock, own.set),

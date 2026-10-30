@@ -63,6 +63,14 @@ completion notification and parses it as it would a foreground result.
 its own delivery note, and skill text says "your host's delivery note".
 Claude Code's behaviour does not change.
 
+## Amendment (2026-10-30): colon command names work
+
+Checked in the opencode 2.0.20 TUI with the plugin loaded from a checkout
+path: a command registered as `cook:status` autocompletes from `/cook`, the
+colon types through (`/cook:st` still matches), and running it delivers the
+command text to the session. The colon spelling stands for all six verbs; the
+nested `/cook/<verb>` fallback is not needed.
+
 ## Sources
 
 - User decisions, 2026-09-29 (`/cook:plan opencode v2 integration`

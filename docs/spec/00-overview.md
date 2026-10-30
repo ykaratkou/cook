@@ -139,7 +139,7 @@ extra weight:
 | --- | --- |
 | `01-storage.md` | The format contract: manifest, task files, journal, sidecar state, config. |
 | `02-status-derivation.md` | Eligibility, derived set statuses, verification layering, set selection. |
-| `03-drain.md` | The Drain and Implement run: loop order, phases, re-entrancy, locking. |
+| `03-drain.md` | The Drain and Implement run: loop order, phases, re-entrancy, concurrency. |
 | `04-attempt.md` | The attempt contract: sentinels, assessment, the five-step commit. |
 | `05-retry.md` | The retry loop: max_tries, the lessons table, the prior-attempt digest. |
 | `06-verify.md` | The Verifier: verdicts, episodes, the remediation loop, invalidation. |

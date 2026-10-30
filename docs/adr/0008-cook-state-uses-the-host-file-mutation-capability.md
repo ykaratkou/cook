@@ -5,6 +5,10 @@ date: 2026-08-21
 
 # Cook state is read and written through the host's file tools
 
+> **Amended by ADR-0015 (2026-10-30).** `drain.lock` is gone. The single
+> writer this ADR relies on is now kept by the human: one drain per set at a
+> time, and no forced verb beside it.
+
 ADR-0006 made the skills name capabilities and let each host's delivery note
 supply the mechanism — but the capability set it covered (subagent spawn,
 output capture, structured ask, prompts directory, session id, interrupt) left

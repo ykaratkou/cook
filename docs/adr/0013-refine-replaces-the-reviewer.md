@@ -5,6 +5,10 @@ date: 2026-09-29
 
 # Refine replaces the Reviewer
 
+> **Amended by ADR-0015 (2026-10-30).** The forced verbs no longer take
+> `drain.lock`; there is no lock. Not running them beside a drain is the
+> human's discipline.
+
 Pop turned its read-only code review into **Refine**. A fresh Refiner holds
 the set's changeset to the repository's Implementation convention, fixes in
 place what is reversible, and writes a three-part report. The runner commits

@@ -4,6 +4,5 @@
   "author": {
     "name": "Yauhen Karatkou"
   },
-  "commands": ["./claude-code/commands"],
-  "hooks": "./claude-code/hooks/hooks.json"
+  "commands": ["./claude-code/commands"]
 }

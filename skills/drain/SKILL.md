@@ -76,16 +76,7 @@ Per-invocation arguments override config.
    select per [references/status.md](references/status.md) (highest-priority
    READY set; when none is READY, report the nearest actionable state and
    stop — never invent work).
-2. **Take the lock.** Check `.cook/tasks/<set-id>/drain.lock`:
-   - Fresh lock (refreshed within 10 minutes): **refuse** — report who holds
-     it and stop. Never auto-steal a fresh lock.
-   - Stale lock: tell the human the previous drain crashed without cleanup,
-     then take over.
-   - Otherwise create it: `{ "session": "<host session identifier>",
-     "at": "<RFC3339 UTC now>" }`. Use the session identifier for
-     `drain.lock` per your host's delivery note. Refresh `at`
-     on every Drain turn.
-3. **Dirty-checkout confirmation.** If `git status --porcelain` is non-empty
+2. **Dirty-checkout confirmation.** If `git status --porcelain` is non-empty
    at drain start, show the human the status and this consequence: cook's
    only dirty strategy is `continue` — the first completed task's
    implementation commit (`git add -A`) will sweep these pre-existing changes
@@ -100,7 +91,6 @@ Each Drain turn, in order:
 ```
 re-read manifest.json + state.json + .cook/config.json; derive status
                                                     (references/status.md)
-refresh drain.lock's "at"
 1. refine phase      — references/refine.md; non-gating, falls through
                        (only a human interrupt stops it)
 2. verify phase      — references/verify.md; hands back one of:
@@ -135,18 +125,16 @@ AWAITING-APPROVAL, VERIFY-FAILED, or DEFERRED — or on the human's interrupt
 **Do not end your turn mid-drain.** While the set derives READY and no gate
 is open, run the next Drain turn. Ending your turn is for: a gate's structured
 ask having been answered with an exit, a terminal disposition reported, or a
-refusal (lock, MALFORMED set).
+refusal (a MALFORMED set).
 
 ## Gates park the drain
 
-Reaching a gate finishes the current Drain: **remove `drain.lock` before the
-gate conversation** (a parked drain holds no lock). Choosing an outcome that
-resumes AFK work begins a fresh Drain — retake the lock and re-enter the
-loop. Remove the lock on **every** exit path.
+Reaching a gate finishes the current Drain. Choosing an outcome that resumes
+AFK work begins a fresh Drain — re-enter the loop.
 
 ## Exit
 
-On exit: remove `drain.lock`, then report the disposition — the set's derived
+On exit, report the disposition — the set's derived
 status, what was completed this run (from `progress.txt`), the verification
 mark, the Refine mark, and the Refine and Verify pointers when those reports
 exist.
@@ -196,7 +184,7 @@ attempt.
 ## Sources
 
 Operational rendering of the cook spec set: `docs/spec/00-overview.md`,
-`02-status-derivation.md`, `03-drain.md` (loop order, re-entrancy, lock,
-dirty strategy), `09-prompts.md` (rendering rules), `10-hosts.md`
+`02-status-derivation.md`, `03-drain.md` (loop order, re-entrancy,
+concurrency, dirty strategy), `09-prompts.md` (rendering rules), `10-hosts.md`
 (capability matrix; the delivery notes are its rows made operational). Pop
 sources are named in those documents' footers.

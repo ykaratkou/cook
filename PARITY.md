@@ -76,7 +76,7 @@ The watermark does not cover them.
 | Planning sources and Intent drift | ADR-0276; `tasks/verify_planning_sources.go`, `tasks/implement_planning_sources.go`, the planning-sources sections of `verifier.tmpl.md` / `agent.tmpl.md`, `conventions/shipped/planning-sources.md` | Manifest `planning_sources` (set) and per-task claims plus validation; Verifier section with fixed cook text in place of the convention; plan skill records the source ticket. |
 | AFK standstill trigger: Refine and verify also at a mid-ladder BLOCKED HITL gate | ADR-0258; pop `GLOSSARY.md` **AFK standstill** (decided in pop, *not yet coded* at the watermark: `refine_phase.go` / `verify_phase.go` still fire only at the terminal zone) | A standstill predicate beside the terminal zone in doc 02; doc 06/07 triggers; remediation wired into the mid-ladder gate. Port once pop codes it. |
 | Writing convention, and a commit body written apart from the run summary (deferred 2026-10-30) | ADR-0286, ADR-0287; `conventions/shipped/writing.md`, `conventions/kind.go`, `tasks/writing_convention.go`, `tasks/assess.go` (`COMMIT_BODY` block), `tasks/attempts.go` / `tasks/refine_commit.go` (body sanitising), the writing blocks of `agent.tmpl.md`, `refiner.tmpl.md`, `verifier.tmpl.md`, `partials.tmpl.md` (`writing-convention`) and every gate prompt | `conventions/writing.md` plus its stack in doc 07; the writing section in every prompt, and pop's generic prose lines ("No preamble, no sign-off") deleted from them; doc 04 stops using SUMMARY as the commit body. The `COMMIT_BODY` block only renders with a recorded commit convention, which cook v1 lacks, so cook would need its own body rule or convention support first. |
-| Checkout-wide admission: tree-stable operations hold the checkout, and a human command waits instead of refusing | ADR-0238, ADR-0239, ADR-0240; `tasks/admission.go`, `tasks/tree_stable.go`, `tasks/checkout_claim.go` | `.cook/drain.lock` per checkout rather than per set, the stop hook moved with it. Waiting instead of refusing would be a marked divergence (no sleep loops in-session, ADR-0004). Cook's interim measure: the forced verbs take the set's `drain.lock` (ADR-0013). |
+| Checkout-wide admission: tree-stable operations hold the checkout, and a human command waits instead of refusing | ADR-0238, ADR-0239, ADR-0240; `tasks/admission.go`, `tasks/tree_stable.go`, `tasks/checkout_claim.go` | A checkout-wide lock that drains and forced verbs take; cook has had no lock since ADR-0015. Waiting instead of refusing would be a marked divergence (no sleep loops in-session, ADR-0004). |
 
 ## Marked divergences
 
@@ -92,14 +92,14 @@ and carries its reason; anything not listed here is intended to match pop.
 | Remediation identity | Id pattern `^\d+-remediation$` | Manifest field `origin: auto \| human` | Explicit beats a naming convention a human might break; cook's docs already spoke of origin (ADR-0013). |
 | Convention stack | Four answering ranks + per-user and repository Overlays | Repository rank + shipped rank + repository Overlay | Per-user ranks are OUT (above). |
 | Shipped convention files | Embedded in the binary | `conventions/*.md` at the plugin root, **unmarked**; their edits recorded in doc 09 §11 | Agents read them straight from disk (the Refiner opens the verification convention by path), so `[COOK: …]` markers would reach the agent. |
-| Forced verbs and the lock | Checkout admission (`AcquireTreeStable`), waits at a terminal | `/cook:verify` and `/cook:refine` take the set's `drain.lock` and refuse on a fresh one | Admission is deferred (above); refusing matches cook's drain lock rule. |
+| Concurrency guard | Database-backed Runtime execution lock; checkout admission (`AcquireTreeStable`) for the forced verbs | **None**: one drain per set at a time, and no `/cook:verify` or `/cook:refine` beside it, is the human's discipline | The lock's per-turn refresh, exit-path cleanup, stale-lock window, commit unstaging, and per-host session plumbing cost more than the mistake it guarded; admission stays deferred (above); ADR-0015. |
 | Retry delays | `1m, 5m, 15m` | **Default-off** (key kept) | Sleeping inside an agent session buys little; ADR-0004. |
 | Verifier/Refiner independence | Separate process, possibly different vendor | Fresh-context subagent, same model | The strongest independence either host can offer; ADR-0003. |
 | Cap enforcement | Supervisor-enforced (SIGKILL, `time.After`) | Orchestrator-checked before the next spawn; Turn cap and timeout-kill declared Blind | Instructions cannot kill mid-flight; ADR-0004. |
 | Unattended operation | Work daemon spawns drains | Attended-only v1; gate semantics for a future headless mode spec'd dormant | ADR-0004. |
 | Storage formats | pop's files + pop.db | Cook-owned files only, **no pop interop** | No runtime dependency on pop; ADR-0002. |
-| State write atomicity | Atomic: write a temp file in the same directory, then rename over the target (Go) | **Non-atomic**: one in-place write through the host's cook-state read-and-mutation capability, no rename | Neither in-agent host exposes a rename primitive, so the rule could only be obeyed by authoring a program; the drain lock's single-writer discipline makes the torn-write window the lesser risk against orchestrators improvising state rewrites; ADR-0008. |
-| Adapter capability declaration | Supported / Blind | Supported / Blind / **Human-facing** | Cook's matrix also lists host affordances no cook logic reads (loop hardening, subagent trace visibility); declaring those Supported would spend the one distinction the matrix exists to make. Human-facing names the audience instead; ADR-0009. |
+| State write atomicity | Atomic: write a temp file in the same directory, then rename over the target (Go) | **Non-atomic**: one in-place write through the host's cook-state read-and-mutation capability, no rename | Neither in-agent host exposes a rename primitive, so the rule could only be obeyed by authoring a program; the single-writer discipline (one drain per set, kept by the human; ADR-0015) makes the torn-write window the lesser risk against orchestrators improvising state rewrites; ADR-0008. |
+| Adapter capability declaration | Supported / Blind | Supported / Blind / **Human-facing** | Cook's matrix also lists host affordances no cook logic reads (subagent trace visibility; loop hardening until ADR-0015 dropped it); declaring those Supported would spend the one distinction the matrix exists to make. Human-facing names the audience instead; ADR-0009. |
 | Companion planning skills | Pop's planning path is pop's own code; cook reuses only its issue-tracker adapter-doc mechanism (`integrate/issue-tracker.md`) | **Third-party skills vendored verbatim** — `grill-with-docs`, `grilling`, `domain-modeling`, `to-spec`, `to-tickets` (MIT) ship under `skills/` | `/cook:plan` is composed from an existing skill set instead of reimplemented, so the entry verb works on a bare install; ADR-0010. |
 | Dirty-checkout strategies | continue / commit-and-continue / stash-and-continue | `continue` only | v1 cut; the other two are ledgered, not lost. |
 
@@ -149,9 +149,10 @@ Run at the end of every porting session:
       to the marked-divergences table.
 - [ ] Every row of `docs/spec/10-hosts.md`'s capability matrix declares one of
       the three values, and every row cook's own logic never reads is
-      **Human-facing**, not Supported. (The loop-hardening row was Supported
-      for its whole life while the section under it said correctness never
-      depends on it — this check is what would have caught that; ADR-0009.)
+      **Human-facing**, not Supported. (The loop-hardening row, dropped since
+      by ADR-0015, was Supported for its whole life while the section under
+      it said correctness never depends on it — this check is what would have
+      caught that; ADR-0009.)
 - [ ] `PROVENANCE.md` still describes the vendored companion skills
       truthfully: run its re-sync `diff` against a fresh upstream clone. Empty
       output passes; otherwise re-sync and advance the recorded version,
@@ -170,7 +171,7 @@ Run at the end of every porting session:
       prompt to re-pin the plugin dependency and re-read the V2 docs.
 - [ ] Each opencode command mirrors its Claude Code command:
       `opencode/commands/<verb>.md` says what `claude-code/commands/<verb>.md`
-      says (skill or reference to read, force and lock rules, the
+      says (skill or reference to read, force rules, the
       delivery-note line), with only the path spelling (`${COOK_ROOT}` for
       `${CLAUDE_PLUGIN_ROOT}`, and absolute where Claude Code's is relative),
       the host's own delivery note, and two host-only gaps differing: no

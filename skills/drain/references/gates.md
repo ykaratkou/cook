@@ -8,11 +8,9 @@ rendered gate prompt in-session.
 
 Opening a gate, in order:
 
-1. **Park the drain**: remove `drain.lock` (the gate conversation runs
-   lock-free). Choosing an outcome that resumes AFK work begins a fresh
-   Drain — retake the lock. (A forced `/cook:verify` reaching the
-   Verify-failed gate has no drain to park; it has already removed its
-   lock.)
+1. **Park the drain**: the current Drain finishes. Choosing an outcome that
+   resumes AFK work begins a fresh Drain. (A forced `/cook:verify` reaching
+   the Verify-failed gate has no drain to park.)
 2. **Render the gate's prompt** from `prompts/<gate>-gate.md` (rules in the
    drain SKILL.md) — its `latest-refine-report` partial filled from the
    Refine pointer (`refine.md`) — and adopt it as your own instructions for the gate

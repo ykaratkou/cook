@@ -4,9 +4,8 @@
 
 One `/cook:drain` invocation is one **Implement run**: from set selection to
 exit. One Implement run holds **at most one live Drain** at a time and may
-comprise several: reaching a gate parks (finishes) the held Drain so the
-gate conversation runs lock-free, and resuming AFK work afterward begins a
-fresh Drain. The Implement run — not the Drain — owns the gates, the refine
+comprise several: reaching a gate parks (finishes) the held Drain, and
+resuming AFK work afterward begins a fresh Drain. The Implement run — not the Drain — owns the gates, the refine
 phase, and the verify phase.
 
 A **Drain** is one supervised pass over the set's eligible AFK tasks,
@@ -92,30 +91,20 @@ that lost the thread cannot corrupt the set, because the files — not its
 recollection — are re-read at each turn, and any drift is corrected on
 the next turn.
 
-## Concurrency guard
+## Concurrency
 
-Pop's Runtime execution lock is database-backed; cook uses a lockfile.
+Pop guards a running drain with a database-backed Runtime execution lock.
+Cook has no guard (ADR-0015). Two rules are the human's discipline:
 
-- On drain start, create `.cook/tasks/<set-id>/drain.lock` containing
-  `{ "session": "<host session identifier>", "at": "<RFC3339>" }`,
-  refreshing `at` on every Drain turn. The `session` value doubles as
-  the loop-hardening's scoping key: each host's hardening nags only the
-  session it can positively match to the lock (the per-host matching
-  mechanism is declared in `10-hosts.md`); an unmatchable value forfeits
-  hardening for that drain, nothing else.
-- A drain finding a fresh lock (refreshed within the staleness window,
-  default 10 minutes) MUST refuse: report who holds it and stop. Never
-  auto-steal a fresh lock.
-- A stale lock (older than the window) MAY be taken over after telling the
-  human — the previous drain crashed without cleanup.
-- Remove the lock on every exit path, gates included (a parked Drain is
-  finished; the gate holds no lock).
-- The forced verbs `/cook:verify` and `/cook:refine` take the same lock for
-  the duration of their run and refuse on a fresh one: a Verifier or
-  Refiner reading files a drain is rewriting judges a tree that never
-  existed, and both write `state.json`, whose single writer the lock
-  guarantees (ADR-0008). Pop's checkout-wide admission (ADR-0238) is
-  deferred (`PARITY.md`).
+- Run **one drain per set at a time**.
+- Run no `/cook:verify` or `/cook:refine` on a set while a drain runs on it.
+  A Verifier or Refiner reading files a drain is rewriting judges a tree that
+  never existed, and both write `state.json`.
+
+Keeping these is what makes the Orchestrator the single writer of a set's
+files (ADR-0008). Nothing detects a breach: two drains on one set race on
+`manifest.json` and may implement the same task twice. Pop's checkout-wide
+admission (ADR-0238) is deferred (`PARITY.md`).
 
 ## Dirty-checkout strategy
 
@@ -148,6 +137,6 @@ set.
   execution lock**
 - pop ADR-0086 (pre-approval verify phase), ADR-0252 (refine before verify),
   ADR-0267 (config re-read every Drain turn)
-- Cook divergences: lockfile instead of the DB-backed execution lock;
+- Cook divergences: no execution lock at all (ADR-0015);
   `continue` as the only dirty strategy with a mandatory confirmation;
   worktrees/bindings/fold OUT. See `PARITY.md`.

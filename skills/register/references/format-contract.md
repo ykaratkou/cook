@@ -23,9 +23,8 @@ Verbatim copy of the contract section of `docs/spec/01-storage.md` (between its 
             │   └── <task-id>-<ordinal>.json
             ├── refine/              # Refine reports, latest by timestamp
             │   └── <ISO-timestamp>.md
-            ├── verify/              # Verify reports, latest by timestamp
-            │   └── <ISO-timestamp>.md
-            └── drain.lock           # present only while a drain is live
+            └── verify/              # Verify reports, latest by timestamp
+                └── <ISO-timestamp>.md
 ```
 
 `<set-id>` is a lowercase kebab-case slug, unique under `.cook/tasks/`, and

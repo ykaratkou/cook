@@ -94,10 +94,7 @@ The subagent never commits; you do, after assessment passes:
    no commit fields recorded.
 3. **The commit** — `git add -A` (under the `continue` dirty strategy this
    deliberately sweeps pre-existing dirty state in with the agent's work),
-   then unstage cook's own transient lock —
-   `git reset -q -- .cook/tasks/<set-id>/drain.lock` — a live drain's lock
-   never belongs to an implementation commit. Then one commit with three
-   `-m` paragraphs:
+   then one commit with three `-m` paragraphs:
    - **Subject**: the task's `commit_subject` from the manifest, verbatim,
      when present; else the default `cook(<set-id>): <task-id>`.
    - **Body**: the agent's SUMMARY block, verbatim.

@@ -39,9 +39,10 @@ ADR-0252/0246/0247/0248). Two things stay from the Reviewer:
 - **Manually**, via `/cook:refine <set-id>`: a full pass on any set with
   refinable work. That includes a set mid-drain, one parked at VERIFY-FAILED,
   a human-completed one, and one already DONE. It ignores `refine`, the
-  human-completion skip, and the episode. It takes `drain.lock` like a drain and
-  refuses on a fresh one (doc 03). A Refiner reading files a drain is rewriting
-  would judge a tree that never existed.
+  human-completion skip, and the episode. "Mid-drain" means a set whose drain
+  has stopped, never one a drain is running on: that is the human's to avoid
+  (doc 03), since a Refiner reading files a drain is rewriting would judge a
+  tree that never existed.
 
 **Nothing here gates.** In the automatic phase, a skipped precondition, a spawn
 error, or a reply that produces no report is printed in one line
@@ -115,8 +116,7 @@ One pass follows the same steps whether it is automatic or forced:
      `git restore --source=HEAD --staged --worktree -- . ':(exclude).cook'`
      then `git clean -fd -- . ':(exclude).cook'`. Commit nothing.
    - **refined**: when anything outside `.cook/` changed, make the **Refine
-     commit**. `git add -A`, unstage the set's `drain.lock` when present, then
-     make one commit with two `-m` paragraphs:
+     commit**. `git add -A`, then make one commit with two `-m` paragraphs:
      - **Subject** `cook(<set-id>): refine`;
      - **Trailer** `Cook-Refine: <set-id>`, in its own paragraph so git parses
        it as a trailer.
@@ -281,5 +281,5 @@ verdict and gates nothing".
   ADR-0260 (Refine mark), ADR-0226 (a convention always answers)
 - Cook divergences: default on; clean-tree precondition with a
   `.cook/`-excluding restore; two convention ranks; the mark derived from
-  `state.json` instead of Captured runs; the `drain.lock` hold on the forced
-  verb (pop's checkout admission is deferred). See `PARITY.md`.
+  `state.json` instead of Captured runs; no guard on the forced verb (pop's
+  checkout admission is deferred; ADR-0015). See `PARITY.md`.

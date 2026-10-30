@@ -37,7 +37,8 @@ Cook **does not** guarantee crash-atomic writes. Both hosts' file tools
 write in place; neither offers a rename-over-target, so a process killed
 mid-write can leave a torn file. What makes that tolerable is the
 single-writer discipline: the Orchestrator is the only writer of a set's
-files, and `drain.lock` is what makes that true. The prior read that Claude
+files, and the human keeps that true by running one drain per set at a time
+and no forced verb beside it (doc 03, ADR-0015). The prior read that Claude
 Code's edit tool requires is the stale-read guard ground rule 1 already asks
 for. opencode's edit tool has **no** read-before-edit guard, so on that host
 the prior read is the Orchestrator's own discipline, not a tool check. The
@@ -67,9 +68,8 @@ see `docs/adr/0008-cook-state-uses-the-host-file-mutation-capability.md`
             │   └── <task-id>-<ordinal>.json
             ├── refine/              # Refine reports, latest by timestamp
             │   └── <ISO-timestamp>.md
-            ├── verify/              # Verify reports, latest by timestamp
-            │   └── <ISO-timestamp>.md
-            └── drain.lock           # present only while a drain is live
+            └── verify/              # Verify reports, latest by timestamp
+                └── <ISO-timestamp>.md
 ```
 
 `<set-id>` is a lowercase kebab-case slug, unique under `.cook/tasks/`, and

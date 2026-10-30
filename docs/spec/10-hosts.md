@@ -23,7 +23,6 @@ nothing depending on it is the design, not a gap (ADR-0009).
 | Structured mid-session ask (gates) | **Supported** — AskUserQuestion | **Supported** — the `question` tool; a "dismissed" error (headless `opencode run`) is not an answer: park the set and exit (ADR-0004) |
 | Turn cap enforcement | **Blind** — the Agent tool exposes no per-spawn turn bound | **Blind** — a per-agent `steps` cap exists, but a capped child reports `completed` with a forced summary, so exhaustion is unrecognizable |
 | Timeout kill | **Blind** — no way to bound or kill a running subagent | **Blind** — opencode has no subagent timeout |
-| Loop-hardening hook (optional) | **Human-facing** — a stop hook re-injects "continue the drain" when the orchestrator ends its turn with the set non-terminal; scoped to the orchestrator session by matching the lock's `session` token against the stopping session's own transcript (the orchestrator typed it), silent in every other session | **Human-facing** — event-driven, not a blocking stop: when a session's turn ends (`session.execution.succeeded`; 2.0.20 delivers no `session.idle` to plugins) and a `drain.lock` fresher than 10 minutes names that session's real id, the plugin queues one "continue the drain" prompt, never twice before the human prompts again; silent while a `question` is open and in every other session |
 | Interrupt detection | **Supported** — the human's Esc interrupts the running tool; the orchestrator observes the cancelled spawn | **Supported** — the human's Esc, pressed twice, interrupts; the running spawn returns `Subagent cancelled` |
 | Cook-state read and mutation | **Supported** — the `Read`, `Edit`, and `Write` tools. `Edit` requires the file to have been read first in the session (the stale-read guard ground rule 1 asks for). Writes are **in place**: no rename-over-target primitive is offered | **Supported** — the `read`, `edit`, and `write` tools (`patch` on models opencode serves it to). **No** read-before-edit guard: ground rule 1's prior read is the orchestrator's own discipline. Writes are **in place**: no rename-over-target primitive is offered |
 | RFC3339 UTC timestamps | **Supported** — `date -u +%Y-%m-%dT%H:%M:%SZ` through the Bash tool | **Supported** — `date -u +%Y-%m-%dT%H:%M:%SZ` through the `shell` tool |
@@ -40,19 +39,18 @@ never emits a bound it cannot recognize, and the spec keeps the behavior
 (turn-cap exhaustion outcome, the resume lesson) defined so a Supported host
 slots in without a spec change.
 
-The two **Human-facing** rows are the opposite case: no cook behavior waits on
-them, so there is nothing to keep dormant and nothing for a future host to
-unlock. They are in the matrix because a human asks about them, not because
-cook does (ADR-0009).
+The **Human-facing** row is the opposite case: no cook behavior waits on it,
+so there is nothing to keep dormant and nothing for a future host to unlock.
+It is in the matrix because a human asks about it, not because cook does
+(ADR-0009).
 
-## Loop hardening is optional, correctness is not
+## No loop hardening
 
-The hooks in the matrix's hardening row protect against one failure mode only:
-the orchestrator model ending its turn while the drain is mid-flight.
-Correctness never depends on them — all state lives in files (doc 01), so
-re-invoking `/cook:drain` re-derives everything and resumes exactly where the drain
-stopped. A host with no hook support runs cook correctly; the human just
-occasionally types `/cook:drain` again.
+Cook ships no hook that keeps the orchestrator going (ADR-0015). If the
+orchestrator model ends its turn while the drain is mid-flight, the human
+types `/cook:drain` again. All state lives in files (doc 01), so the new
+Implement run re-derives everything and resumes exactly where the drain
+stopped.
 
 ## Per-host layout
 
@@ -69,12 +67,10 @@ cook/
 ├── claude-code/        ← the Claude Code plugin
 │   ├── commands/       ← /cook:drain, /cook:plan, /cook:register,
 │   │                     /cook:status, /cook:verify, /cook:refine
-│   ├── skills/         → symlink to ../skills
-│   └── hooks/          ← optional stop-hook hardening
+│   └── skills/         → symlink to ../skills
 ├── opencode/           ← the opencode v2 plugin (the whole adapter)
 │   ├── index.ts        ← registers the six commands and eight skills,
-│   │                     appends the runtime trailer, and runs the
-│   │                     optional idle-event hardening
+│   │                     and appends the runtime trailer
 │   ├── commands/       ← cook:drain … cook:refine, each mirroring
 │   │                     claude-code/commands/<verb>.md
 │   ├── smoke-test.sh   ← checks the opencode matrix column against the
@@ -85,8 +81,8 @@ cook/
 The prompts and skills directories live at the repo root, outside the host
 adapters: a pop prompt port lands once, the Claude Code plugin reaches the
 one `skills/` copy through a relative symlink, and the opencode plugin
-resolves the repo root from its own location. Only the command wiring and
-the hardening are host-specific.
+resolves the repo root from its own location. Only the command wiring is
+host-specific.
 
 Each host has one delivery note (ADR-0006), under `skills/drain/references/`,
 and each host's command wiring names its own; skill text only ever says
@@ -108,7 +104,7 @@ and each host's command wiring names its own; skill text only ever says
 - The plugin's drain skill is the orchestrator instruction set; the
   `/cook:drain` command invokes it.
 - The **plugin root is the repo root** (`.claude-plugin/plugin.json` at the
-  top, pointing `commands` and `hooks` into `claude-code/`): plugin paths
+  top, pointing `commands` into `claude-code/`): plugin paths
   cannot reach outside the plugin root after installation, and rooting at
   the repo keeps `prompts/` a single shared copy
   (`${CLAUDE_PLUGIN_ROOT}/prompts`). Plugin commands are always namespaced
@@ -171,11 +167,9 @@ and each host's command wiring names its own; skill text only ever says
   with `${COOK_ROOT}` in place of `${CLAUDE_PLUGIN_ROOT}`; arguments land
   where Claude Code puts `$ARGUMENTS`.
 - **Every command ends with a runtime trailer** the plugin appends: the cook
-  root, the skills, prompts, and conventions directories, the opencode
-  delivery note's path, and the session id. The shipped conventions resolve
-  at the trailer's conventions directory. The session id is the real opencode
-  session id, so it is both `drain.lock`'s `session` token and the
-  hardening's scoping key.
+  root, the skills, prompts, and conventions directories, and the opencode
+  delivery note's path. The shipped conventions resolve at the trailer's
+  conventions directory.
 - The delivery note mapping each capability the skills name to its
   mechanism (ADR-0006) is `skills/drain/references/host-opencode.md`.
 - **Install routes.** Supported: the cook checkout's `opencode/` directory

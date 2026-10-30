@@ -169,17 +169,17 @@ as a **verification mark** beside the status (doc 02).
 ## Forced verification
 
 `/cook:verify <set-id>` is a Verifier run the human starts directly rather
-than the tail of a Drain. It takes the set's `drain.lock` for the run and
-refuses on a fresh one (doc 03). It always invokes the Verifier, recomputes
-the episode fingerprint first (clearing a dead episode's cache exactly as the
-drain does), records the verdict at the current work SHA — a PASS also sets
+than the tail of a Drain. The human runs it only on a set no drain is running
+on (doc 03). It always invokes the Verifier, recomputes the episode
+fingerprint first (clearing a dead episode's cache exactly as the drain
+does), records the verdict at the current work SHA — a PASS also sets
 `last_pass` — and files a Verify report. It **enacts nothing on its own**: no
 Remediation task is spawned and no set is parked.
 
 - On a **non-PASS** verdict, every one — FIXABLE under the cap included,
-  because no drain is present to act on it — the forced run releases the lock
-  and ends at the **Verify-failed gate** (doc 08), so the human who asked for
-  the judgment dispositions it in the same sitting.
+  because no drain is present to act on it — the forced run ends at the
+  **Verify-failed gate** (doc 08), so the human who asked for the judgment
+  dispositions it in the same sitting.
 - When the human **exits** that gate, the verdict stays cached and the next
   Drain enacts it under the ordinary disposition: a cached FIXABLE spawns a
   Remediation task without a second Verifier run; a cached NEEDS-HUMAN (or

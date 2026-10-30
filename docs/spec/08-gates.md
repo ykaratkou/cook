@@ -16,8 +16,7 @@ divergence is ledgered in `PARITY.md`.
    choosing an outcome that resumes AFK work begins a fresh Drain (doc 03). The
    Implement run owns the gate; the Drain never does. The one gate that also
    opens outside a drain is the Verify-failed gate at the end of a **Forced
-   verification** (doc 06); there is no Drain to park, and the forced run has
-   released its lock before the ask.
+   verification** (doc 06); there is no Drain to park.
 2. **The human decides every outcome.** Ported partial, verbatim in force for
    the orchestrator at every gate: the orchestrator effects no disposition — no
    task status change (complete, skip, reset, reopen), no verdict recorded, no

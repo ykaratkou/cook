@@ -39,17 +39,15 @@ gate.
 
 ## Force mode (`/cook:verify <set-id>`) — a Forced verification
 
-1. Take `drain.lock` (refuse on a fresh lock, exactly as a drain start does —
-   SKILL.md).
-2. Recompute the episode fingerprint and, if it changed, clear the cache —
+1. Recompute the episode fingerprint and, if it changed, clear the cache —
    steps 1–2 above.
-3. Always spawn a fresh Verifier, regardless of any cached verdict. Force is
+2. Always spawn a fresh Verifier, regardless of any cached verdict. Force is
    the human's escape hatch; the cache governs only automatic runs.
-4. **Record, never enact**: write the verdict to `verdict_cache` (a PASS also
+3. **Record, never enact**: write the verdict to `verdict_cache` (a PASS also
    sets `last_pass` and the fingerprint — the same one write as the PASS
    disposition) and file the Verify report (below). Spawn **no** Remediation
    task and park nothing.
-5. Remove `drain.lock`. Then:
+4. Act on the verdict:
    - **PASS** — report it and stop.
    - **Non-PASS** on a set whose terminal state was reached through a human
      completion — report the verdict as a verification mark only; no gate.

@@ -37,9 +37,9 @@ the Refiner's partial edits are uncommitted in the working tree.
 
 A full pass on any set with refinable work — mid-drain, VERIFY-FAILED,
 human-completed or DONE alike — ignoring `refine`, the human-completion skip,
-and the episode. Take `drain.lock` first (refuse on a fresh lock, exactly as a
-drain start does — SKILL.md) and remove it on every exit path. Report the
-Refine pointer and the commit made (if any), never the report body.
+and the episode. "Mid-drain" means a set whose drain has stopped: running it
+while a drain runs on the set is the human's to avoid. Report the Refine
+pointer and the commit made (if any), never the report body.
 
 ## Preconditions
 
@@ -103,8 +103,7 @@ Refine pointer and the commit made (if any), never the report body.
      `git restore --source=HEAD --staged --worktree -- . ':(exclude).cook'`
      then `git clean -fd -- . ':(exclude).cook'`. Commit nothing.
    - `refined` — if `git status --porcelain -- . ':(exclude).cook'` is
-     non-empty, make the **Refine commit**: `git add -A`, unstage the set's
-     `drain.lock` when present, then
+     non-empty, make the **Refine commit**: `git add -A`, then
      `git [-c <commit_overrides>…] commit -m "cook(<set-id>): refine" -m "Cook-Refine: <set-id>"`
      (the trailer in its own `-m` paragraph). Nothing changed outside
      `.cook/` → commit nothing.

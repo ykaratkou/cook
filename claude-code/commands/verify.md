@@ -11,4 +11,8 @@ report — enacting nothing — then remove the lock. A non-PASS verdict opens t
 Verify-failed gate per `references/gates.md`. Prompt rendering rules and the
 lock procedure are in `${CLAUDE_PLUGIN_ROOT}/claude-code/skills/drain/SKILL.md`.
 
+Your host's delivery note is
+`${CLAUDE_PLUGIN_ROOT}/claude-code/skills/drain/references/host-claude-code.md`
+(Claude Code); apply it wherever the skill names a capability.
+
 Set to verify: $ARGUMENTS

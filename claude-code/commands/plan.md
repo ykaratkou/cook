@@ -8,4 +8,8 @@ follow it. It orchestrates the companion skills (grill-with-docs → to-spec →
 to-tickets) and self-validates the resulting task set against the format
 contract until it derives READY.
 
+Your host's delivery note is
+`${CLAUDE_PLUGIN_ROOT}/claude-code/skills/drain/references/host-claude-code.md`
+(Claude Code); apply it wherever the skill names a capability.
+
 Feature to plan: $ARGUMENTS

@@ -31,7 +31,7 @@ HITL sign-off left) — and `verify` is true:
    warrants a fresh automatic verify on the next terminal arrival after its
    gate was left.
 5. Otherwise spawn the Verifier — a fresh-context subagent, spawned and its
-   output captured per your host's delivery note (host-claude-code.md).
+   output captured per your host's delivery note.
 
 On an AWAITING-APPROVAL set this runs **before** the HITL sign-off gate
 opens: cheap agent checking precedes expensive human time. A PASS opens the
@@ -82,7 +82,7 @@ Render `prompts/verifier.md` (rules in the drain SKILL.md) from:
   already tried.
 - `verification` (always renders): the resolved **verification** convention —
   the target repository's `docs/agents/verification.md` when present and
-  non-empty, else `${CLAUDE_PLUGIN_ROOT}/conventions/verification.md` —
+  non-empty, else `verification.md` in the shipped conventions directory (per your host's delivery note) —
   inlined whole as the "How work is checked in this repository" section.
 
 The `{{#if convention_recorded}}` sections never render (cook v1 configures

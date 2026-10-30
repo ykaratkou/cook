@@ -3,7 +3,7 @@
 A **gate** is where the drain stops because the next disposition belongs to a
 human: **HITL**, **Failed**, **Verify-failed**, **Interrupt**. A gate is you
 stopping and asking — **the structured gate ask presents the gate's allowed
-outcomes** (mechanism per your host's delivery note: host-claude-code.md) — and the assistance behavior is you following the corresponding
+outcomes** (mechanism per your host's delivery note) — and the assistance behavior is you following the corresponding
 rendered gate prompt in-session.
 
 Opening a gate, in order:

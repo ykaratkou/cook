@@ -19,15 +19,14 @@
      only when config `include_implementation_convention` is true: the
      resolved implementation convention (the target repository's
      `docs/agents/implementation.md` when present and non-empty, else
-     `${CLAUDE_PLUGIN_ROOT}/conventions/implementation.md`), inlined whole.
+     `implementation.md` in the shipped conventions directory (per your host's delivery note)), inlined whole.
      Otherwise the section drops.
    On attempt ordinal > 1, append the prior-attempt digest (`retry.md`).
 
 ## The spawn
 
-One fresh-context subagent — spawned per your host's delivery note
-(host-claude-code.md) — with the rendered prompt as its task
-text. Its captured output is the attempt's result; parse it, never speak to
+One fresh-context subagent — spawned per your host's delivery note — with
+the rendered prompt as its task text. Its captured output is the attempt's result; parse it, never speak to
 the subagent again. A spawn that fails outright (spawn error, subagent never
 ran) consumes no attempt — decrement the counter back.
 

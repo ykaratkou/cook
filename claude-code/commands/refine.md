@@ -12,4 +12,8 @@ report the outcome, the Refine commit made (if any), and the Refine pointer
 rendering rules and the lock procedure are in
 `${CLAUDE_PLUGIN_ROOT}/claude-code/skills/drain/SKILL.md`.
 
+Your host's delivery note is
+`${CLAUDE_PLUGIN_ROOT}/claude-code/skills/drain/references/host-claude-code.md`
+(Claude Code); apply it wherever the skill names a capability.
+
 Set to refine: $ARGUMENTS

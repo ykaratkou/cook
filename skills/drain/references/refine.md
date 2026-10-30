@@ -55,7 +55,7 @@ Refine pointer and the commit made (if any), never the report body.
 1. **Mark the start**: one `state.json` write setting `refine_last` to
    `{ "outcome": "started", "work_sha": "<HEAD>", "at": "<RFC3339 UTC now>" }`.
 2. **Spawn the Refiner** — a fresh-context subagent, spawned and its output
-   captured per your host's delivery note (host-claude-code.md) — with
+   captured per your host's delivery note — with
    `prompts/refiner.md` rendered (rules in the drain SKILL.md) from:
    - `task_set`; `work_range` = `<set_base_commit>..HEAD`; `work_stat` = the
      **complete** `git diff --stat` for it (bodies never inlined);
@@ -65,13 +65,13 @@ Refine pointer and the commit made (if any), never the report body.
      timestamp under `refine/`);
    - `convention`: the resolved **implementation** convention — the target
      repository's `docs/agents/implementation.md` when present and
-     non-empty, else `${CLAUDE_PLUGIN_ROOT}/conventions/implementation.md`.
+     non-empty, else `implementation.md` in the shipped conventions directory (per your host's delivery note).
      Always renders;
    - `overlay`: `docs/agents/refine.overlay.md` when present with a
      non-blank body; otherwise the section drops;
    - `verification_convention_path`: the resolved **verification**
      convention's path — `docs/agents/verification.md` when present and
-     non-empty, else `${CLAUDE_PLUGIN_ROOT}/conventions/verification.md`;
+     non-empty, else `verification.md` in the shipped conventions directory (per your host's delivery note);
    - `commit_convention_recorded` never holds (dormant).
 3. **Parse the reply.** Look only at the lines **before its first Markdown
    heading** (a line starting `#`):

@@ -5,6 +5,10 @@ description: "Derive and print every cook task set's status and open tasks. Read
 Read `${CLAUDE_PLUGIN_ROOT}/claude-code/skills/drain/references/status.md` and
 apply it to every set directory under `.cook/tasks/`.
 
+Your host's delivery note is
+`${CLAUDE_PLUGIN_ROOT}/claude-code/skills/drain/references/host-claude-code.md`
+(Claude Code); apply it wherever the skill names a capability.
+
 This command is **read-only and side-effect-free**: derive each set's status
 from its files, print one line per set (set id, derived status, verification
 mark in the terminal zone — including `verified at <sha>` when HEAD has moved

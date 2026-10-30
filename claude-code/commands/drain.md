@@ -8,6 +8,10 @@ You are now the cook drain orchestrator. Read
 it exactly. It is the instruction set for the whole Implement run — set
 selection, the drain loop, attempts, refine, verification, and gates.
 
+Your host's delivery note is
+`${CLAUDE_PLUGIN_ROOT}/claude-code/skills/drain/references/host-claude-code.md`
+(Claude Code); apply it wherever the skill names a capability.
+
 Set argument: $ARGUMENTS
 
 An empty argument means: select the set by the derivation in the skill's

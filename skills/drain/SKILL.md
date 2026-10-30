@@ -83,8 +83,7 @@ Per-invocation arguments override config.
      then take over.
    - Otherwise create it: `{ "session": "<host session identifier>",
      "at": "<RFC3339 UTC now>" }`. Use the session identifier for
-     `drain.lock` per your host's delivery note
-     (references/host-claude-code.md). Refresh `at`
+     `drain.lock` per your host's delivery note. Refresh `at`
      on every Drain turn.
 3. **Dirty-checkout confirmation.** If `git status --porcelain` is non-empty
    at drain start, show the human the status and this consequence: cook's
@@ -155,9 +154,8 @@ exist.
 ## Rendering prompts
 
 All subagent and gate prompts are the files in the **shared prompts
-directory** — resolve its location per your host's delivery note
-(references/host-claude-code.md). Render one as
-follows:
+directory** — resolve its location per your host's delivery note.
+Render one as follows:
 
 1. Substitute each `{{name}}` placeholder verbatim.
 2. Evaluate `{{#if condition}}…{{/if}}` — drop the section, heading included,
@@ -176,9 +174,8 @@ Never pass a prompt on a command line.
 ## Spawning subagents
 
 Every Attempt, Refiner run, and Verifier run is a **fresh-context
-subagent**: one spawn — mechanism per your host's delivery note
-(references/host-claude-code.md) — whose prompt is
-the rendered template and whose captured output is the run's entire output.
+subagent**: one spawn — mechanism per your host's delivery note — whose
+prompt is the rendered template and whose captured output is the run's entire output.
 No shared conversation state; the subagent is never spoken to again. A spawn
 that fails outright (the spawn errors before the subagent runs) consumes no
 attempt.
@@ -193,7 +190,7 @@ attempt.
 | [references/verify.md](references/verify.md) | The verify phase: episodes, verdict dispositions, remediation, force mode. |
 | [references/refine.md](references/refine.md) | The refine phase: preconditions, one pass, the Refine commit and report, episode, mark, pointer, force mode, convention resolution. |
 | [references/gates.md](references/gates.md) | The four gates: common rules, asks, and outcome execution. |
-| [references/host-claude-code.md](references/host-claude-code.md) | The host delivery note: each named capability mapped to Claude Code's concrete mechanism. Apply it wherever a capability is named. |
+| [references/host-claude-code.md](references/host-claude-code.md) | One host's delivery note — Claude Code's. A delivery note maps each named capability to its host's concrete mechanism; your host's command names the note you run under. Apply your host's note wherever a capability is named. |
 
 ## Sources
 

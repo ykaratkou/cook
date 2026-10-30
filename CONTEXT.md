@@ -173,8 +173,9 @@ The per-set cap on Remediation task spawns, after which the set parks at
 VERIFY-FAILED.
 
 **Verify report**:
-The document verification publishes for a Task set: what the Verifier checked,
-and why each acceptance criterion is met or unmet — the prose remainder of its
+The document verification publishes for a Task set: what the Verifier checked:
+one line for each clause of each acceptance criterion, naming the command it ran
+and the result — the prose remainder of its
 reply, the `VERDICT:` line lifted off the front. One per Verifier invocation,
 timestamped under the set's `verify/` directory, latest by timestamp; written on
 every verdict, PASS included; it survives Verification invalidation, being the
@@ -400,7 +401,7 @@ _Avoid_: dependency skills, external skills, third-party skills
 
 ## Sources in pop
 
-- `CONTEXT.md` in pop — the glossary these terms are imported from verbatim:
+- `GLOSSARY.md` in pop (its `CONTEXT.md` until pop ADR-0285) — the glossary these terms are imported from verbatim:
   Drain, Drain turn, Implement run, Turn, Turn cap, Task retry cap, Task
   attempt / Exhausted walk disposition, Prior-art check, AFK/HITL typing,
   Verifier, Verify verdict, Verify report / Verify pointer, Forced

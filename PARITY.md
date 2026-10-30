@@ -23,10 +23,10 @@ here assumes a human is the one doing step 2.
 
 ## Watermark
 
-**Ported up to pop commit `17648e6` (2026-09-27)**, except the features listed
+**Ported up to pop commit `af9826ef` (2026-10-21)**, except the features listed
 under *Deferred* below, which were left at their pop state on purpose.
 
-Previous watermark: `ee676f0` (2026-08-20).
+Previous watermarks: `17648e6` (2026-09-27), `ee676f0` (2026-08-20).
 
 ## Scope: IN
 
@@ -65,8 +65,8 @@ Each exclusion is a decision, not an omission. One line each:
 
 ## Deferred
 
-Pop features past the previous watermark that cook has decided **not to port
-yet** (user decision, 2026-09-29). They are not OUT: each one ports as a unit
+Pop features past a previous watermark that cook has decided **not to port
+yet** (user decisions, 2026-09-29 and 2026-10-30). They are not OUT: each one ports as a unit
 in a later session, and the pop sources below are where that session starts.
 The watermark does not cover them.
 
@@ -74,7 +74,8 @@ The watermark does not cover them.
 | --- | --- | --- |
 | Exploration report: `explore: true`, the Explore phase, EXPLORE-FAILED, the Exploration mark, `pop tasks explore` | ADR-0262; `tasks/explore*.go`, `tasks/exploration_pointer.go`, `tasks/prompts/explorer.tmpl.md`, the exploration arm of `agent.tmpl.md` and `assist.tmpl.md` | A new spec doc; `exploration.md` in the set directory, unstaged from commits; the fact that a pass gave up recorded in `state.json`; a read-only subagent posture (plugin agent definition); `/cook:explore`. |
 | Planning sources and Intent drift | ADR-0276; `tasks/verify_planning_sources.go`, `tasks/implement_planning_sources.go`, the planning-sources sections of `verifier.tmpl.md` / `agent.tmpl.md`, `conventions/shipped/planning-sources.md` | Manifest `planning_sources` (set) and per-task claims plus validation; Verifier section with fixed cook text in place of the convention; plan skill records the source ticket. |
-| AFK standstill trigger: Refine and verify also at a mid-ladder BLOCKED HITL gate | ADR-0258; pop `CONTEXT.md` **AFK standstill** (decided in pop, *not yet coded* at the watermark: `refine_phase.go` / `verify_phase.go` still fire only at the terminal zone) | A standstill predicate beside the terminal zone in doc 02; doc 06/07 triggers; remediation wired into the mid-ladder gate. Port once pop codes it. |
+| AFK standstill trigger: Refine and verify also at a mid-ladder BLOCKED HITL gate | ADR-0258; pop `GLOSSARY.md` **AFK standstill** (decided in pop, *not yet coded* at the watermark: `refine_phase.go` / `verify_phase.go` still fire only at the terminal zone) | A standstill predicate beside the terminal zone in doc 02; doc 06/07 triggers; remediation wired into the mid-ladder gate. Port once pop codes it. |
+| Writing convention, and a commit body written apart from the run summary (deferred 2026-10-30) | ADR-0286, ADR-0287; `conventions/shipped/writing.md`, `conventions/kind.go`, `tasks/writing_convention.go`, `tasks/assess.go` (`COMMIT_BODY` block), `tasks/attempts.go` / `tasks/refine_commit.go` (body sanitising), the writing blocks of `agent.tmpl.md`, `refiner.tmpl.md`, `verifier.tmpl.md`, `partials.tmpl.md` (`writing-convention`) and every gate prompt | `conventions/writing.md` plus its stack in doc 07; the writing section in every prompt, and pop's generic prose lines ("No preamble, no sign-off") deleted from them; doc 04 stops using SUMMARY as the commit body. The `COMMIT_BODY` block only renders with a recorded commit convention, which cook v1 lacks, so cook would need its own body rule or convention support first. |
 | Checkout-wide admission: tree-stable operations hold the checkout, and a human command waits instead of refusing | ADR-0238, ADR-0239, ADR-0240; `tasks/admission.go`, `tasks/tree_stable.go`, `tasks/checkout_claim.go` | `.cook/drain.lock` per checkout rather than per set, the stop hook moved with it. Waiting instead of refusing would be a marked divergence (no sleep loops in-session, ADR-0004). Cook's interim measure: the forced verbs take the set's `drain.lock` (ADR-0013). |
 
 ## Marked divergences
@@ -109,11 +110,11 @@ union, for the porting diff.
 
 | Cook doc | Pop sources |
 | --- | --- |
-| `CONTEXT.md` | pop `CONTEXT.md` (glossary), ADR-0190, ADR-0211, ADR-0216, ADR-0231, ADR-0245, ADR-0246/0247/0248/0252/0260, ADR-0259, ADR-0267 |
-| `docs/spec/00-overview.md` | pop `CONTEXT.md` (Implement run, Drain, Turn cap), ADR-0190 |
-| `docs/spec/01-storage.md` | pop `CONTEXT.md` (Task manifest, State vs Journal vs Telemetry), `tasks/authoring_guide.go` (incl. Orientation), `tasks/manifest.go` (validation), ADR-0267 |
-| `docs/spec/02-status-derivation.md` | pop `CONTEXT.md` (status derivation, eligibility), `tasks/verified_status.go`, `tasks/refine_mark.go` |
-| `docs/spec/03-drain.md` | pop `CONTEXT.md` (Implement, Drain, Drain turn), `tasks/run_tasks.go`, `tasks/executor.go`, `tasks/implement_run.go`, `tasks/run_plan.go`, ADR-0267 |
+| `CONTEXT.md` | pop `GLOSSARY.md` (glossary), ADR-0190, ADR-0211, ADR-0216, ADR-0231, ADR-0245, ADR-0246/0247/0248/0252/0260, ADR-0259, ADR-0267 |
+| `docs/spec/00-overview.md` | pop `GLOSSARY.md` (Implement run, Drain, Turn cap), ADR-0190 |
+| `docs/spec/01-storage.md` | pop `GLOSSARY.md` (Task manifest, State vs Journal vs Telemetry), `tasks/authoring_guide.go` (incl. Orientation), `tasks/manifest.go` (validation), ADR-0267 |
+| `docs/spec/02-status-derivation.md` | pop `GLOSSARY.md` (status derivation, eligibility), `tasks/verified_status.go`, `tasks/refine_mark.go` |
+| `docs/spec/03-drain.md` | pop `GLOSSARY.md` (Implement, Drain, Drain turn), `tasks/run_tasks.go`, `tasks/executor.go`, `tasks/implement_run.go`, `tasks/run_plan.go`, ADR-0267 |
 | `docs/spec/04-attempt.md` | `tasks/attempts.go`, `tasks/prompts/agent.tmpl.md`, `tasks/implement_implementation_convention.go`, ADR-0211, ADR-0216, ADR-0259 |
 | `docs/spec/05-retry.md` | `tasks/digest.go`, `tasks/attempt_cap_exhaustion.go`, pop ADR-0040, ADR-0190 (turn-cap lesson), ADR-0231 |
 | `docs/spec/06-verify.md` | `tasks/verify.go`, `tasks/verify_phase.go`, `tasks/verify_report.go`, `tasks/pass_report.go`, `tasks/prompts/verifier.tmpl.md`, `conventions/shipped/verification.md`, ADR-0096, ADR-0109, ADR-0179, ADR-0227, ADR-0245 |
@@ -161,11 +162,15 @@ Run at the end of every porting session:
 
 ## Sources in pop
 
-- The repository at `../pop`, watermark `17648e6`.
+- The repository at `../pop`, watermark `af9826ef`. Pop's glossary is
+  `GLOSSARY.md` since pop ADR-0285 (it was `CONTEXT.md`); cook's own glossary
+  keeps the name `CONTEXT.md`, which its vendored companion skills read.
 - pop `CLAUDE.md` / `docs/agents/navigation.md` — the package map the
   doc-to-source table's paths come from.
 - pop ADRs cited per-row above: 0040, 0096, 0109, 0165, 0166, 0179, 0190,
   0211, 0216, 0226, 0227, 0231, 0245, 0246, 0247, 0248, 0252, 0259, 0260,
   0267. ADR-0207 (planned subjects) is a stub in pop now, superseded by
   ADR-0211; ADR-0214 (code review) is superseded by ADR-0252.
-- Deferred features: ADR-0238/0239/0240, 0258, 0262, 0276.
+- Deferred features: ADR-0238/0239/0240, 0258, 0262, 0276, 0286/0287.
+- ADR-0284 (the Verifier checks every clause of a criterion) — ported in doc 06
+  and doc 09 §3.

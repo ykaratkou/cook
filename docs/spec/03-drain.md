@@ -142,7 +142,7 @@ set.
   is deferred)
 - `tasks/implement_run.go` (`reloadConfig`), `tasks/run_plan.go` — config
   re-read every Drain turn; what is settled at start
-- `CONTEXT.md` — glossary entries: **Drain**, **Implement run**,
+- `GLOSSARY.md` — glossary entries: **Drain**, **Implement run**,
   **Drain turn**, **Implement** (drain stop conditions, HITL gate
   behavior), **Dirty runtime strategy** (`continue` semantics), **Runtime
   execution lock**

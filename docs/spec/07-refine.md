@@ -271,7 +271,7 @@ verdict and gates nothing".
 - `tasks/prompts/refiner.tmpl.md`: the prompt (ported in doc 09)
 - `conventions/shipped/implementation.md`, `conventions/shipped/verification.md`:
   the shipped answers (ported in doc 09)
-- `CONTEXT.md`: **Refine**, **Refiner**, **Refine report**, **Refine outcome**,
+- `GLOSSARY.md`: **Refine**, **Refiner**, **Refine report**, **Refine outcome**,
   **Revealed finding**, **Refine episode**, **Refine mark**, **Refine pointer**,
   **Refine commit**, **Implementation convention**, **Convention stack**,
   **Shipped convention**, **Overlay**

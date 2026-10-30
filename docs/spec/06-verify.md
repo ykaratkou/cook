@@ -54,12 +54,23 @@ The Verifier's reply is parsed structurally:
 ```
 VERDICT: PASS | FIXABLE | NEEDS-HUMAN        (first line, required)
 SUMMARY: <one line, what needs fixing>        (optional; omitted on PASS)
-FINDINGS: <what was checked, and why each criterion is met or unmet>
+FINDINGS: <one line per clause: the criterion, the clause, the command run, and its result>
 ```
 
 FINDINGS is written on **every** verdict, PASS included: everything after the
 verdict line is published as the **Verify report** (below), and a PASS that
 records nothing leaves the human who later asks *why* nothing to read.
+
+**Every clause is checked by running something** (pop ADR-0284). The prompt's
+own frame, not the Verification convention, tells the Verifier to split each
+acceptance criterion into its clauses — each condition, path, state and named
+case — and to run a test, command or probe for each one in the checkout under
+verification. Reading the diff is not a check of a behavioural clause. A
+clause with no executed check is unmet; a clause it cannot check here at all
+(a human's eye, a credential, a service it lacks) is NEEDS-HUMAN, never PASS.
+It deletes any probe it wrote before replying. The rule sits in the frame
+because a repository's `docs/agents/verification.md` replaces the shipped
+convention whole, and a rule placed there would vanish with it.
 
 `COMMIT-SUBJECT:` — pop emits this line only when a repository commit
 convention is configured, and uses it as the remediation commit's subject.
@@ -225,7 +236,7 @@ no tooling.
   drain-tail firing, verified-status resolution, the mark
 - `tasks/prompts/verifier.tmpl.md` — the prompt (ported in doc 09);
   `conventions/shipped/verification.md` — the shipped Verification convention
-- `CONTEXT.md` — **Agent verification**, **Verify verdict**, **Verification
+- `GLOSSARY.md` — **Agent verification**, **Verify verdict**, **Verification
   invalidation**, **verification episode**, **Verification idempotency after
   PASS**, **Verify verdict disposition**, **Remediation task**, **Verified
   status resolution**, **Verify report**, **Verify pointer**, **Forced
@@ -234,4 +245,5 @@ no tooling.
   (invalidation fires only on AFK →open/→done), `docs/adr/0179` (human
   completion outranks the verdict), `docs/adr/0245` (verification publishes a
   Verify report), `docs/adr/0227` (the Verification convention is the
-  Verifier's role-driving body)
+  Verifier's role-driving body), `docs/adr/0284` (every clause of a
+  criterion is checked by running something)

@@ -177,7 +177,7 @@ else writes it.
     "verdict": "PASS | FIXABLE | NEEDS-HUMAN | HUMAN-PASS",
     "work_sha": "<sha judged>",
     "summary": "<one line, optional>",
-    "findings": "<what was checked, and why each criterion is met or unmet>",
+    "findings": "<one line per clause: the criterion, the clause, the command run, and its result>",
     "at": "<RFC3339>"
   },
   "last_pass": { "work_sha": "<sha>", "at": "<RFC3339>" },

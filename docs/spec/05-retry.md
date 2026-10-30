@@ -151,7 +151,7 @@ change; they cannot fire on the v1 host:
 - `tasks/attempts.go` — `executeTaskAttempts` (cap, delays, finalizeTaskFailed)
 - `tasks/attempt_cap_exhaustion.go` — the three endings by fault (provider →
   stays open; contract → failed; overrun → failed, split advice)
-- `CONTEXT.md` — **Task retry cap**, **Task attempt retry schedule**,
+- `GLOSSARY.md` — **Task retry cap**, **Task attempt retry schedule**,
   **Turn cap exhaustion**, **Task attempt**, **Exhausted walk disposition**
   (ported with one agent), **Agent fallback** (ported OUT)
 - `docs/adr/0040` (retry carry-forward), `docs/adr/0190` (turn cap; exhaustion

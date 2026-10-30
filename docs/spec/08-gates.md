@@ -158,7 +158,7 @@ the drain itself — the human chooses through the ask.
   `verify-failed-assistance.tmpl.md`, `interrupt-assistance.tmpl.md`,
   `partials.tmpl.md` (the-human-decides, you-may-draft-what-the-human-confirms)
   — all ported in doc 09
-- `CONTEXT.md` — **HITL gate prompt**, **Failed gate prompt**, Verify-failed
+- `GLOSSARY.md` — **HITL gate prompt**, **Failed gate prompt**, Verify-failed
   entries, **Remediation task** (origins), **Human completion**, **Forced
   verification**, **Refine mark**, **Verify pointer**, **Refine pointer**, the
   stop-and-advice non-interactive rule

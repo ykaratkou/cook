@@ -92,11 +92,11 @@ read-only, from `state.json` — and, like it, never changes the status.
 
 ## Sources in pop
 
-- `CONTEXT.md:454-479` — the eligibility rule and the status table
+- `GLOSSARY.md:454-479` — the eligibility rule and the status table
   (READY / AWAITING-APPROVAL / BLOCKED / DEFERRED, MALFORMED outside the
   derivation, automatic selection passing over DONE/DEFERRED/
   AWAITING-APPROVAL)
-- `CONTEXT.md` — glossary entries: **Task set status**, **Verified status
+- `GLOSSARY.md` — glossary entries: **Task set status**, **Verified status
   resolution** (read-only, side-effect-free; the decision to run the
   Verifier belongs to the Drain), **Verification idempotency after PASS**,
   **Human completion**

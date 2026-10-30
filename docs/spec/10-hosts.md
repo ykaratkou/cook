@@ -147,13 +147,13 @@ discovers them exactly as it discovers cook's own three (ADR-0010).
 
 ## Sources in pop
 
-- `CONTEXT.md` — **Agent adapter** / adapter-capability entries (the
+- `GLOSSARY.md` — **Agent adapter** / adapter-capability entries (the
   Supported/Blind declaration pattern; the third value, **Human-facing**, is
   cook's own addition — ADR-0009, ledgered as a divergence), **Agent preset**
 - `docs/adr/0165`, `docs/adr/0166` (capability declaration seams),
   `docs/adr/0190` (turn cap: only the enforcer emits the bound; Blind
   declarations name their reason)
-- `integrate/issue-tracker.md` and `CONTEXT.md` **Issue tracker doc** — the
+- `integrate/issue-tracker.md` and `GLOSSARY.md` **Issue tracker doc** — the
   adapter-doc mechanism `/cook:plan` reuses
 - Claude Code facts from the
   plugin/skill/Agent-tool surface in current Claude Code, its `/tasks` view,

@@ -93,7 +93,7 @@ no commit convention); a `COMMIT-SUBJECT:` line in the reply is ignored.
 ```
 VERDICT: PASS | FIXABLE | NEEDS-HUMAN        (first line, required)
 SUMMARY: <one line>                           (optional; omitted on PASS)
-FINDINGS: <what was checked; why each criterion is met or unmet>   (every verdict)
+FINDINGS: <one line per clause: criterion, clause, command run, result>   (every verdict)
 ```
 
 A reply whose first line parses to none of the three verdicts is a **failed

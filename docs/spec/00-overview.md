@@ -152,7 +152,7 @@ the pop commit watermark — is `PARITY.md` at the repo root.
 
 ## Sources in pop
 
-- `CONTEXT.md` — glossary entries: **Drain**, **Implement run**, **Task
+- `GLOSSARY.md` — glossary entries: **Drain**, **Implement run**, **Task
   retry cap**, **Turn cap**, **Implement**, **Verifier**, **Remediation
   task**, **Verify disposition**
 - `docs/adr/0190-a-turn-cap-bounds-one-implementation-attempt-and-only-claude-can-enforce-it.md` — the four nested loops; the "ralph" ban

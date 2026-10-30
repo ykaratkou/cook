@@ -219,7 +219,7 @@ else writes it.
     "verdict": "PASS | FIXABLE | NEEDS-HUMAN | HUMAN-PASS",
     "work_sha": "<sha judged>",
     "summary": "<one line, optional>",
-    "findings": "<what was checked, and why each criterion is met or unmet>",
+    "findings": "<one line per clause: the criterion, the clause, the command run, and its result>",
     "at": "<RFC3339>"
   },
   "last_pass": { "work_sha": "<sha>", "at": "<RFC3339>" },
@@ -346,9 +346,9 @@ is MALFORMED and will not drain) unless marked as warnings:
 
 ## Sources in pop
 
-- `CONTEXT.md` — glossary entries: **Task manifest**, **Manifest vs
+- `GLOSSARY.md` — glossary entries: **Task manifest**, **Manifest vs
   progress record vs captured stream (State vs Journal vs Telemetry)**
-  (`CONTEXT.md:1714`), **Authoring guide**, **Task retry cap**, **Task
+  (`GLOSSARY.md:1714`), **Authoring guide**, **Task retry cap**, **Task
   attempt retry schedule**, **Verify verdict**, **verification episode**
 - `tasks/progress.go` — the journal block format and markers
 - `tasks/attempts.go:496-566` — ImplementationCommit, set base commit

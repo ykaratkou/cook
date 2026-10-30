@@ -1,5 +1,5 @@
 ---
-status: accepted; partly superseded by ADR-0015
+status: accepted; partly superseded by ADR-0015 and ADR-0016
 date: 2026-09-29
 ---
 
@@ -8,6 +8,10 @@ date: 2026-09-29
 > **Superseded on one point** (2026-10-30, by ADR-0015): cook has no drain
 > lock and no loop hardening, so the plugin no longer watches for idle
 > sessions and the command trailer no longer carries the session id.
+>
+> **Amended** (2026-10-30, by ADR-0016): the repo root, not `opencode/`, is
+> the opencode package, so the plugin installs from a git spec as well as a
+> checkout.
 
 ADR-0012 made Claude Code the one host and kept the seam: the capability
 matrix, skills that name capabilities, per-host delivery notes, and the shared

@@ -1,3 +1,4 @@
+node_modules/
 .cook
 
 # scratch from .github/scripts/resync-vendored-skills.sh

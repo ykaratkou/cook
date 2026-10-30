@@ -73,9 +73,10 @@ cook/
 │   │                     and appends the runtime trailer
 │   ├── commands/       ← cook:drain … cook:refine, each mirroring
 │   │                     claude-code/commands/<verb>.md
-│   ├── smoke-test.sh   ← checks the opencode matrix column against the
-│   │                     installed binary
-│   └── package.json    ← @opencode/plugin, pinned to 2.0.20
+│   └── smoke-test.sh   ← checks the opencode matrix column against the
+│                         installed binary
+└── package.json        ← the opencode package (ADR-0016): exports
+                          opencode/index.ts, @opencode/plugin pinned to 2.0.20
 ```
 
 The prompts and skills directories live at the repo root, outside the host
@@ -172,15 +173,19 @@ and each host's command wiring names its own; skill text only ever says
   conventions directory.
 - The delivery note mapping each capability the skills name to its
   mechanism (ADR-0006) is `skills/drain/references/host-opencode.md`.
-- **Install routes.** Supported: the cook checkout's `opencode/` directory
-  in opencode's `plugins` config array, after `npm ci` in that directory
-  (opencode installs no dependencies for a checkout-path plugin); installing
-  and developing are the same step. Not yet supported: a git-spec install
-  (`opencode plugin add`, subpath spelled `#path:opencode` in 2.0.20)
-  installs only the `opencode/` subfolder, so the repo-root `skills/`,
-  `prompts/`, and `conventions/` are unreachable — revisit when opencode
-  keeps the repo root. `opencode/smoke-test.sh` re-checks this column, and
-  reports that git-spec finding, against the installed opencode.
+- **Install routes** (ADR-0016). The repo root is the opencode package:
+  the root `package.json` exports `opencode/index.ts`, and its `files` list
+  packs that entry, `opencode/commands/`, and the shared `skills/`,
+  `prompts/`, and `conventions/`. So a git spec with no subpath
+  (`opencode plugin add github:ykaratkou/cook`) installs everything the
+  plugin reads, and `opencode plugin update` moves it to the newest commit.
+  A checkout works too: its `opencode/` directory in opencode's `plugins`
+  config array, after `npm ci` at the checkout root. opencode 2.0.20 loads a
+  local plugin directory from its `index.ts`, ignoring `package.json`
+  `exports`, and installs no dependencies for it; Bun resolves them from the
+  root `node_modules`. Installing and developing are then the same step.
+  `opencode/smoke-test.sh` re-checks this column against the installed
+  opencode, including a git-spec install of the committed `HEAD`.
 
 ## Companion skills for `/cook:plan`
 

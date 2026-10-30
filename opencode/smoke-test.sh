@@ -4,7 +4,9 @@
 # The opencode delivery note (skills/drain/references/host-opencode.md) and
 # the plugin (opencode/index.ts) assume rows of the capability matrix that
 # only the real binary can confirm: the plugin loads from a checkout path and
-# registers six `cook:<verb>` commands and eight `cook/<dir>` skills; a
+# registers six `cook:<verb>` commands and eight `cook/<dir>` skills; a git-spec
+# install of the repo root reaches the shared skills/, prompts/, and
+# conventions/ (ADR-0016); a
 # `subagent` spawn with `agent: "general"` hands back the child's final text
 # inside the `<subagent … state="completed">` wrapper; that child can write
 # files and run shell; and a headless `question` comes back dismissed, never
@@ -136,10 +138,12 @@ esac
 
 label 2 "Load: plugin loads; six commands and eight skills under settled names"
 # opencode installs no dependencies for a checkout-path plugin, so a clean
-# checkout needs the adapter's own pinned install first (gitignored).
-if [ ! -d "$adapter_dir/node_modules/@opencode/plugin" ]; then
-	(cd "$adapter_dir" && npm ci --no-audit --no-fund) >"$scratch/npm-ci.log" 2>&1 ||
-		fail "npm ci in $adapter_dir failed" "$scratch/npm-ci.log"
+# checkout needs the root package's pinned install first (gitignored). A local
+# plugin directory loads from its own index.ts, so the config names opencode/,
+# and Bun resolves the dependencies from the root node_modules above it.
+if [ ! -d "$repo_root/node_modules/@opencode/plugin" ]; then
+	(cd "$repo_root" && npm ci --no-audit --no-fund) >"$scratch/npm-ci.log" 2>&1 ||
+		fail "npm ci in $repo_root failed" "$scratch/npm-ci.log"
 fi
 config_dir="$scratch/config"
 mkdir -p "$config_dir"
@@ -249,36 +253,29 @@ console.log(dismissed.state.error)
 ' >"$scratch/gate.detail" || fail "headless question" "$scratch/gate.jsonl.err"
 ok "$(cat "$scratch/gate.detail")"
 
-# --- 6. Git-spec install (finding, never fails) -----------------------------
+# --- 6. Git-spec install ---------------------------------------------------
 
 label 6 "Git-spec install: installed plugin reaches repo-root skills/, prompts/, conventions/"
 # A fully isolated opencode home: `plugin add` writes the global config and
-# installs into the cache dir, so both point into scratch.
+# installs into the cache dir, so both point into scratch. git+file installs
+# the committed HEAD, so uncommitted edits are not what this checks.
 iso="$scratch/git-install"
 mkdir -p "$iso/config/opencode" "$iso/data" "$iso/cache" "$iso/state"
-spec="git+file://$repo_root#path:$(basename "$adapter_dir")"
-finding=""
-if (cd "$iso" && XDG_CONFIG_HOME="$iso/config" XDG_DATA_HOME="$iso/data" XDG_CACHE_HOME="$iso/cache" \
+head="$(git -C "$repo_root" rev-parse HEAD)"
+spec="git+file://$repo_root#$head"
+(cd "$iso" && XDG_CONFIG_HOME="$iso/config" XDG_DATA_HOME="$iso/data" XDG_CACHE_HOME="$iso/cache" \
 	XDG_STATE_HOME="$iso/state" OPENCODE_CONFIG_DIR="$iso/config/opencode" \
-	with_timeout 300 "$OPENCODE_BIN" plugin add "$spec") >"$iso/add.log" 2>&1; then
-	installed="$(find "$iso/cache" -path '*/node_modules/*' -name index.ts -path "*/cook-opencode/index.ts" | head -1)"
-	if [ -z "$installed" ]; then
-		finding="not reachable (installed, but no cook-opencode/index.ts found under the cache)"
-	else
-		# index.ts resolves the cook root as its own directory's parent.
-		root="$(dirname "$(dirname "$installed")")"
-		missing=""
-		for d in skills prompts conventions; do [ -d "$root/$d" ] || missing="$missing $d/"; done
-		if [ -z "$missing" ]; then
-			finding="reachable (root: $root)"
-		else
-			finding="not reachable (missing beside the installed plugin:$missing; only the subpath is installed)"
-		fi
-	fi
-else
-	finding="not reachable (plugin add failed: $(grep -m1 -iE 'error' "$iso/add.log" || tail -1 "$iso/add.log"))"
-fi
-echo "FINDING: $finding"
+	with_timeout 300 "$OPENCODE_BIN" plugin add "$spec") >"$iso/add.log" 2>&1 ||
+	fail "plugin add $spec failed" "$iso/add.log"
+# The package is the repo root (ADR-0016): its index.ts sits at opencode/index.ts,
+# and index.ts resolves the cook root as its own directory's parent.
+installed="$(find "$iso/cache" -path '*/node_modules/cook/opencode/index.ts' | head -1)"
+[ -n "$installed" ] || fail "installed, but no cook/opencode/index.ts under the cache" "$iso/add.log"
+root="$(dirname "$(dirname "$installed")")"
+missing=""
+for d in skills prompts conventions opencode/commands; do [ -d "$root/$d" ] || missing="$missing $d/"; done
+[ -z "$missing" ] || fail "missing beside the installed plugin:$missing (check package.json files)"
+ok "${head:0:12}"
 
 # --- Isolation --------------------------------------------------------------
 
@@ -286,4 +283,4 @@ label 7 "Isolation: ~/.config/opencode unchanged"
 [ "$(snapshot_config)" = "$config_before" ] || fail "$user_config changed during the run"
 ok
 
-echo "SMOKE OK: opencode $version, spec '$spec' -> $finding"
+echo "SMOKE OK: opencode $version"

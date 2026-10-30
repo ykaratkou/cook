@@ -32,40 +32,28 @@ ledger [`PARITY.md`](PARITY.md).
 
 ### opencode
 
-Cook's opencode adapter is one opencode **v2** plugin in `opencode/` (opencode
-1.x is not supported; facts are pinned to v2.0.20). Install it by pointing
-opencode's `plugins` array at a cook checkout — installing and developing are
-the same step:
+Cook's opencode adapter is one opencode **v2** plugin (opencode 1.x is not
+supported; facts are pinned to v2.0.20). opencode has no marketplace, so it
+installs straight from the GitHub repo:
 
 ```sh
-git clone https://github.com/ykaratkou/cook.git ~/src/cook
-(cd ~/src/cook/opencode && npm ci)    # opencode installs no dependencies for a checkout-path plugin
+opencode plugin add github:ykaratkou/cook
 ```
 
-Then add the adapter directory to `~/.config/opencode/opencode.json` (or a
-project's `opencode.json`), using the absolute path of your checkout:
+That installs the plugin with its dependencies and adds it to the global
+`~/.config/opencode/opencode.json`. Restart opencode; `/cook:status` should
+autocomplete. The verbs are spelled exactly as on Claude Code (`/cook:drain`,
+`/cook:plan`, …).
 
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "plugins": [{ "package": "/Users/you/src/cook/opencode" }]
-}
-```
-
-Restart opencode; `/cook:status` should autocomplete. The verbs are spelled
-exactly as on Claude Code (`/cook:drain`, `/cook:plan`, …), and `git pull` in
-the checkout is the update.
-
-A git-spec install without a checkout (`opencode plugin add` with a
-`#path:opencode` subpath) is **not supported yet**: opencode 2.0.20 installs
-only the `opencode/` subfolder, so the plugin cannot reach the repo-root
-`skills/`, `prompts/`, and `conventions/` it serves. Follow-up: revisit when
-opencode keeps the repo root reachable (the smoke script below reports this
-finding on every run).
+opencode checks an unpinned git plugin for newer commits when it starts, but
+does not install them on its own. `opencode plugin update` installs them;
+restart opencode afterwards. Pin a commit with
+`github:ykaratkou/cook#<full-sha>` (`plugin update` skips pinned specs).
 
 To check the adapter against your installed opencode (plugin load, the six
 commands and eight skills, a `subagent` round-trip, a dismissed headless
-`question`), run the smoke script from the checkout:
+`question`, a git-spec install of the committed `HEAD`), run the smoke script
+from a checkout:
 
 ```sh
 opencode/smoke-test.sh                # expects `SMOKE OK`; spends a few model calls
@@ -90,13 +78,41 @@ Provenance, the verbatim rule, and the upstream re-sync procedure:
 have these skills, nothing collides: Claude Code loads cook's copies under a
 `cook:` prefix and opencode under a `cook/` prefix, beside your own.
 
+### Updating on Claude Code
+
+`.claude-plugin/plugin.json` carries no `version`, so the published version
+is derived from the commit: every pushed commit is a new version, with no
+bump or release step. Claude Code does not auto-update a marketplace you
+added yourself unless you turn it on, in `/plugin` → Marketplaces, or with
+`"autoUpdate": true` on the marketplace's `extraKnownMarketplaces` entry in
+`~/.claude/settings.json`. Then each session start picks up the newest
+commit. By hand:
+
+```sh
+claude plugin marketplace update cook
+claude plugin update cook@cook        # restart Claude Code to apply
+```
+
 ### Develop against a checkout
 
-On opencode the install above already runs your checkout. On Claude Code,
-`.claude-plugin/plugin.json` carries no `version`, so the published version
-is derived from the commit — installed copies pick up each pushed commit on
-the next session start (no bump, no release step). To run a working tree
-instead of the published copy:
+On opencode, point the `plugins` array at your checkout's `opencode/`
+directory instead of the git spec, after installing the dependencies at the
+checkout root (opencode installs none for a checkout-path plugin):
+
+```sh
+git clone https://github.com/ykaratkou/cook.git ~/src/cook
+(cd ~/src/cook && npm ci)
+```
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugins": [{ "package": "/Users/you/src/cook/opencode" }]
+}
+```
+
+opencode then runs your working tree; restart it to pick up edits. On Claude
+Code, run a working tree instead of the published copy with:
 
 ```sh
 claude --plugin-dir /path/to/cook     # this checkout, shadowing the installed copy

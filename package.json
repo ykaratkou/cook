@@ -1,12 +1,19 @@
 {
-  "name": "cook-opencode",
+  "name": "cook",
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./index.ts"
+    ".": "./opencode/index.ts"
   },
+  "files": [
+    "opencode/index.ts",
+    "opencode/commands",
+    "skills",
+    "prompts",
+    "conventions"
+  ],
   "scripts": {
-    "typecheck": "tsc --noEmit -p ."
+    "typecheck": "tsc --noEmit -p opencode"
   },
   "dependencies": {
     "@opencode/plugin": "2.0.20"

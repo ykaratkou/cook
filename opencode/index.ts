@@ -1,4 +1,4 @@
-import { readdir, readFile } from "node:fs/promises"
+import { readdir, readFile, stat } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { Plugin, Skill } from "@opencode/plugin"
@@ -81,6 +81,118 @@ const trailer = (sessionID: string) =>
     "",
   ].join("\n")
 
+// Loop hardening: the opencode mirror of claude-code/hooks/stop-drain-guard.sh.
+// opencode cannot veto a turn ending, so after a successful turn goes idle we
+// queue one continue-the-drain prompt when the session's own fresh drain.lock
+// says its drain is mid-flight. Optional (spec 10): correctness never depends
+// on it, so every failure here is caught and logged, never thrown at a session.
+
+const lockFreshMs = 10 * 60 * 1000 // the stop hook's `find -mmin -10`
+
+const log = (error: unknown) =>
+  console.error("[cook] drain loop hardening:", error instanceof Error ? error.message : error)
+
+// The first fresh `.cook/tasks/*/drain.lock` whose `session` is this session's
+// id, or undefined. Anything unreadable stays silent, as in the stop hook.
+const ownFreshLock = async (directory: string, sessionID: string) => {
+  const tasks = path.join(directory, ".cook", "tasks")
+  const sets = await readdir(tasks, { withFileTypes: true }).catch(() => [])
+  for (const set of sets) {
+    if (!set.isDirectory()) continue
+    const lock = path.join(tasks, set.name, "drain.lock")
+    const info = await stat(lock).catch(() => undefined)
+    if (info === undefined || Date.now() - info.mtimeMs >= lockFreshMs) continue
+    const parsed: unknown = await readFile(lock, "utf8")
+      .then((text) => JSON.parse(text))
+      .catch(() => undefined)
+    const session = typeof parsed === "object" && parsed !== null ? (parsed as { session?: unknown }).session : undefined
+    if (typeof session === "string" && session !== "" && session === sessionID) return { lock, set: set.name }
+  }
+  return undefined
+}
+
+// The stop hook's message, verbatim in meaning.
+const continueDrain = (lock: string, set: string) =>
+  [
+    `A fresh drain lock exists at ${lock} (set: ${set}), and its session`,
+    "id is yours, so your cook drain appears to be mid-flight. Continue the",
+    "drain loop — re-derive the set's status from its files and run the next",
+    "iteration; do not end your turn while the set derives READY and no gate is",
+    "open. If the drain has in fact reached an exit path, remove the stale lock",
+    "and report the disposition.",
+  ].join("\n")
+
+const hardeningMarker = "cook.drain-hardening"
+
+const hardenDrainLoop = async (ctx: Plugin.Context) => {
+  // Sessions we injected into since their last human prompt: the stop hook's
+  // `stop_hook_active` guard. Our own prompt also passes through the prompt
+  // hook; its metadata marker keeps it from re-arming the guard.
+  const injected = new Set<string>()
+  // Open `question` forms per session: a gate is waiting for the human.
+  const questions = new Map<string, Set<string>>()
+
+  await ctx.session.hook("prompt", (input) => {
+    try {
+      if (input.metadata?.[hardeningMarker] !== true) injected.delete(input.sessionID)
+    } catch (error) {
+      log(error)
+    }
+  })
+
+  // Sessions with a check in flight, so one turn's end never injects twice.
+  const checking = new Set<string>()
+
+  const onIdle = async (sessionID: string) => {
+    if (checking.has(sessionID)) return
+    checking.add(sessionID)
+    try {
+      await checkAndInject(sessionID)
+    } finally {
+      checking.delete(sessionID)
+    }
+  }
+
+  const checkAndInject = async (sessionID: string) => {
+    if (injected.has(sessionID) || (questions.get(sessionID)?.size ?? 0) > 0) return
+    const session = await ctx.session.get({ sessionID })
+    const own = await ownFreshLock(session.location.directory, sessionID)
+    if (own === undefined || injected.has(sessionID) || (questions.get(sessionID)?.size ?? 0) > 0) return
+    injected.add(sessionID)
+    await ctx.session.prompt({
+      sessionID,
+      text: continueDrain(own.lock, own.set),
+      delivery: "queue",
+      metadata: { [hardeningMarker]: true },
+    })
+  }
+
+  const abort = new AbortController()
+  void (async () => {
+    for await (const event of ctx.event.subscribe({ signal: abort.signal })) {
+      try {
+        // A successful execution is the turn ending and the session going idle.
+        // (2.0.20 does not deliver `session.idle` to plugin subscribers.)
+        if (event.type === "session.execution.succeeded") {
+          onIdle(event.data.sessionID).catch(log)
+        } else if (event.type === "form.created") {
+          const { form } = event.data
+          if (form.metadata?.["kind"] !== "question") continue
+          const open = questions.get(form.sessionID) ?? new Set<string>()
+          questions.set(form.sessionID, open.add(form.id))
+        } else if (event.type === "form.replied" || event.type === "form.cancelled") {
+          questions.get(event.data.sessionID)?.delete(event.data.id)
+        }
+      } catch (error) {
+        log(error)
+      }
+    }
+  })().catch((error: unknown) => {
+    if (!abort.signal.aborted) log(error)
+  })
+  return () => abort.abort()
+}
+
 export default Plugin.define({
   id: "cook",
   async setup(ctx) {
@@ -113,5 +225,8 @@ export default Plugin.define({
       }
     })
     await ctx.command.reload()
+
+    const stopHardening = await hardenDrainLoop(ctx).catch((error: unknown) => log(error))
+    return () => stopHardening?.()
   },
 })

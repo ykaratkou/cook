@@ -191,6 +191,7 @@ attempt.
 | [references/refine.md](references/refine.md) | The refine phase: preconditions, one pass, the Refine commit and report, episode, mark, pointer, force mode, convention resolution. |
 | [references/gates.md](references/gates.md) | The four gates: common rules, asks, and outcome execution. |
 | [references/host-claude-code.md](references/host-claude-code.md) | One host's delivery note — Claude Code's. A delivery note maps each named capability to its host's concrete mechanism; your host's command names the note you run under. Apply your host's note wherever a capability is named. |
+| [references/host-opencode.md](references/host-opencode.md) | One host's delivery note — opencode's (2.0.20). Same capability rows as every delivery note; apply it only when your host's command names it. |
 
 ## Sources
 

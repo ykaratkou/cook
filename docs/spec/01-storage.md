@@ -62,6 +62,10 @@ see `docs/adr/0008-cook-state-uses-the-host-file-mutation-capability.md`
             ├── 02-second-task.md
             ├── ...
             ├── spec.md              # optional: planning spec, context only
+            ├── adrs/                # optional: ADR drafts, Minted by tasks
+            │   └── <slug>.md
+            ├── context/             # optional: Context drafts, Minted by tasks
+            │   └── <set-id>.md
             ├── progress.txt         # Journal: append-only outcome history
             ├── state.json           # sidecar: verdicts, episodes, counters
             ├── attempts/            # slim per-attempt records (digest substrate)
@@ -209,6 +213,29 @@ The planning spec co-located with the set. It is handed to the Verifier and
 Refiner as **context only** — the acceptance criteria in the task files
 remain authoritative, always.
 
+## Decision drafts: `adrs/` and `context/` (optional)
+
+The ADRs and glossary changes `/cook:plan`'s interview settled, written here
+instead of into the repository (ADR-0018). An **ADR draft**
+(`adrs/<slug>.md`) is a whole ADR with no number; a **Context draft**
+(`context/<set-id>.md`, possibly split into one file per task) is the
+glossary entries to add, replace, and remove. Neither is read by the
+Verifier or Refiner as context.
+
+A draft reaches the repository only when it is **Minted**: by the one task
+that implements its decision, through a checkbox under that task's
+`## Acceptance criteria` naming the draft by its full path:
+
+- `- [ ] docs/adr/NNNN-<slug>.md created from .cook/tasks/<set-id>/adrs/<slug>.md (next free ADR number)`
+- `- [ ] .cook/tasks/<set-id>/context/<set-id>.md applied to the glossary`
+
+The implementer picks the ADR number when it Mints and applies a context
+draft to the glossary as it then stands, so the decision lands in the same
+commit as the change it describes. A Map-sourced set carries no drafts of its
+own: its checkboxes name the Map's drafts under `.cook/maps/<map-id>/`
+(`11-map.md`). The drafts are written before the manifest, so a set folder
+holding only drafts — a plan still in its interview — derives MALFORMED.
+
 ## state.json
 
 The sidecar replacing what pop keeps in its database. Cook-owned; nothing
@@ -337,12 +364,16 @@ is MALFORMED and will not drain) unless marked as warnings:
    `## Acceptance criteria` heading.
 5. No orphan `.md` files: every `.md` at the top level of the set directory
    except `spec.md` has a manifest entry (the `refine/`, `verify/` and any
-   legacy `reviews/` sub-directories hold reports, not tasks).
+   legacy `reviews/` sub-directories hold reports, and `adrs/` and
+   `context/` hold drafts, not tasks).
 6. `type`, `status` and `origin` hold only their allowed values.
 7. Unknown manifest keys — warning only.
 8. HITL tasks SHOULD be terminal or block AFK work deliberately; a HITL
    task whose body describes software to build — warning naming the typing
    rule.
+9. Every file under `adrs/` and `context/` is named by a Mint checkbox in
+   exactly one task file — warning naming each draft that has none, or more
+   than one.
 
 <!-- format-contract-end -->
 

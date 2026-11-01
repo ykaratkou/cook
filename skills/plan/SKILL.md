@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Author a cook task set for a feature by orchestrating the companion skills grill-with-docs, to-spec, and to-tickets, then self-validating until the set derives READY. Loaded by the /cook:plan command.
+description: Author a cook task set for a feature by orchestrating the companion skills grilling, to-spec, and to-tickets, drafting ADRs and glossary changes inside the set, then self-validating until the set derives READY. Loaded by the /cook:plan command.
 user-invocable: false
 disable-model-invocation: true
 ---
@@ -16,37 +16,53 @@ companion skills.
 
 Plan orchestrates three skills that ship alongside this one:
 
-1. **grill-with-docs** — the design interview; produces decision records
-   (ADRs, glossary entries). It loads `grilling` and `domain-modeling`, which
-   ship too.
+1. **grilling** — the design interview, run under cook's
+   [decision-drafts rules](references/decision-drafts.md): ADRs and glossary
+   changes it settles are written as drafts inside the set, never into the
+   repository.
 2. **to-spec** — turns the settled decisions into a spec document.
 3. **to-tickets** — decomposes the spec into tickets/tasks.
 
-All five are verbatim copies of an upstream skill set (MIT), vendored as
-sibling directories of this one — `../grill-with-docs/`, `../grilling/`,
-`../domain-modeling/`, `../to-spec/`, `../to-tickets/` — so your host
-discovers them like any other installed skill. See `PROVENANCE.md` at the repo root
-(ADR-0010). Two consequences for this procedure:
+They are verbatim copies of an upstream skill set (MIT), vendored as
+sibling directories of this one — `../grilling/`, `../to-spec/`,
+`../to-tickets/` — with `../domain-modeling/` supplying only the glossary and
+ADR formats the drafts follow, so your host discovers them like any other
+installed skill. See `PROVENANCE.md` at the repo root (ADR-0010). Three
+consequences for this procedure:
 
 - **Never improvise a substitute** interview, spec, or decomposition. If a
   companion will not load, that is a broken install: say so and stop.
   Hand-authoring against the format contract plus `/cook:register` is the
   human's fallback.
+- **Never load `grill-with-docs` or `domain-modeling`** for the interview:
+  both write the glossary and `docs/adr/` straight into the repository
+  (ADR-0018). The decision-drafts rules keep their discipline instead.
 - The copies mention `/setup-matt-pocock-skills`, a command cook does not
   ship. Ignore it — the tracker those skills ask about is supplied by cook's
-  adapter doc in step 3, and never needs configuring.
+  adapter doc in step 4, and never needs configuring.
 
 ## Procedure
 
-1. **Interview** — run grill-with-docs on the feature.
-2. **Spec** — run to-spec on the settled decisions.
-3. **Decompose** — run to-tickets, pointing it at cook's store via the
+1. **Name the set** — pick the `<set-id>` before anything is written: a
+   lowercase kebab-case slug, unique under `.cook/tasks/`. If the human names
+   an existing set whose folder holds drafts but no `manifest.json`, an
+   earlier plan stopped mid-interview: resume it, and its drafts.
+2. **Interview** — read `../grilling/SKILL.md` and run it on the feature,
+   following [references/decision-drafts.md](references/decision-drafts.md)
+   with `.cook/tasks/<set-id>/` as the drafts folder. Until step 4 writes
+   the manifest, the set folder holds only drafts and derives MALFORMED;
+   that is expected, and nothing drains it.
+3. **Spec** — run to-spec on the settled decisions. Where the spec refers to
+   a draft, it names the draft's path; it never cites an ADR number for one.
+4. **Decompose** — run to-tickets, pointing it at cook's store via the
    adapter doc [references/issue-tracker.md](references/issue-tracker.md), so
    it publishes a cook-shaped set. Requirements for the result:
-   - a `<set-id>`: lowercase kebab-case slug, unique under `.cook/tasks/`;
+   - the `<set-id>` from step 1;
    - small **vertical-slice AFK tasks**, each self-containedly implementable
      by a fresh-context agent, each with at least one checkbox under
      `## Acceptance criteria`;
+   - **Mint checkboxes** on the tasks that implement a drafted decision,
+     one per draft, per the adapter doc's "Mint checkboxes" section;
    - an optional `## Orientation` section on each AFK task with a code
      surface: the files and symbols actually touched or read while planning,
      plus the exact build/test command that proves the slice — the one place
@@ -59,29 +75,32 @@ discovers them like any other installed skill. See `PROVENANCE.md` at the repo r
    - optional planned `commit_subject` per task; the planning spec co-located
      as `spec.md` (context only);
    - `manifest.json` per the format contract.
-4. **Self-validate** — apply the register skill's validation
+5. **Self-validate** — apply the register skill's validation
    (`../register/SKILL.md` with its
    [format contract](../register/references/format-contract.md)) and fix
-   faults until the set derives **READY**. Do not present a set that does
-   not validate.
-5. **Report** — the set id, the task listing (type, blocked_by), and the next
-   step: `/cook:drain <set-id>`.
+   faults until the set derives **READY**. Fix the unminted-draft warning
+   too: every draft gets exactly one Mint checkbox. Do not present a set that
+   does not validate.
+6. **Report** — the set id, the task listing (type, blocked_by), the drafts
+   and the task that Mints each, and the next step: `/cook:drain <set-id>`.
 
-**Map-sourced entry.** `/cook:map <map-id> handoff` enters this procedure at
-step 2: a Map's resolved tickets are the decisions, so there is no
-interview. The set it produces is Map-sourced — follow the adapter doc's
-"Map-sourced sets" section in step 3 (one set, Mint checkboxes). The map
-skill records the lineage after step 4.
+**Map-sourced entry.** `/cook:map <map-id> handoff` names the set (step 1),
+skips the interview (step 2), and continues from step 3: a Map's resolved
+tickets are the decisions, and its drafts stay in the Map. The set it
+produces is Map-sourced — follow the adapter doc's "Map-sourced sets"
+section in step 4 (one set, Mint checkboxes on the Map's drafts). The map
+skill records the lineage after step 5.
 
 The format contract is authoritative for every file written here — when this
 skill and the contract seem to disagree, the contract wins. Every file the
-plan produces (`manifest.json`, each task file, `spec.md`) is written through
-the cook-state read and mutation capability (your host's delivery note names
-the mechanism), one write per file — not emitted by a program authored to
-generate the set.
+plan produces (`manifest.json`, each task file, `spec.md`, each draft) is
+written through the cook-state read and mutation capability (your host's
+delivery note names the mechanism), one write per file — not emitted by a
+program authored to generate the set.
 
 ## Sources
 
 `docs/spec/00-overview.md` (the plan front door), `docs/spec/01-storage.md`
-(the contract), `docs/spec/10-hosts.md` (companion skills, adapter doc) in
-the cook repository; pop sources in their footers.
+(the contract, decision drafts), `docs/spec/10-hosts.md` (companion skills,
+adapter doc), and ADR-0018 in the cook repository; pop sources in their
+footers.

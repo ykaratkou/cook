@@ -20,7 +20,8 @@ verbatim, adjusted from outside.
 | `skills/prototype/` | vendored, verbatim | Resolves a prototype ticket, with the human. |
 | `skills/map/SKILL.md` | cook-owned | Pop's adjustments: mode dispatch, Assist, the grilling rules, per-type overrides, AFK fan-out, the self-check, handoff. Wins wherever it contradicts the vendored text. |
 | `skills/map/references/wayfinding-operations.md` | cook-owned | The tracker doc the vendored `wayfinder` asks for: where a Map lives and how each operation is a file edit. |
-| `skills/plan/references/issue-tracker.md` | cook-owned, extended | Gains a "Map-sourced sets" section for handoff (Mint checkboxes, lineage). |
+| `skills/plan/references/issue-tracker.md` | cook-owned, extended | Gains a "Map-sourced sets" section for handoff (one set, lineage); its "Mint checkboxes" section is shared with `/cook:plan`. |
+| `skills/plan/references/decision-drafts.md` | cook-owned, shared | The grilling-ticket rules: interview, glossary discipline, drafts, Mint. Shared with `/cook:plan`'s interview (ADR-0018). |
 
 The vendored copies follow `PROVENANCE.md`'s verbatim rule: no local edit, and
 the re-sync covers the three new directories.
@@ -198,12 +199,13 @@ Destination, a redrawn Destination.
 1. Read `map.md` and every ticket. If any ticket is `open`, or
    `Not yet specified` is non-empty, say so and ask the human to confirm.
    Arrival is the human's judgment; nothing blocks it.
-2. Run `skills/plan/SKILL.md`'s procedure from the Spec step on, skipping the
-   Interview: the decisions are the Map. The conversation context `to-spec`
-   synthesises from is the Destination, `Decisions so far`, and every
-   resolved ticket's question and answer. The whole Map becomes **one** Task
+2. Run `skills/plan/SKILL.md`'s procedure: name the set, skip the
+   Interview, and go on from the Spec step: the decisions are the Map. The
+   conversation context `to-spec` synthesises from is the Destination,
+   `Decisions so far`, and every resolved ticket's question and answer. The whole Map becomes **one** Task
    set; never pre-split it by area.
-3. `to-tickets` follows the adapter doc's "Map-sourced sets" section:
+3. `to-tickets` follows the adapter doc's "Mint checkboxes" and
+   "Map-sourced sets" sections:
    - Each task implementing a ticket that has drafts gets one Mint checkbox
      per draft under `## Acceptance criteria`:
      - `- [ ] docs/adr/NNNN-<slug>.md created from .cook/maps/<map-id>/adrs/NN-<slug>.md (next free ADR number)`
@@ -227,22 +229,26 @@ per Map: id, Status, Destination (first line), open, Frontier, resolved.
 
 These override the vendored `wayfinder` and its skills wherever they differ.
 
-- **Grilling (HITL).** Run the vendored `grilling` skill for the interview.
-  Never `domain-modeling` or `grill-with-docs`: both write into the
-  repository. Read the repository's glossary and challenge the human's terms
-  against it. Then write only inside the Map:
-  - Glossary changes the ticket settles go to `context/NN-<slug>.md`: the
-    entries to add or replace, in the glossary's own format, and the terms to
-    remove. Written at the close of each round that settled terms.
+- **Grilling (HITL).** Cook's decision-drafts rules
+  (`skills/plan/references/decision-drafts.md`; doc 01, "Decision drafts";
+  ADR-0018), the same ones `/cook:plan`'s interview follows, with the Map as
+  the drafts folder and the ticket's `NN-<slug>` as the draft name. They run
+  the vendored `grilling` skill, never `domain-modeling` or
+  `grill-with-docs` (both write into the repository), challenge the human's
+  terms against the repository's glossary, and write only:
+  - Glossary changes the ticket settles to `context/NN-<slug>.md`: the
+    entries to add or replace, in the glossary's own format, and the terms
+    to remove. Written at the close of each round that settled terms.
   - A decision that passes all three of the ADR tests (hard to reverse,
-    surprising without context, the result of a real trade-off) goes to
+    surprising without context, the result of a real trade-off) to
     `adrs/NN-<slug>.md`, in full, in the vendored `ADR-FORMAT.md` structure
     with no number. Never cite an ADR number for it.
-  - The answer links each draft; it never inlines one.
   - Before the first round, read what this ticket already has (answer,
     drafts, prototype). Continue each file in place; never start a second
     draft beside one.
   - No commit, and no write outside the Map, at any point.
+
+  On top of them, the answer links each draft and never inlines one.
 - **Research (AFK, subagent).** The vendored `research` skill, told to return
   its findings instead of saving a file. Findings, with a citation per claim,
   become `## Answer`. No branch.

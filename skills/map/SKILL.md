@@ -27,10 +27,11 @@ by path; never invoke it through your host's skill tool.
   label, an assignee, a comment, closing an issue, or a native blocking link,
   read that file. Ignore every mention of `/setup-matt-pocock-skills`.
 - Where it says to call the Skill tool for `grilling`, `research`, or
-  `prototype`, read cook's copy by path instead — `../grilling/SKILL.md`,
-  `../research/SKILL.md`, `../prototype/SKILL.md` — and follow it under this
-  file's rules. Never load `domain-modeling` or `grill-with-docs` in a Map
-  session: both write into the repository.
+  `prototype`, read cook's copy by path instead — `../grilling/SKILL.md`
+  (through `../plan/references/decision-drafts.md`), `../research/SKILL.md`,
+  `../prototype/SKILL.md` — and follow it under this file's rules. Never
+  load `domain-modeling` or `grill-with-docs` in a Map session: both write
+  into the repository.
 - **Where this file and the vendored text disagree, this file wins.** The
   vendored text is kept byte-intact so upstream changes stay diffable.
 
@@ -127,30 +128,20 @@ These replace the vendored *Ticket Types* wherever they differ.
 
 ### Grilling (HITL)
 
-Read `../grilling/SKILL.md` and run its interview on this ticket's question.
-A question that belongs to another ticket is Fog to name in the answer, not
-a branch to walk here. The human answers for themselves; never answer your
-own questions.
+Follow cook's decision-drafts rules,
+[`../plan/references/decision-drafts.md`](../plan/references/decision-drafts.md),
+with this Map's folder as the drafts folder and the ticket's file name
+(`NN-<slug>`) as the draft name: `adrs/NN-<slug>.md`,
+`context/NN-<slug>.md`. They run `../grilling/SKILL.md` on this ticket's
+question, keep the glossary discipline, and write only drafts. On top of
+them:
 
+- A question that belongs to another ticket is Fog to name in the answer,
+  not a branch to walk here.
 - **Before the first round**, read what this ticket already has: its
-  `## Answer`, `adrs/NN-<slug>.md`, `context/NN-<slug>.md`,
-  `prototypes/NN-<slug>/`. A prior session may have died mid-interview.
-  Resume from where it leaves off, and continue each file in place; never
-  start a second draft beside one.
-- **Read the repository's glossary** (`GLOSSARY.md`, or `CONTEXT.md` where
-  that is the file) before the first round, and challenge the human's terms
-  against it.
-- **Context draft.** At the close of each round that settled terms, write
-  them to `context/NN-<slug>.md`: entries to add or replace, in the
-  glossary's own format, and terms to remove. One file per ticket.
-- **ADR draft.** Offer an ADR only when all three hold: hard to reverse,
-  surprising without context, and the result of a real trade-off. When the
-  human agrees, write it in full to `adrs/NN-<slug>.md` with the structure in
-  `../domain-modeling/ADR-FORMAT.md`, ignoring that file's location and
-  numbering rules. Never cite an ADR number for it; the number is picked
-  when the draft is Minted.
-- **Write only inside the Map.** No glossary edit, no `docs/adr/` file, no
-  code change, and no commit, at any point. If you reach for `git add`, stop.
+  `## Answer`, its drafts, and `prototypes/NN-<slug>/`. Resume from where a
+  prior session left off.
+- **Write only inside the Map**, and commit nothing.
 - **The answer** is the decision and a one-line why, linking each draft. It
   never inlines one.
 
@@ -186,15 +177,15 @@ In any session on a Map, when the human asks:
 1. Read `map.md` and every ticket. If any ticket is `open`, or Not yet
    specified is not empty, list them and ask the human to confirm the Map
    has arrived anyway. Their judgment decides; nothing blocks it.
-2. Read `../plan/SKILL.md` and follow its procedure **from step 2 (Spec)**,
-   skipping the interview: the decisions are the Map. Before running
-   `to-spec`, bring into the conversation the Destination, Decisions so far,
-   and every resolved ticket's question and answer; that is what it
-   synthesises from. The whole Map becomes **one** task set — never split it
-   by area.
+2. Read `../plan/SKILL.md` and follow its procedure: **name the set (step
+   1), skip the interview (step 2), and go on from step 3 (Spec)**: the
+   decisions are the Map. Before running `to-spec`, bring into the
+   conversation the Destination, Decisions so far, and every resolved
+   ticket's question and answer; that is what it synthesises from. The whole
+   Map becomes **one** task set — never split it by area.
 3. When the plan skill hands `to-tickets` the adapter doc, the set is
-   **Map-sourced**: its "Map-sourced sets" section adds the Mint checkboxes.
-   Mint nothing yourself.
+   **Map-sourced**: its "Map-sourced sets" section adds the Mint checkboxes
+   for the Map's drafts. Mint nothing yourself.
 4. Once the set derives READY:
    - make `Source map: <map-id>` the first line of the set's `spec.md`;
    - append `- <set-id>` to the Map's Spawned sets;

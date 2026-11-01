@@ -391,10 +391,11 @@ traces.
 _Avoid_: log, transcript, telemetry, captured run, run history
 
 **Companion skills**:
-The five skills the plan verb orchestrates but cook did not author —
+The five skills the plan verb was built from but cook did not author —
 grill-with-docs, grilling, domain-modeling, to-spec, to-tickets — shipped as
 verbatim vendored copies of an upstream MIT skill set (ADR-0010,
-`PROVENANCE.md`). Reserve the word for those five: cook's own drain,
+`PROVENANCE.md`). The plan interview runs grilling alone; grill-with-docs and
+domain-modeling ship but are never loaded by it (ADR-0018). Reserve the word for those five: cook's own drain,
 plan, and register skills are never companions. A human can still author sets
 by hand against the storage contract, but a machine missing a companion is a
 broken install, not a supported mode.
@@ -441,19 +442,21 @@ not a step on the route: it never enters the decision index and never
 graduates back.
 
 **ADR draft**:
-An ADR body written during Wayfinding into the Map, carrying no ADR number.
-The single copy of the decision's repo-facing form until it is Minted.
+An ADR body written by a grilling interview — a plan's, or a Decision
+ticket's — into its Task set or Map, carrying no ADR number. The single copy
+of the decision's repo-facing form until it is Minted.
 
 **Context draft**:
-The glossary additions, changes, and removals one Decision ticket settles,
-written into the Map instead of the repository's glossary.
+The glossary additions, changes, and removals a grilling interview settles —
+a plan's, or one Decision ticket's — written into its Task set or Map instead
+of the repository's glossary.
 
 **Mint**:
-To copy an ADR draft or Context draft out of the Map into the repository — a
-numbered ADR, or an edit to the glossary — done by the task that implements
-the decision, as an acceptance criterion, so the decision lands in the same
-commit as the change it describes. Nothing else writes Wayfinding's decisions
-into the repository's docs.
+To copy an ADR draft or Context draft out of its Task set or Map into the
+repository — a numbered ADR, or an edit to the glossary — done by the task
+that implements the decision, as an acceptance criterion, so the decision
+lands in the same commit as the change it describes. Nothing else writes a
+plan's or Wayfinding's decisions into the repository's docs (ADR-0018).
 
 ## Sources in pop
 

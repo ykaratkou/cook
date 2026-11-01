@@ -78,9 +78,12 @@ at VERIFY-FAILED. This is a deliberate loop, not a failure retry.
 One feature, one flow. The human touches it at the front (plan), at gates,
 and at sign-off; everything between is automatic.
 
-1. **Plan** — `/cook:plan` interviews, decomposes the feature into a task
-   set (small vertical-slice AFK tasks, a terminal HITL sign-off task),
+1. **Plan** — `/cook:plan` interviews, drafting the ADRs and glossary
+   changes it settles inside the set, decomposes the feature into a task
+   set (small vertical-slice AFK tasks, a terminal HITL sign-off task, a
+   Mint checkbox on the task that implements each drafted decision),
    writes the files, and self-validates until the set derives READY.
+   Nothing reaches the repository's docs until a task Mints it (ADR-0018).
 2. **Drain** — `/cook:drain` selects the set and runs it: eligible AFK task →
    fresh-context subagent attempt → assessment → per-task commit → next
    task, with the retry loop underneath.

@@ -22,6 +22,9 @@ external tracker.
 - The planning spec is co-located as `spec.md` in the set directory
   (context only for cook's Verifier/Refiner; the task files' acceptance
   criteria remain authoritative).
+- The interview's decision drafts sit in the set directory's `adrs/` and
+  `context/` sub-directories, written before the manifest (see "Mint
+  checkboxes").
 
 ## Shape requirements
 
@@ -38,6 +41,27 @@ external tracker.
 - Publishing here is *drafting*: the set counts as registered only when
   `/cook:register` (or plan's self-validation) derives READY.
 
+## Mint checkboxes
+
+A set carries decision drafts when its plan drafted ADRs or glossary changes
+(`.cook/tasks/<set-id>/adrs/`, `.cook/tasks/<set-id>/context/`), or when it
+is Map-sourced (the Map's `adrs/` and `context/`). The rules for drafts are
+[decision-drafts.md](decision-drafts.md); here is how they reach the tasks.
+
+- **The implementing task Mints.** Each draft goes to the task that
+  implements the decision it records, as one checkbox under
+  `## Acceptance criteria`, with the draft path written out in full:
+  - `- [ ] docs/adr/NNNN-<slug>.md created from <draft path> (next free ADR number)`
+  - `- [ ] <draft path> applied to the glossary`
+- **Exactly one task per draft**, across every set its source spawns. A
+  context draft whose terms land with different tasks may be split into one
+  file per task under the same `context/` folder before the checkboxes are
+  written; each piece is then its own draft.
+- **Later tasks cite the draft path**, never an ADR number: the number does
+  not exist until the Minting task picks it.
+- Publishing the set mints nothing: the implementing task does, so the
+  decision lands in the same commit as the change it describes.
+
 ## Map-sourced sets
 
 A set is Map-sourced when `/cook:map <map-id> handoff` started the plan. The
@@ -45,17 +69,12 @@ source is the Map at `.cook/maps/<map-id>/`, not a conversation.
 
 - **One set for the whole Map.** Never split it by area: the sequencing
   already lives in the ticket answers.
-- **Mint checkboxes.** For each resolved ticket that links drafts from its
-  `## Answer`, the task that implements that ticket's decision gets one
-  checkbox per draft under `## Acceptance criteria`, with the Map path
-  written out in full:
+- **Mint checkboxes** (above) for each resolved ticket that links drafts
+  from its `## Answer`, with the Map path written out:
   - `- [ ] docs/adr/NNNN-<slug>.md created from .cook/maps/<map-id>/adrs/NN-<slug>.md (next free ADR number)`
   - `- [ ] .cook/maps/<map-id>/context/NN-<slug>.md applied to the glossary`
 
-  Each draft is Minted by exactly one task across every set the Map spawns.
-  A ticket ruled out of scope mints nothing. Publishing the set mints nothing
-  either: the implementing task does, so the decision lands in the same
-  commit as the change it describes.
+  A ticket ruled out of scope mints nothing.
 - **Lineage.** `spec.md` starts with `Source map: <map-id>`. The map skill
   writes that line and the Map's `Spawned sets` entry once the set derives
   READY.
@@ -65,4 +84,5 @@ source is the Map at `.cook/maps/<map-id>/`, not a conversation.
 `docs/spec/01-storage.md`, `docs/spec/10-hosts.md`, and `docs/spec/11-map.md`
 in the cook repository (pop sources in their footers; the adapter-doc
 mechanism is pop's `integrate/issue-tracker.md`, and the Map-sourced rules its
-`conventions/shipped/issue-tracker.md`).
+`conventions/shipped/issue-tracker.md`). Mint checkboxes on a plan's own
+drafts are cook's (ADR-0018).

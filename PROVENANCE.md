@@ -8,11 +8,11 @@ They are verbatim copies of Matt Pocock's skills, vendored so `/cook:plan` and
 
 | Vendored skill | Why cook needs it |
 | --- | --- |
-| `grill-with-docs/` | `/cook:plan` step 1 — the design interview. |
-| `grilling/` | Loaded by `grill-with-docs`. |
-| `domain-modeling/` | Loaded by `grill-with-docs` (with `CONTEXT-FORMAT.md`, `ADR-FORMAT.md`). |
-| `to-spec/` | `/cook:plan` step 2 — the spec document. |
-| `to-tickets/` | `/cook:plan` step 3 — decomposition into the task set. |
+| `grilling/` | `/cook:plan` step 2 and `/cook:map` grilling tickets — the design interview, under cook's decision-drafts rules. |
+| `domain-modeling/` | Its `GLOSSARY-FORMAT.md` and `ADR-FORMAT.md` shape the decision drafts. The skill itself is never loaded by a cook verb: it writes into the repository (ADR-0018). |
+| `grill-with-docs/` | No cook verb loads it since ADR-0018 (it is `grilling` plus `domain-modeling`); kept so the upstream set stays whole and re-syncs as one. |
+| `to-spec/` | `/cook:plan` step 3 — the spec document. |
+| `to-tickets/` | `/cook:plan` step 4 — decomposition into the task set. |
 | `wayfinder/` | `/cook:map` — the Wayfinding skill; read by path, never invoked. |
 | `research/` | `/cook:map` — resolves research tickets, in subagents. |
 | `prototype/` | `/cook:map` — resolves prototype tickets (with `LOGIC.md`, `UI.md`). |
@@ -114,4 +114,6 @@ wholesale (`rsync -a --exclude agents`), re-read what changed, and update the
 commit, version, and date above in the same commit — or just run the script,
 which does exactly that. If an upstream change
 breaks `/cook:plan`'s procedure, the fix belongs in
-[`plan/SKILL.md`](plan/SKILL.md) or the adapter doc — never in the copy.
+[`plan/SKILL.md`](plan/SKILL.md), the adapter doc, or
+[`plan/references/decision-drafts.md`](skills/plan/references/decision-drafts.md)
+— never in the copy.

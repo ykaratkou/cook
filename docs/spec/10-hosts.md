@@ -196,12 +196,17 @@ and each host's command wiring names its own; skill text only ever says
 ## Companion skills for `/cook:plan`
 
 `/cook:plan` (doc 03's front door) orchestrates skills cook did not author but
-**does ship**: `grill-with-docs` (interview; ADRs + glossary), `to-spec` (the
-spec document), and `to-tickets` (decomposition into the task set), plus the
-two `grill-with-docs` itself loads — `grilling` and `domain-modeling`. They are
-verbatim copies of [mattpocock/skills](https://github.com/mattpocock/skills)
-(MIT), vendored under `skills/` as one directory per skill, so the host
-discovers them exactly as it discovers cook's own four (ADR-0010).
+**does ship**: `grilling` (the interview), `to-spec` (the spec document), and
+`to-tickets` (decomposition into the task set), with `domain-modeling`
+supplying the glossary and ADR formats. They are verbatim copies of
+[mattpocock/skills](https://github.com/mattpocock/skills) (MIT), vendored
+under `skills/` as one directory per skill, so the host discovers them
+exactly as it discovers cook's own four (ADR-0010). `grill-with-docs` and
+`domain-modeling` also ship, but the plan interview loads neither: both
+write ADRs and glossary edits straight into the repository, and the
+interview instead writes **decision drafts** into the set, which the
+implementing tasks Mint (doc 01; `skills/plan/references/decision-drafts.md`;
+ADR-0018).
 `/cook:map` (doc 11) ships three more the same way: `wayfinder`, `research`,
 and `prototype`, with its own tracker doc
 (`skills/map/references/wayfinding-operations.md`) in the role the
@@ -210,7 +215,8 @@ adapter doc below plays for `/cook:plan` (ADR-0017).
 - The copies are **not forked**. `PROVENANCE.md` (repo root) is the record —
   upstream repo, version, commit, copy date, what was excluded, and the
   re-sync procedure (a `diff` against a fresh clone). An adaptation cook wants
-  goes in `skills/plan/SKILL.md` or the adapter doc below, never in a copy.
+  goes in `skills/plan/SKILL.md`, the adapter doc below, or the
+  decision-drafts doc beside it, never in a copy.
 - Cook ships an **issue-tracker adapter doc** (the mechanism those skills
   already use to pick a store): it names cook's store — `.cook/tasks/` in the
   target repo — and the register contract, so `to-tickets` publishes cook-shaped

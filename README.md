@@ -72,6 +72,14 @@ skills from Matt Pocock's [skills for real engineers](https://github.com/mattpoc
 nothing to install and no `/setup-matt-pocock-skills` to run — cook hands them
 its own issue-tracker adapter doc, pointing the decomposition at `.cook/tasks/`.
 
+The interview runs `grilling` under cook's own rules rather than
+`grill-with-docs`: the ADRs and glossary changes it settles are written as
+drafts inside the task set (`.cook/tasks/<set-id>/adrs/`, `context/`), not
+into your repository. The task that implements each decision **Mints** its
+draft — a numbered ADR, a glossary edit — in the same commit as the code.
+So a plan leaves your working tree untouched, and two plans can run in one
+repository at once ([ADR-0018](docs/adr/0018-plan-drafts-decisions-into-the-set.md)).
+
 Provenance, the verbatim rule, and the upstream re-sync procedure:
 [`PROVENANCE.md`](PROVENANCE.md) (the decision is
 [ADR-0010](docs/adr/0010-companion-skills-ship-with-cook.md)). If you already
@@ -130,7 +138,7 @@ sign-off; everything between is automatic:
 
 | Command | What it does |
 | --- | --- |
-| `/cook:plan <feature>` | Author a task set: grill → spec → tickets → self-validated READY. |
+| `/cook:plan <feature>` | Author a task set: grill (decisions drafted in the set) → spec → tickets → self-validated READY. |
 | `/cook:drain [set-id]` | The drain. No argument picks the highest-priority READY set. |
 | `/cook:register <set-id>` | Validate a hand-authored or hand-edited set; fix list or READY. |
 | `/cook:status` | Derive and print every set's status and open tasks. Read-only. |

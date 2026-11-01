@@ -45,10 +45,7 @@ That installs the plugin with its dependencies and adds it to the global
 autocomplete. The verbs are spelled exactly as on Claude Code (`/cook:drain`,
 `/cook:plan`, …).
 
-opencode checks an unpinned git plugin for newer commits when it starts, but
-does not install them on its own. `opencode plugin update` installs them;
-restart opencode afterwards. Pin a commit with
-`github:ykaratkou/cook#<full-sha>` (`plugin update` skips pinned specs).
+Updating is covered in [Updating on opencode](#updating-on-opencode) below.
 
 To check the adapter against your installed opencode (plugin load, the seven
 commands and twelve skills, a `subagent` round-trip, a dismissed headless
@@ -100,6 +97,24 @@ commit. By hand:
 claude plugin marketplace update cook
 claude plugin update cook@cook        # restart Claude Code to apply
 ```
+
+### Updating on opencode
+
+There is no version to bump here either: opencode tracks an unpinned git
+plugin by commit. It checks for newer commits when it starts, but does not
+install them on its own. By hand:
+
+```sh
+opencode plugin list                          # the cook row's VERSION is the installed commit
+opencode plugin check github:ykaratkou/cook   # is a newer commit available?
+opencode plugin update github:ykaratkou/cook  # install it; restart opencode to apply
+```
+
+`opencode plugin update` with no target updates every outdated plugin.
+
+To stay on one commit, install a pinned spec instead,
+`github:ykaratkou/cook#<full-sha>`: `plugin update` skips pinned specs. To
+uninstall, run `opencode plugin remove github:ykaratkou/cook`.
 
 ### Develop against a checkout
 

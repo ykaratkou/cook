@@ -1,6 +1,6 @@
 # Cook
 
-Cook is an in-agent plugin (Claude Code, opencode) that ports pop's task-set
+Cook is an in-agent plugin (Claude Code, opencode, Codex) that ports pop's task-set
 implement feature: the drain with its nested loops, the verification tail, the
 remediation loop, the Refine pass, and the human gates; and pop's Wayfinding,
 which charts work too big for one session before it becomes a task set. This glossary
@@ -133,7 +133,7 @@ of how many tool invocations it carries.
 **Turn cap**:
 The maximum Turns one Attempt may spend before its agent stops itself. It
 bounds the innermost of the four nested loops (turns, not Attempts, not a
-Drain, not an Implement run). Blind on both of cook's hosts: neither can
+Drain, not an Implement run). Blind on all of cook's hosts: none can
 enforce it, so cook declares the incapacity rather than pretending.
 _Avoid_: max turns, step limit, iteration cap, ralph limit, attempt cap
 
@@ -359,7 +359,7 @@ again.
 _Avoid_: runner, daemon, supervisor
 
 **Host**:
-The agent product cook runs inside — Claude Code or opencode. Each Host
+The agent product cook runs inside — Claude Code, opencode, or Codex. Each Host
 declares which capabilities it supports (fresh-context subagent spawn,
 structured asking), which it is Blind to (Turn cap, timeout kill), and which
 are merely Human-facing, pop-style: an incapacity is declared, never papered over.

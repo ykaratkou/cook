@@ -186,6 +186,10 @@ Run at the end of every porting session:
       the paragraph naming the `cook/`-prefixed companion skill ids.
       `diff` each pair; an edit to one side lands on the other in the same
       commit.
+- [ ] The Codex adapter installs and discovers all seven namespaced entry
+      skills: run `node codex/smoke-test.mjs`. Compare each wrapper under
+      `codex/skills/` with the corresponding command; only host wiring and
+      invocation spelling differ. Keep `host-codex.md` aligned with doc 10.
 - [ ] The watermark is advanced.
 
 ## Sources in pop

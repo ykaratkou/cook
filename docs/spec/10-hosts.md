@@ -1,8 +1,8 @@
 # 10 — Hosts
 
 Cook's portable core is a markdown skill set (the agentskills standard);
-everything host-specific is an adapter declared here. Claude Code and
-opencode 2.x are the two supported hosts (ADR-0014; every opencode fact is
+everything host-specific is an adapter declared here. Claude Code,
+Codex, and opencode 2.x are supported hosts (ADR-0014; every opencode fact is
 pinned to v2.0.20, and opencode 1.x is not supported). The declaration pattern is ported from pop's
 adapter capabilities: a host declares each capability **Supported** (cook may
 rely on it, with the named mechanism), **Blind** (cook must not rely on it;
@@ -43,6 +43,26 @@ The **Human-facing** row is the opposite case: no cook behavior waits on it,
 so there is nothing to keep dormant and nothing for a future host to unlock.
 It is in the matrix because a human asks about it, not because cook does
 (ADR-0009).
+
+### Codex capability matrix (CLI 0.166.0)
+
+| Capability | Codex |
+| --- | --- |
+| Markdown skills | **Supported** — `.codex-plugin/plugin.json` selects `codex/skills/`; seven entry skills load the shared core by relative path. |
+| Slash command mapping | **Supported** — equivalent explicit skill mentions `$cook:<verb>`; Codex adds the plugin namespace. These are not `/cook:<verb>` slash commands. |
+| Fresh-context subagent spawn | **Supported** — `spawn_agent`, `agent_type: "default"`, `fork_context: false`; never resume an earlier child. Requires enabled subagent tools. |
+| Subagent output capture | **Supported** — `wait` for terminal status, parse the completed final output, then `close_agent`. Wait timeouts are not Attempt outcomes. |
+| Structured mid-session ask | **Supported** when `request_user_input` is exposed; otherwise use the same allowed choices in chat and await an explicit answer. Headless execution parks without disposition. |
+| Turn cap enforcement | **Blind** — no Cook per-spawn turn cap. |
+| Timeout kill | **Blind** — no automatic Cook execution deadline; a wait timeout bounds waiting only. |
+| Interrupt detection | **Blind** for parent cancellation alone: it does not establish that a child stopped. An explicit child cancellation result is usable; reconcile a live child before spawning another. |
+| Cook-state read and mutation | **Supported** — shell reads and `apply_patch`, one in-place write per transition; prior reads are the orchestrator's discipline. |
+| RFC3339 UTC timestamps | **Supported** — `date -u +%Y-%m-%dT%H:%M:%SZ` through the shell. |
+| Subagent trace visibility | **Human-facing** — Codex's agent threads; no Cook derivation reads them. |
+
+Codex uses the same soft cap enforcement and file state as the other hosts.
+Its gate fallback changes presentation only: the human still decides every
+outcome. The delivery note defines this mapping and the live-child rule.
 
 ## No loop hardening
 
@@ -93,6 +113,7 @@ and each host's command wiring names its own; skill text only ever says
 
 - `host-claude-code.md` — Claude Code;
 - `host-opencode.md` — opencode.
+- `host-codex.md` — Codex.
 
 ### claude-code specifics
 
@@ -192,6 +213,33 @@ and each host's command wiring names its own; skill text only ever says
   root `node_modules`. Installing and developing are then the same step.
   `opencode/smoke-test.sh` re-checks this column against the installed
   opencode, including a git-spec install of the committed `HEAD`.
+
+### Codex specifics
+
+- The plugin root is the repository root. Its compatibility manifest,
+  `.codex-plugin/plugin.json`, selects `./codex/skills/` rather than the
+  default root skills directory. This keeps the shared and vendored files
+  untouched and avoids exposing core orchestration skills without wiring.
+- `.agents/plugins/marketplace.json` publishes the root as `cook@cook`.
+  `codex plugin marketplace add` accepts the repository or a local checkout;
+  `codex plugin add cook@cook` installs a cached copy. Paths must resolve
+  inside that copy, never against the source checkout or target repository.
+- Seven `codex/skills/<verb>/SKILL.md` wrappers replace command files. Codex
+  prefixes their names with `cook:`. Each has `agents/openai.yaml` setting
+  `policy.allow_implicit_invocation: false`; Claude's frontmatter suppression
+  is not used as a substitute for Codex's policy.
+- Each wrapper reads the Codex delivery note and the shared core skill or
+  reference via `../../../skills/`. The root's eight companions remain
+  bundled resources loaded by path, rather than independently registered
+  skills. Their own relative references continue to resolve from their files.
+- `node codex/smoke-test.mjs` installs into a disposable `CODEX_HOME`, asks
+  the actual app server for its skills, and checks all seven names, cached
+  paths, policy files, shared references, and verbatim companions. This is an
+  installation/discovery check, not a model-driven drain or gate test.
+- Sources: [skills](https://developers.openai.com/codex/build-skills),
+  [subagents](https://developers.openai.com/codex/agent-configuration/subagents),
+  [plugins](https://developers.openai.com/plugins/build/plugins), and installed
+  Codex CLI 0.166.0's plugin commands and app-server skill discovery.
 
 ## Companion skills for `/cook:plan`
 

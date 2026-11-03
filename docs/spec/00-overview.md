@@ -3,8 +3,10 @@
 Cook is an **in-agent plugin** that ports pop's task-set *implement* feature —
 the drain with its nested loops, the verification tail, the remediation loop,
 the Refine pass, and the human gates — and pop's **Wayfinding** (`/cook:map`,
-doc 11; ADR-0017) into agent hosts that share the markdown-skills standard. Claude Code and opencode 2.x are the two supported
-hosts (ADR-0014). Pop remains the source of truth: cook's documents are
+doc 11; ADR-0017) into agent hosts that share the markdown-skills standard.
+Claude Code, opencode 2.x (ADR-0014), and Codex are supported hosts (doc 10).
+On Codex, `/cook:<verb>` in this spec means the explicit skill `$cook:<verb>`.
+Pop remains the source of truth: cook's documents are
 continuously ported from the pop repository, and every document in this set
 names its pop sources in a closing footer.
 

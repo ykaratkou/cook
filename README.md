@@ -3,8 +3,8 @@
 Cook is an **in-agent plugin** that ports [pop]'s task-set *implement*
 feature — the drain with its nested loops, the verification tail, the
 remediation loop, the Refine pass, and the human gates — into agent hosts
-that share the markdown-skills standard. Claude Code and
-[opencode](https://opencode.ai) 2.x are the two supported hosts.
+that share the markdown-skills standard. Claude Code,
+[opencode](https://opencode.ai) 2.x, and Codex are supported hosts.
 
 The original is [glebglazov/pop](https://github.com/glebglazov/pop) — an
 external orchestrator: a standalone binary that spawns agent CLIs as headless
@@ -66,6 +66,41 @@ opencode/smoke-test.sh                # expects `SMOKE OK`; spends a few model c
 It runs a private `opencode serve` against a throwaway config dir and never
 writes `~/.config/opencode`. `OPENCODE_BIN` overrides the binary and
 `COOK_SMOKE_MODEL` (`provider/model`) the model.
+
+### Codex
+
+Cook ships a native Codex plugin, checked against Codex CLI 0.166.0:
+
+```sh
+codex plugin marketplace add ykaratkou/cook
+codex plugin add cook@cook
+```
+
+Restart Codex, then select a skill with `$` or `/skills`. The seven entry
+points are `$cook:plan`, `$cook:drain`, `$cook:register`, `$cook:status`,
+`$cook:verify`, `$cook:refine`, and `$cook:map`. For example:
+
+```text
+$cook:plan Add email notifications
+$cook:drain email-notifications
+```
+
+Where this README or a shared skill says `/cook:<verb>`, use `$cook:<verb>`
+on Codex. All seven skills require explicit invocation. Companions load by
+path from the plugin's shared files, without a separate installation.
+Cook needs Codex's subagent tools for attempts, verification, and Refine.
+When a structured question tool is unavailable, gates present their choices
+in chat and wait for your reply; non-interactive execution parks at a gate.
+
+To update, run `codex plugin marketplace upgrade cook`, then
+`codex plugin add cook@cook` and restart Codex. To remove it, run
+`codex plugin remove cook@cook`.
+
+For a local checkout, replace the marketplace-add argument with its absolute
+path. Reinstall after changes: Codex runs a cached copy, not the working tree.
+`node codex/smoke-test.mjs` checks installation and skill discovery in a
+temporary `CODEX_HOME`, including bundled references and invocation policies.
+It makes no model calls and does not change your Codex configuration.
 
 ### Companion skills — already included
 

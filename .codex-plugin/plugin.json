@@ -1,0 +1,6 @@
+{
+  "name": "cook",
+  "description": "Cook's task-set drain, planning, verification, Refine, human gates, and Wayfinding.",
+  "author": { "name": "Yauhen Karatkou" },
+  "skills": "./codex/skills/"
+}

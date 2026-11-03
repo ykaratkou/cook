@@ -33,7 +33,7 @@ ledger [`PARITY.md`](PARITY.md).
 ### opencode
 
 Cook's opencode adapter is one opencode **v2** plugin (opencode 1.x is not
-supported; facts are pinned to v2.0.20). opencode has no marketplace, so it
+supported; the adapter SDK is pinned to v2.2.5). opencode has no marketplace, so it
 installs straight from the GitHub repo:
 
 ```sh
@@ -46,6 +46,13 @@ autocomplete. The verbs are spelled exactly as on Claude Code (`/cook:drain`,
 `/cook:plan`, …).
 
 Updating is covered in [Updating on opencode](#updating-on-opencode) below.
+
+Commands show a compact `/cook:<verb> <arguments>` message. The expanded prompt
+and runtime paths are stored as the session instruction entry
+`cook/active-command`, retained for follow-up turns and replaced by the next Cook
+command in that session. This requires opencode v2.2.5 or newer. Do not queue
+different Cook commands in the same session before the previous one has run:
+they share that active instruction entry.
 
 To check the adapter against your installed opencode (plugin load, the seven
 commands and twelve skills, a `subagent` round-trip, a dismissed headless

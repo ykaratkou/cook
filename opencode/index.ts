@@ -102,9 +102,33 @@ export default Plugin.define({
           name: `cook:${verb}`,
           ...(description === undefined ? {} : { description }),
           execute: async ({ sessionID, prompt, delivery }) => {
+            const args = prompt.text.trim()
+            // Retain instructions for follow-up turns; the next Cook command
+            // replaces this session's active command context.
+            await ctx.session.instructions.entry.put({
+              sessionID,
+              key: "cook/active-command",
+              value: resolve(body, args) + trailer,
+            })
+
             await ctx.session.prompt({
               sessionID,
-              text: resolve(body, prompt.text.trim()) + trailer,
+              text: `/cook:${verb}${args ? ` ${args}` : ""}`,
+              // The rewritten text invalidates composer mention offsets.
+              ...(prompt.files === undefined ? {} : {
+                files: prompt.files.map((file) => ({
+                  uri: file.uri,
+                  ...(file.source === undefined ? {} : { source: file.source }),
+                  ...(file.name === undefined ? {} : { name: file.name }),
+                  ...(file.description === undefined ? {} : { description: file.description }),
+                })),
+              }),
+              ...(prompt.agents === undefined ? {} : {
+                agents: prompt.agents.map(({ name }) => ({ name })),
+              }),
+              ...(prompt.skills === undefined ? {} : {
+                skills: prompt.skills.map(({ id }) => ({ id })),
+              }),
               delivery,
             })
           },

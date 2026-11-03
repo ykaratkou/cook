@@ -13,7 +13,7 @@
 # answered. A future opencode release that breaks one of these is caught by
 # running this one command (spec 10, ADR-0014).
 #
-# Exercises them against your real installed opencode (2.0.20 pinned), through
+# Exercises them against your real installed opencode (2.2.5 pinned), through
 # the binary's own CLI and API, with no mocking. Exits non-zero at the first
 # failed check. Needs bash, node, git, and a configured model; checks 3 to 5
 # spend a few model calls, and check 6 fetches the plugin's npm dependencies.
@@ -126,11 +126,11 @@ tools_js='const tools = events.filter((e) => e.type === "tool_use" && e.part?.ty
 
 # --- 1. Version -------------------------------------------------------------
 
-label 1 "Version: opencode reports 2.0.x"
+label 1 "Version: opencode reports 2.2.x"
 version="$("$OPENCODE_BIN" --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1 || true)"
 case "$version" in
-2.0.*) ok "$version" ;;
-2.*) ok "WARN: $version is not the pinned 2.0.x; continuing" ;;
+2.2.*) ok "$version" ;;
+2.*) ok "WARN: $version is not the pinned 2.2.x; continuing" ;;
 *) fail "opencode version '$version' is not 2.x (the adapter is a v2 plugin)" ;;
 esac
 

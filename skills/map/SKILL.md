@@ -226,6 +226,26 @@ fault before you stop:
 - Write nothing outside `.cook/maps/<map-id>/`, except the task set Handoff
   creates under `.cook/tasks/`. Commit nothing.
 
+## Stops
+
+A turn that ends on a plain-text ask, waiting for the human, ends with one
+more line, the **stop marker** `Cook-Stop: <kind>`, under the plan skill's
+rules (`../plan/SKILL.md`, "Stops"; ADR-0019): always on, the turn's last
+line exactly, one per turn. Its kinds in a Map session:
+
+| Kind | The turn ends on |
+| --- | --- |
+| `questions` | a grilling round, in Chart or on a grilling ticket |
+| `confirm` | grilling's shared-understanding check |
+| `seams`, `breakdown` | Handoff's to-spec and to-tickets stops, as in the plan skill |
+| `ticket-blocked` | Work step 2: the named ticket is blocked, go on anyway? |
+| `handoff-confirm` | Handoff step 1: open tickets or Fog remain, hand off anyway? |
+| `prototype` | a prototype ticket's artifact, waiting for the human's verdict |
+| `checklist` | a `Mode: hitl` task ticket's checklist, waiting for the human to say it is done |
+
+A turn that ends on anything else (a report, Chart finding no Fog, the List)
+carries no marker.
+
 ## Sources
 
 `docs/spec/11-map.md` and `docs/adr/0017-cook-ports-wayfinding-as-cook-map.md`

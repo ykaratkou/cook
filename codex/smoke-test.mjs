@@ -82,10 +82,13 @@ try {
         await readFile(path.join(root, "skills", companion, "SKILL.md"), "utf8"),
       );
     }
+    if (verb === "plan" || verb === "map") {
+      assert.match(await readFile(path.join(installedRoot, "skills", verb, "SKILL.md"), "utf8"), /^## Stops$/m);
+    }
     await readFile(path.join(installedRoot, "prompts", "implementer.md"), "utf8");
     await readFile(path.join(installedRoot, "conventions", "verification.md"), "utf8");
   }
-  console.log("SMOKE OK: cached plugin install, seven explicit-only skills, shared references and companions");
+  console.log("SMOKE OK: cached plugin install, seven explicit-only skills, shared references, companions and Stops");
 } finally {
   if (server && server.exitCode === null) {
     const exited = new Promise((resolve) => server.once("exit", resolve));

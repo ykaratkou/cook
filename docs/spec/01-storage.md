@@ -222,6 +222,11 @@ instead of into the repository (ADR-0018). An **ADR draft**
 glossary entries to add, replace, and remove. Neither is read by the
 Verifier or Refiner as context.
 
+A delegate the human invokes to answer the interview for them is the human
+answering. Its judgement calls stay open for the human, and what it settles
+is still written only as drafts: glossary changes go to the Context draft,
+even when the delegate says to edit the glossary.
+
 A draft reaches the repository only when it is **Minted**: by the one task
 that implements its decision, through a checkbox under that task's
 `## Acceptance criteria` naming the draft by its full path:

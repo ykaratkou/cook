@@ -34,6 +34,13 @@ the repository. Instead, keep their discipline yourself:
 
 The human answers for themselves; never answer your own questions.
 
+**Delegated answers.** A delegate the human invokes to answer for them (a
+skill or command they run in the session) is the human answering: take its
+answers as theirs. Its judgement calls, the answers it leaves open for the
+human, stay open: put them to the human again, never settle them yourself.
+What it settles is still written only as drafts: a glossary change goes to
+the Context draft, even when the delegate says to edit the glossary.
+
 ## Context draft
 
 At the close of each round that settled terms, write them to

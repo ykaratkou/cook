@@ -119,6 +119,11 @@ draft — a numbered ADR, a glossary edit — in the same commit as the code.
 So a plan leaves your working tree untouched, and two plans can run in one
 repository at once ([ADR-0018](docs/adr/0018-plan-drafts-decisions-into-the-set.md)).
 
+Each time `/cook:plan` or `/cook:map` stops to wait for you in plain text (a
+grilling round, the breakdown quiz, …), its turn ends with a
+`Cook-Stop: <kind>` line, so a program driving the session can tell which
+stop it is ([ADR-0019](docs/adr/0019-plan-and-map-stops-end-with-a-cook-stop-line.md)).
+
 Provenance, the verbatim rule, and the upstream re-sync procedure:
 [`PROVENANCE.md`](PROVENANCE.md) (the decision is
 [ADR-0010](docs/adr/0010-companion-skills-ship-with-cook.md)). If you already

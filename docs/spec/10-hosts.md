@@ -72,6 +72,23 @@ types `/cook:drain` again. All state lives in files (doc 01), so the new
 Implement run re-derives everything and resumes exactly where the drain
 stopped.
 
+## Stop markers
+
+`/cook:plan` and `/cook:map` stop in plain text: a grilling round, a
+confirmation, a seams check, a breakdown quiz, a Map's handoff or ticket
+asks. Every such turn ends with a **stop marker**, a last line naming the
+stop, as a contract for any program that drives a cook session (ADR-0019):
+
+- Format: the turn's last line matches `^Cook-Stop: [a-z-]+$`.
+- Kinds: `questions`, `confirm`, `seams`, `breakdown` (plan and Map);
+  `ticket-blocked`, `handoff-confirm`, `prototype`, `checklist` (Map only).
+  The skills' "Stops" sections say which ask each kind ends.
+- Always on, on every host, whoever is in the session.
+- A turn with no marker does not end on one of these stops: it is a report,
+  or an ask outside the contract, for the driver to show its human as text.
+- The drain has no marker. Its gates are structured asks (doc 08), and
+  every other drain state derives from files (doc 02).
+
 ## Per-host layout
 
 ```
@@ -232,9 +249,14 @@ and each host's command wiring names its own; skill text only ever says
   reference via `../../../skills/`. The root's eight companions remain
   bundled resources loaded by path, rather than independently registered
   skills. Their own relative references continue to resolve from their files.
+- The plan and map wrappers carry no stop rule of their own: the shared
+  skills' "Stops" sections apply as read, so Codex ends each plain-text stop
+  with the same `Cook-Stop: <kind>` line (Stop markers, above). Those stops
+  stay plain text; `request_user_input` is for the drain's gates.
 - `node codex/smoke-test.mjs` installs into a disposable `CODEX_HOME`, asks
   the actual app server for its skills, and checks all seven names, cached
-  paths, policy files, shared references, and verbatim companions. This is an
+  paths, policy files, shared references, verbatim companions, and the
+  plan and map Stops sections in the installed copy. This is an
   installation/discovery check, not a model-driven drain or gate test.
 - Sources: [skills](https://developers.openai.com/codex/build-skills),
   [subagents](https://developers.openai.com/codex/agent-configuration/subagents),

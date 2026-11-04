@@ -12,6 +12,10 @@ host. The seven entry skills are explicit-only. Load companion skills from
 `<cook-root>/skills/<name>/SKILL.md`; do not substitute unrelated installed
 skills or interpret shared command spellings as shell commands.
 
+`$cook:plan` and `$cook:map` stop in plain text, never through
+`request_user_input`, and end each such turn with the shared skill's
+`Cook-Stop: <kind>` line exactly as its "Stops" section says (ADR-0019).
+
 | Capability | Mechanism on Codex |
 | --- | --- |
 | **Fresh-context subagent spawn** | `spawn_agent` with the rendered prompt as `message`, `agent_type: "default"`, and `fork_context: false`. Never fork the conversation or resume a prior agent. Use the same checkout; Attempts and Refiner need write permissions. If spawn tools are unavailable, stop and report the missing capability rather than implement in the parent. |

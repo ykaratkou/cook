@@ -16,7 +16,7 @@ nothing depending on it is the design, not a gap (ADR-0009).
 
 | Capability | claude-code | opencode (2.0.20) |
 |---|---|---|
-| Markdown skills (agentskills standard) | **Supported** — `.claude/skills/`, plugin skills | **Supported** — the plugin registers each root `skills/<dir>/SKILL.md` programmatically as `cook/<dir>`, with its absolute location; cook's own four and the vendored `wayfinder` with autoinvoke off |
+| Markdown skills (agentskills standard) | **Supported** — `.claude/skills/`, plugin skills | **Supported** — the plugin registers each root `skills/<dir>/SKILL.md` programmatically as `cook/<dir>`, with its absolute location; cook's own five and the vendored `wayfinder` with autoinvoke off |
 | Slash command mapping | **Supported** — plugin commands, always namespaced: `/cook:drain`, `/cook:plan`, … | **Supported** — plugin-registered commands named `cook:<verb>`, typed `/cook:drain`, `/cook:plan`, … exactly as on Claude Code |
 | Fresh-context subagent spawn | **Supported** — built-in Agent tool | **Supported** — the `subagent` tool with `agent: "general"`, never `background`, never a `sessionID` |
 | Subagent output capture | **Supported** — the subagent's final message is the Agent tool's return value | **Supported** — the text inside the `<subagent … state="completed">` wrapper; a spawn the human pushed to the background (Ctrl+B) returns a notice, not an outcome — the completion notification is parsed instead |
@@ -48,7 +48,7 @@ It is in the matrix because a human asks about it, not because cook does
 
 | Capability | Codex |
 | --- | --- |
-| Markdown skills | **Supported** — `.codex-plugin/plugin.json` selects `codex/skills/`; seven entry skills load the shared core by relative path. |
+| Markdown skills | **Supported** — `.codex-plugin/plugin.json` selects `codex/skills/`; eight entry skills load the shared core by relative path. |
 | Slash command mapping | **Supported** — equivalent explicit skill mentions `$cook:<verb>`; Codex adds the plugin namespace. These are not `/cook:<verb>` slash commands. |
 | Fresh-context subagent spawn | **Supported** — `spawn_agent`, `agent_type: "default"`, `fork_context: false`; never resume an earlier child. Requires enabled subagent tools. |
 | Subagent output capture | **Supported** — `wait` for terminal status, parse the completed final output, then `close_agent`. Wait timeouts are not Attempt outcomes. |
@@ -99,8 +99,9 @@ cook/
 ├── LICENSE-mattpocock-skills  ← their upstream license, verbatim
 ├── skills/             ← shared, single copy: the drain orchestration skill
 │                         + authoring contract (agentskills standard), plus
-│                         the map skill, and the eight vendored companion
-│                         skills (ADR-0010, ADR-0017).
+│                         the map skill, the auto-grill skill (ADR-0020),
+│                         and the eight vendored companion skills
+│                         (ADR-0010, ADR-0017).
 ├── docs/               ← this spec set
 ├── claude-code/        ← the Claude Code plugin
 │   ├── commands/       ← /cook:drain, /cook:plan, /cook:register,
@@ -108,7 +109,7 @@ cook/
 │   │                     /cook:map
 │   └── skills/         → symlink to ../skills
 ├── opencode/           ← the opencode v2 plugin (the whole adapter)
-│   ├── index.ts        ← registers the seven commands and twelve skills,
+│   ├── index.ts        ← registers the seven commands and thirteen skills,
 │   │                     and appends the runtime trailer
 │   ├── commands/       ← cook:drain … cook:map, each mirroring
 │   │                     claude-code/commands/<verb>.md
@@ -167,6 +168,9 @@ and each host's command wiring names its own; skill text only ever says
   commands load them by path, through the `claude-code/skills/` relative
   symlink; the files keep the agentskills SKILL.md shape as the portable core
   (ADR-0003).
+- `auto-grill` (ADR-0020) is cook's own but has no command, so it is the one
+  cook skill that stays user-invocable: it surfaces as `/cook:auto-grill`,
+  with `disable-model-invocation: true` so only the human starts it.
 - The eight vendored companion skills sit in that same directory and are
   registered the same way, as `cook:grill-with-docs`, `cook:grilling`,
   `cook:domain-modeling`, `cook:to-spec`, `cook:to-tickets`,
@@ -195,12 +199,12 @@ and each host's command wiring names its own; skill text only ever says
   names with no plugin namespace, lets a later source with the same id win,
   and also reads `~/.claude/skills`; the `cook/` prefix plays the role of
   Claude Code's `cook:`, so a user's own `grilling` or `to-spec` and cook's
-  copy never shadow each other. All twelve root skills are registered with
+  copy never shadow each other. All thirteen root skills are registered with
   their absolute `SKILL.md` location, so opencode's injected base directory
   resolves their relative references. opencode ignores
-  `disable-model-invocation`, so cook's own four (`cook/drain`, `cook/map`,
-  `cook/plan`, `cook/register`) and the vendored `cook/wayfinder` (manual-only
-  upstream) are registered with autoinvoke off; the other seven vendored
+  `disable-model-invocation`, so cook's own five (`cook/auto-grill`,
+  `cook/drain`, `cook/map`, `cook/plan`, `cook/register`) and the vendored
+  `cook/wayfinder` (manual-only upstream) are registered with autoinvoke off; the other seven vendored
   companions keep the default and stay verbatim (ADR-0010, ADR-0017), which
   is what makes `/cook:plan` work on a bare install.
 - **Command spelling is `/cook:<verb>`**, the same as Claude Code: the seven
@@ -241,7 +245,8 @@ and each host's command wiring names its own; skill text only ever says
   `codex plugin marketplace add` accepts the repository or a local checkout;
   `codex plugin add cook@cook` installs a cached copy. Paths must resolve
   inside that copy, never against the source checkout or target repository.
-- Seven `codex/skills/<verb>/SKILL.md` wrappers replace command files. Codex
+- Eight `codex/skills/<verb>/SKILL.md` wrappers replace command files: the
+  seven verbs and `auto-grill`. Codex
   prefixes their names with `cook:`. Each has `agents/openai.yaml` setting
   `policy.allow_implicit_invocation: false`; Claude's frontmatter suppression
   is not used as a substitute for Codex's policy.
@@ -254,7 +259,7 @@ and each host's command wiring names its own; skill text only ever says
   with the same `Cook-Stop: <kind>` line (Stop markers, above). Those stops
   stay plain text; `request_user_input` is for the drain's gates.
 - `node codex/smoke-test.mjs` installs into a disposable `CODEX_HOME`, asks
-  the actual app server for its skills, and checks all seven names, cached
+  the actual app server for its skills, and checks all eight names, cached
   paths, policy files, shared references, verbatim companions, and the
   plan and map Stops sections in the installed copy. This is an
   installation/discovery check, not a model-driven drain or gate test.

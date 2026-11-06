@@ -16,10 +16,11 @@ const dirs = {
   commands: path.join(adapterDir, "commands"),
 }
 
-// Cook's own skills start only from an explicit /cook:<verb> command (opencode
-// ignores `disable-model-invocation`). The vendored companions keep the default,
-// except `wayfinder`, which upstream marks manual-only and /cook:map reads by path.
-const notAutoinvoked = new Set(["drain", "map", "plan", "register", "wayfinder"])
+// Cook's own skills start only from an explicit /cook:<verb> command or, for
+// auto-grill, the human's own invocation (opencode ignores
+// `disable-model-invocation`). The vendored companions keep the default, except
+// `wayfinder`, which upstream marks manual-only and /cook:map reads by path.
+const notAutoinvoked = new Set(["auto-grill", "drain", "map", "plan", "register", "wayfinder"])
 
 // The cook verbs this adapter registers; each has `commands/<verb>.md`.
 // Drift note: each `commands/<verb>.md` mirrors the Claude Code command of the

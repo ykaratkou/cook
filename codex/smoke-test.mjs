@@ -11,7 +11,7 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const home = await realpath(await mkdtemp(path.join(tmpdir(), "cook-codex-smoke-")));
 const env = { ...process.env, CODEX_HOME: home };
 const bin = process.env.CODEX_BIN || "codex";
-const verbs = ["drain", "map", "plan", "refine", "register", "status", "verify"];
+const verbs = ["auto-grill", "drain", "map", "plan", "refine", "register", "status", "verify"];
 let server;
 try {
   for (const args of [
@@ -88,7 +88,7 @@ try {
     await readFile(path.join(installedRoot, "prompts", "implementer.md"), "utf8");
     await readFile(path.join(installedRoot, "conventions", "verification.md"), "utf8");
   }
-  console.log("SMOKE OK: cached plugin install, seven explicit-only skills, shared references, companions and Stops");
+  console.log("SMOKE OK: cached plugin install, eight explicit-only skills, shared references, companions and Stops");
 } finally {
   if (server && server.exitCode === null) {
     const exited = new Promise((resolve) => server.once("exit", resolve));

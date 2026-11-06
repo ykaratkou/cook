@@ -17,8 +17,10 @@ They are verbatim copies of Matt Pocock's skills, vendored so `/cook:plan` and
 | `research/` | `/cook:map` — resolves research tickets, in subagents. |
 | `prototype/` | `/cook:map` — resolves prototype tickets (with `LOGIC.md`, `UI.md`). |
 
-Everything else under `skills/` is cook's own (`drain/`, `map/`, `plan/`,
-`register/`).
+Everything else under `skills/` is cook's own (`auto-grill/`, `drain/`,
+`map/`, `plan/`, `register/`). `auto-grill/` came from the author's dotfiles
+([ADR-0020](docs/adr/0020-cook-ships-auto-grill.md)); the verbatim rule below
+does not apply to it.
 
 ## Upstream
 

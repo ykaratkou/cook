@@ -55,7 +55,7 @@ different Cook commands in the same session before the previous one has run:
 they share that active instruction entry.
 
 To check the adapter against your installed opencode (plugin load, the seven
-commands and twelve skills, a `subagent` round-trip, a dismissed headless
+commands and thirteen skills, a `subagent` round-trip, a dismissed headless
 `question`, a git-spec install of the committed `HEAD`), run the smoke script
 from a checkout:
 
@@ -76,9 +76,9 @@ codex plugin marketplace add ykaratkou/cook
 codex plugin add cook@cook
 ```
 
-Restart Codex, then select a skill with `$` or `/skills`. The seven entry
+Restart Codex, then select a skill with `$` or `/skills`. The eight entry
 points are `$cook:plan`, `$cook:drain`, `$cook:register`, `$cook:status`,
-`$cook:verify`, `$cook:refine`, and `$cook:map`. For example:
+`$cook:verify`, `$cook:refine`, `$cook:map`, and `$cook:auto-grill`. For example:
 
 ```text
 $cook:plan Add email notifications
@@ -86,7 +86,7 @@ $cook:drain email-notifications
 ```
 
 Where this README or a shared skill says `/cook:<verb>`, use `$cook:<verb>`
-on Codex. All seven skills require explicit invocation. Companions load by
+on Codex. All eight skills require explicit invocation. Companions load by
 path from the plugin's shared files, without a separate installation.
 Cook needs Codex's subagent tools for attempts, verification, and Refine.
 When a structured question tool is unavailable, gates present their choices
@@ -129,6 +129,18 @@ Provenance, the verbatim rule, and the upstream re-sync procedure:
 [ADR-0010](docs/adr/0010-companion-skills-ship-with-cook.md)). If you already
 have these skills, nothing collides: Claude Code loads cook's copies under a
 `cook:` prefix and opencode under a `cook/` prefix, beside your own.
+
+### Auto-grill
+
+When a grilling round stops on open questions, `/cook:auto-grill [hints]`
+(`$cook:auto-grill` on Codex) hands them to a read-only answerer subagent.
+The answerer works from the code, glossary, ADRs and the web. Supported answers
+are applied as your replies. Judgement calls stay open for you to confirm or
+correct. Each run's handoff, answers and context snapshot are logged under
+`~/.local/state/auto-grill/runs/`. The answerer prompt is
+[`skills/auto-grill/ANSWERER.md`](skills/auto-grill/ANSWERER.md), and
+`skills/auto-grill/evals/run.py` grades it against saved cases
+([ADR-0020](docs/adr/0020-cook-ships-auto-grill.md)).
 
 ### Updating on Claude Code
 

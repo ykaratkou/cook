@@ -23,6 +23,8 @@ own-kanban Map, ticket "Cook changes for driven runs").
 - The format is `^Cook-Stop: [a-z-]+$`, the turn's last line. The kinds are
   `questions`, `confirm`, `seams`, `breakdown`, and on Maps also
   `ticket-blocked`, `handoff-confirm`, `prototype`, `checklist`.
+  Amended 2026-11-06 (ADR-0020): `judgement`, which auto-grill ends with when
+  it leaves judgement calls open, in a plan, a Map, or any other session.
 - It is always on, interactive or driven: one rule, no mode to detect.
 - The rule lives in cook's own `skills/plan/SKILL.md` and
   `skills/map/SKILL.md` ("Stops"), which every host's plan and map entry

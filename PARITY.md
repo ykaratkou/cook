@@ -117,7 +117,7 @@ union, for the porting diff.
 
 | Cook doc | Pop sources |
 | --- | --- |
-| `CONTEXT.md` | pop `GLOSSARY.md` (glossary), ADR-0190, ADR-0211, ADR-0216, ADR-0231, ADR-0245, ADR-0246/0247/0248/0252/0260, ADR-0259, ADR-0267 |
+| `GLOSSARY.md` | pop `GLOSSARY.md` (glossary), ADR-0190, ADR-0211, ADR-0216, ADR-0231, ADR-0245, ADR-0246/0247/0248/0252/0260, ADR-0259, ADR-0267 |
 | `docs/spec/00-overview.md` | pop `GLOSSARY.md` (Implement run, Drain, Turn cap), ADR-0190 |
 | `docs/spec/01-storage.md` | pop `GLOSSARY.md` (Task manifest, State vs Journal vs Telemetry), `tasks/authoring_guide.go` (incl. Orientation), `tasks/manifest.go` (validation), ADR-0267 |
 | `docs/spec/02-status-derivation.md` | pop `GLOSSARY.md` (status derivation, eligibility), `tasks/verified_status.go`, `tasks/refine_mark.go` |
@@ -196,8 +196,10 @@ Run at the end of every porting session:
 ## Sources in pop
 
 - The repository at `../pop`, watermark `af9826ef`. Pop's glossary is
-  `GLOSSARY.md` since pop ADR-0285 (it was `CONTEXT.md`); cook's own glossary
-  keeps the name `CONTEXT.md`, which its vendored companion skills read.
+  `GLOSSARY.md` since pop ADR-0285 (it was `CONTEXT.md`). Cook's glossary
+  follows upstream and pop to `GLOSSARY.md` (2026-11-06), the name its
+  vendored companion skills read. ADRs written before then still say
+  `CONTEXT.md`.
 - pop `CLAUDE.md` / `docs/agents/navigation.md` — the package map the
   doc-to-source table's paths come from.
 - pop ADRs cited per-row above: 0040, 0096, 0109, 0165, 0166, 0179, 0190,

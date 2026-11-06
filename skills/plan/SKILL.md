@@ -101,7 +101,8 @@ program authored to generate the set.
 ## Stops
 
 Four times the plan ends its turn on a plain-text ask and waits for the
-human. Each such turn ends with one more line, the **stop marker**
+human, and a fifth when the human runs auto-grill on a grilling round and it
+leaves judgement calls open. Each such turn ends with one more line, the **stop marker**
 `Cook-Stop: <kind>`, so a program driving the session can tell which stop
 it is (`docs/spec/10-hosts.md`, "Stop markers"; ADR-0019):
 
@@ -111,13 +112,14 @@ it is (`docs/spec/10-hosts.md`, "Stop markers"; ADR-0019):
 | `confirm` | grilling's check that you have reached a shared understanding |
 | `seams` | to-spec's check that the test seams match the human's expectations |
 | `breakdown` | to-tickets' quiz on the proposed breakdown |
+| `judgement` | auto-grill's answers to a grilling round, when it left judgement calls open for the human (its own rule, `../auto-grill/SKILL.md`) |
 
 - The marker is always on, whoever is in the session, and it is the turn's
   **last line**, exactly `Cook-Stop: <kind>`: not in a code fence, not
   bold, nothing after it.
 - One marker per turn, for the stop it ends on.
 - A turn that does not end waiting on one of these carries no marker: the
-  step 6 report, a broken-install stop, or a question outside the four.
+  step 6 report, a broken-install stop, or a question outside these five.
 
 ## Sources
 

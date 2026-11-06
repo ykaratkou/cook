@@ -25,13 +25,16 @@ We decided **cook ships `auto-grill` as one of its own skills**, at
   (`disable-model-invocation: true`, user-invocable, with no command beside
   it), `cook/auto-grill` with autoinvoke off on opencode, and the
   `$cook:auto-grill` wrapper with `allow_implicit_invocation: false` on Codex.
-- Its eval runner (`evals/run.py`) moves with it, because the runner reads
-  `ANSWERER.md` from its parent directory. Eval results stay untracked.
-- The run log stays outside every repository, under
-  `~/.local/state/auto-grill/runs/`.
-- `auto-grill-improve` stays in the author's dotfiles, pointed at a cook
-  checkout. It edits `ANSWERER.md` in a source tree, so it is a maintainer
-  tool, not a plugin verb.
+- Cook ships no eval tooling. The run log stays outside every repository,
+  under `~/.local/state/auto-grill/runs/`, and so does any eval case built
+  from it: a case snapshots another project's glossary and ADRs, which a
+  public repository must not carry.
+- When it leaves judgement calls open, its turn ends with
+  `Cook-Stop: judgement`, in every session (ADR-0019, amended). A driver
+  shows that stop to the human and never answers it with auto-grill again.
+- Inside a plan or a Map, its handoff names the set's or Map's drafts, and
+  its run log snapshots them, so the answerer sees the decisions the
+  interview has already settled.
 
 ## Consequences
 
@@ -44,5 +47,7 @@ We decided **cook ships `auto-grill` as one of its own skills**, at
 
 ## Sources
 
+- User decisions, 2026-11-06 (grilling session on auto-grill's place in
+  cook): no eval tooling in cook, the `judgement` stop, drafts in the handoff.
 - Cook ADR-0010 (vendored companions), ADR-0018 (decision drafts), ADR-0019
   (Cook-Stop lines and delegated answers); doc 10.

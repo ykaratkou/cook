@@ -15,7 +15,7 @@ session, and files under `.cook/` are the only state.
 Cook is **docs-first**: the spec set under [`docs/spec/`](docs/spec/) is
 implementation-binding. Start with
 [`00-overview.md`](docs/spec/00-overview.md); the glossary is
-[`CONTEXT.md`](CONTEXT.md) (pop's terms, imported verbatim), the porting
+[`GLOSSARY.md`](GLOSSARY.md) (pop's terms, imported verbatim), the porting
 ledger [`PARITY.md`](PARITY.md).
 
 ## Install
@@ -136,10 +136,10 @@ When a grilling round stops on open questions, `/cook:auto-grill [hints]`
 (`$cook:auto-grill` on Codex) hands them to a read-only answerer subagent.
 The answerer works from the code, glossary, ADRs and the web. Supported answers
 are applied as your replies. Judgement calls stay open for you to confirm or
-correct. Each run's handoff, answers and context snapshot are logged under
+correct, and the turn ends with `Cook-Stop: judgement`. Each run's handoff,
+answers and context snapshot are logged under
 `~/.local/state/auto-grill/runs/`. The answerer prompt is
-[`skills/auto-grill/ANSWERER.md`](skills/auto-grill/ANSWERER.md), and
-`skills/auto-grill/evals/run.py` grades it against saved cases
+[`skills/auto-grill/ANSWERER.md`](skills/auto-grill/ANSWERER.md)
 ([ADR-0020](docs/adr/0020-cook-ships-auto-grill.md)).
 
 ### Updating on Claude Code
@@ -218,6 +218,7 @@ sign-off; everything between is automatic:
 | `/cook:status` | Derive and print every set's status and open tasks. Read-only. |
 | `/cook:verify <set-id>` | Force the Verifier now, outside the automatic flow. |
 | `/cook:refine <set-id>` | Force a Refine pass now, outside the automatic flow. |
+| `/cook:auto-grill [hints]` | At a grilling round, answer the open questions with a read-only subagent; judgement calls stay yours. |
 
 Work too big for one session starts one step earlier, with **Wayfinding**:
 `/cook:map <idea>` charts a Map of decision tickets, `/cook:map <map-id>`

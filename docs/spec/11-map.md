@@ -6,7 +6,7 @@ is out of scope. `/cook:map` charts a Map, resolves its tickets, and hands the
 finished Map to `/cook:plan`'s decomposition as one Task set. Wayfinding
 produces decisions, not deliverables; the Drain builds what the Map decided.
 
-Terms are `CONTEXT.md`'s `### Wayfinding` section. The decision is ADR-0017.
+Terms are `GLOSSARY.md`'s `### Wayfinding` section. The decision is ADR-0017.
 
 ## Composition
 

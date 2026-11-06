@@ -396,10 +396,18 @@ grill-with-docs, grilling, domain-modeling, to-spec, to-tickets — shipped as
 verbatim vendored copies of an upstream MIT skill set (ADR-0010,
 `PROVENANCE.md`). The plan interview runs grilling alone; grill-with-docs and
 domain-modeling ship but are never loaded by it (ADR-0018). Reserve the word for those five: cook's own drain,
-plan, and register skills are never companions. A human can still author sets
-by hand against the storage contract, but a machine missing a companion is a
+plan, register, and auto-grill skills are never companions. A human can still
+author sets by hand against the storage contract, but a machine missing a companion is a
 broken install, not a supported mode.
 _Avoid_: dependency skills, external skills, third-party skills
+
+**Auto-grill**:
+Cook's skill a human runs at a grilling round to have it answered for them: a
+read-only answerer subagent works each open question from the code, the
+glossary, ADRs, and the web. Answers it can support are applied as the human's
+replies; its judgement calls stay open for the human. Inside a plan or a Map it
+is the human answering, so what it settles is still written only as drafts
+(ADR-0020, ADR-0018). Cook's own skill, not a Companion skill.
 
 ### Wayfinding
 

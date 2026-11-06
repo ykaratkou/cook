@@ -121,6 +121,7 @@ opens: cheap agent checking precedes expensive human time.
 | `/cook:verify <set-id>` | Force the Verifier now, outside the automatic flow. |
 | `/cook:refine <set-id>` | Force a Refine pass now, outside the automatic flow. |
 | `/cook:map [<map-id> \| <idea>] […]` | Wayfinding: chart a Map, work its Decision tickets, assist, or hand it off to one task set (doc 11). |
+| `/cook:auto-grill [hints]` | Answer a grilling round's open questions through a read-only subagent; judgement calls stay with the human (ADR-0020). Not a verb with state: a skill the human runs at a `questions` stop. |
 
 Host-specific invocation mapping (how the verbs resolve on Claude Code and
 on opencode) lives in `10-hosts.md`.
@@ -129,7 +130,7 @@ on opencode) lives in `10-hosts.md`.
 
 Cook imports pop's glossary verbatim: Drain, Implement run, Attempt, Turn,
 AFK task, HITL task, Verifier, Refiner, Remediation task, verification
-episode, and the rest (see `CONTEXT.md` at the repo root). Two rules carry
+episode, and the rest (see `GLOSSARY.md` at the repo root). Two rules carry
 extra weight:
 
 - **The word "ralph" stays out of cook's vocabulary**, for the same reason

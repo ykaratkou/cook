@@ -81,13 +81,19 @@ stop, as a contract for any program that drives a cook session (ADR-0019):
 
 - Format: the turn's last line matches `^Cook-Stop: [a-z-]+$`.
 - Kinds: `questions`, `confirm`, `seams`, `breakdown` (plan and Map);
-  `ticket-blocked`, `handoff-confirm`, `prototype`, `checklist` (Map only).
-  The skills' "Stops" sections say which ask each kind ends.
+  `ticket-blocked`, `handoff-confirm`, `prototype`, `checklist` (Map only);
+  `judgement` (auto-grill, wherever it runs). The skills' "Stops" sections
+  say which ask each kind ends.
 - Always on, on every host, whoever is in the session.
 - A turn with no marker does not end on one of these stops: it is a report,
   or an ask outside the contract, for the driver to show its human as text.
 - The drain has no marker. Its gates are structured asks (doc 08), and
   every other drain state derives from files (doc 02).
+- A `questions` stop is where a human, or a driver on their behalf, may run
+  `/cook:auto-grill` (ADR-0020) to answer the round. Its answers count as the
+  human's (doc 01, "Decision drafts"). A `judgement` stop is auto-grill
+  handing its judgement calls back: only the human settles those, so a
+  driver must not answer it with auto-grill again.
 
 ## Per-host layout
 

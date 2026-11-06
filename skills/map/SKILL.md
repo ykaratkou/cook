@@ -237,6 +237,7 @@ line exactly, one per turn. Its kinds in a Map session:
 | --- | --- |
 | `questions` | a grilling round, in Chart or on a grilling ticket |
 | `confirm` | grilling's shared-understanding check |
+| `judgement` | auto-grill's answers to a grilling round, with judgement calls left open, as in the plan skill |
 | `seams`, `breakdown` | Handoff's to-spec and to-tickets stops, as in the plan skill |
 | `ticket-blocked` | Work step 2: the named ticket is blocked, go on anyway? |
 | `handoff-confirm` | Handoff step 1: open tickets or Fog remain, hand off anyway? |

@@ -29,8 +29,8 @@ does not apply to it.
   beside this file is the upstream license file, copied verbatim
   (Copyright (c) 2026 Matt Pocock).
 - **Copied from**: tag/version `1.3.2`, commit
-  `a496f5513d4a4cf889bc48e189e579f4b0bdf6aa`
-- **Copy date**: 2026-10-30
+  `bbadaa631c37af594e5a05c9cefacd9956136b18`
+- **Copy date**: 2026-11-28
 - **Upstream paths**: `skills/engineering/{grill-with-docs,domain-modeling,to-spec,to-tickets,wayfinder,research,prototype}`,
   `skills/productivity/grilling` — flattened to one directory per skill here,
   because Claude Code discovers skills as `skills/<name>/SKILL.md` and cook's
